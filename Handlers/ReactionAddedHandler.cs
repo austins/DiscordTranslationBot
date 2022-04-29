@@ -47,7 +47,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
         if (targetLangCode == null)
         {
-            _logger.LogInformation($"Language not supported for country [{countryName}].");
+            _logger.LogWarning($"Language not supported for country [{countryName}].");
             return;
         }
 
@@ -61,7 +61,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
-            _logger.LogInformation("Nothing to translate after source message was sanitized.");
+            _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
             return;
         }
 
@@ -79,12 +79,27 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
                     var channel = await notification.Channel.GetOrDownloadAsync();
 
-                    var translatedMessage = await channel.SendMessageAsync(
-                        $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}",
+                    string replyText;
+                    if (translatedText == sanitizedMessage)
+                    {
+                        _logger.LogWarning(
+                            "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
+
+                        replyText =
+                            $"Couldn't detect the source language to translate from.";
+                    }
+                    else
+                    {
+                        replyText =
+                            $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
+                    }
+
+                    var replyMessage = await channel.SendMessageAsync(
+                        replyText,
                         messageReference: new MessageReference(sourceMessage.Id));
 
                     await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
-                    await translatedMessage.DeleteAsync();
+                    await replyMessage.DeleteAsync();
                     await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
                 }
                 catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.MissingPermissions)
