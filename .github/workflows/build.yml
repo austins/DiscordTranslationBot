@@ -23,7 +23,8 @@ jobs:
             pull-requests: write
             contents: write
         steps:
-            -   uses: fastify/github-action-merge-dependabot@v3
+            -   name: Automerge
+                uses: fastify/github-action-merge-dependabot@v3
                 with:
                     github-token: ${{ secrets.PAT_REPO }}
                     target: minor
