@@ -67,6 +67,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
+            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
             return;
         }
 
