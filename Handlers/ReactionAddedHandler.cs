@@ -50,7 +50,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         {
             _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
 
-            await SendTempMessage(
+            SendTempMessage(
                 $"Translation for country {countryName} isn't supported.",
                 notification.Reaction,
                 sourceMessage,
@@ -89,7 +89,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                     $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
             }
 
-            await SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
+            SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
         }
         catch (HttpRequestException ex) when
             (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
@@ -103,14 +103,14 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// <param name="reaction">The reaction.</param>
     /// <param name="sourceMessage">The source message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    private static Task SendTempMessage(
+    private static void SendTempMessage(
         string text,
         SocketReaction reaction,
         IMessage sourceMessage,
         CancellationToken cancellationToken)
     {
         // Wrapped in Task.Run to not block the handler as the cleanup has a delay of over 3 seconds.
-        _ = Task.Run(
+        Task.Run(
             async () =>
             {
                 // Send message.
@@ -124,7 +124,5 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                 await replyMessage.DeleteAsync();
             },
             cancellationToken);
-
-        return Task.CompletedTask;
     }
 }
