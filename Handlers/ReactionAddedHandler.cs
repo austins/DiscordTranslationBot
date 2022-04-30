@@ -51,7 +51,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             {
                 try
                 {
-                    bool doTranslation = true;
+                    var doTranslation = true;
                     IUserMessage? replyMessage = null;
 
                     var channel = await notification.Channel.GetOrDownloadAsync();
@@ -111,16 +111,14 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
                     await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
 
-                    if (replyMessage != null)
-                    {
-                        await replyMessage.DeleteAsync();
-                    }
+                    if (replyMessage != null) await replyMessage.DeleteAsync();
                 }
                 catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.MissingPermissions)
                 {
                     _logger.LogError(ex, "Missing permissions for channel.");
                 }
-                catch (HttpRequestException ex) when (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
+                catch (HttpRequestException ex) when
+                    (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
                 {
                     _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
                 }

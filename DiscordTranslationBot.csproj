@@ -17,6 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include=".github\" />
+    <Content Include=".github\**" />
   </ItemGroup>
 </Project>
