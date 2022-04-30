@@ -19,9 +19,6 @@ jobs:
     automerge:
         needs: docker
         runs-on: ubuntu-latest
-        permissions:
-            pull-requests: write
-            contents: write
         steps:
             -   name: Automerge
                 uses: fastify/github-action-merge-dependabot@v3
