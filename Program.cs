@@ -23,7 +23,7 @@ try
                             {
                                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages |
                                                  GatewayIntents.GuildMessageReactions,
-                                MessageCacheSize = 100
+                                MessageCacheSize = 100,
                             }))
                     .AddSingleton<DiscordEventListener>()
                     .AddHostedService<Worker>();
@@ -32,9 +32,9 @@ try
 
     await host.RunAsync();
 }
-catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.Contains(DiscordOptions.SectionName)) ||
+catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal)) ||
                            (ex is ArgumentNullException or UriFormatException &&
-                            ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true))
+                            ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true))
 {
     // The app is missing configuration options.
     Console.WriteLine(

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace DiscordTranslationBot;
 
-/// <summary>The main worker service.</summary>
+/// <summary>
+/// The main worker service.
+/// </summary>
 public class Worker : BackgroundService
 {
     private readonly DiscordSocketClient _client;
@@ -16,7 +18,9 @@ public class Worker : BackgroundService
     private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;
     private readonly ILogger<Worker> _logger;
 
-    /// <summary>Initializes the main worker service.</summary>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Worker"/> class.
+    /// </summary>
     /// <param name="libreTranslate">LibreTranslate client to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="eventListener">Discord event listener to use.</param>
@@ -39,17 +43,9 @@ public class Worker : BackgroundService
         _logger = logger;
     }
 
-    /// <summary>The main execution thread that monitors for a cancellation request to stop the app.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            await Task.Delay(1000, cancellationToken);
-        }
-    }
-
-    /// <summary>Runs when app is started.</summary>
+    /// <summary>
+    /// Runs when app is started.
+    /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -59,7 +55,7 @@ public class Worker : BackgroundService
             await _libreTranslate.GetSupportedLanguagesAsync();
         }
         catch (HttpRequestException ex) when
-            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
+            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true)
         {
             _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
             _hostApplicationLifetime.StopApplication();
@@ -79,12 +75,14 @@ public class Worker : BackgroundService
         await _client.StartAsync();
 
         // Initialize the Discord event listener.
-        await _eventListener.InitializeEvents();
+        await _eventListener.InitializeEventsAsync();
 
         await base.StartAsync(cancellationToken);
     }
 
-    /// <summary>Stops the app gracefully.</summary>
+    /// <summary>
+    /// Stops the app gracefully.
+    /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
@@ -92,5 +90,17 @@ public class Worker : BackgroundService
         await _client.StopAsync();
 
         await base.StopAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The main execution thread that monitors for a cancellation request to stop the app.
+    /// </summary>
+    /// <param name="stoppingToken">Cancellation token.</param>
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await Task.Delay(1000, stoppingToken);
+        }
     }
 }

@@ -1,23 +1,27 @@
-﻿using Discord;
+﻿using System.Text.RegularExpressions;
+using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Services;
 using LibreTranslate.Net;
 using MediatR;
 using NeoSmart.Unicode;
-using System.Text.RegularExpressions;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
 
-/// <summary>Handles the ReactionAdded event of the Discord client.</summary>
+/// <summary>
+/// Handles the ReactionAdded event of the Discord client.
+/// </summary>
 internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly FlagEmojiService _flagEmojiService;
     private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;
     private readonly ILogger<ReactionAddedHandler> _logger;
 
-    /// <summary>Initializes the handler.</summary>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReactionAddedHandler"/> class.
+    /// </summary>
     /// <param name="libreTranslate">LibreTranslate client to use.</param>
     /// <param name="flagEmojiService">FlagEmojiService to use.</param>
     /// <param name="logger">Logger to use.</param>
@@ -31,7 +35,9 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         _logger = logger;
     }
 
-    /// <summary>Translates any message that got a flag emoji reaction on it.</summary>
+    /// <summary>
+    /// Translates any message that got a flag emoji reaction on it.
+    /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
@@ -93,13 +99,15 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
         }
         catch (HttpRequestException ex) when
-            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
+            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true)
         {
             _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
         }
     }
 
-    /// <summary>Sends a message and then clears the reaction and message after a certain time.</summary>
+    /// <summary>
+    /// Sends a message and then clears the reaction and message after a certain time.
+    /// </summary>
     /// <param name="text">Text to send in message.</param>
     /// <param name="reaction">The reaction.</param>
     /// <param name="sourceMessage">The source message.</param>
@@ -111,7 +119,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         CancellationToken cancellationToken)
     {
         // Wrapped in Task.Run to not block the handler as the cleanup has a delay of over 3 seconds.
-        Task.Run(
+        _ = Task.Run(
             async () =>
             {
                 // Send message.

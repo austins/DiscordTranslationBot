@@ -11,23 +11,20 @@ public sealed class FlagEmojiService
 {
     private readonly IEnumerable<SingleEmoji> _emoji;
 
-    /// <summary>Initializes the FlagEmojiService.</summary>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FlagEmojiService"/> class.
+    /// </summary>
     public FlagEmojiService()
     {
         _emoji = Emoji.All.Where(e => e.Group == "Flags");
     }
 
-    /// <summary>Get a country name by the Unicode sequence of an emoji.</summary>
-    /// <param name="sequence">The Unicode sequence.</param>
-    /// <returns>Country name.</returns>
-    public string? GetCountryNameBySequence(UnicodeSequence sequence)
-    {
-        return _emoji.SingleOrDefault(e => e.Sequence == sequence).Name
-            ?.Replace("flag: ", string.Empty);
-    }
-
-    /// <summary>Get the language code by country name.</summary>
-    /// <remarks>More countries can be mapped here. Only some languages are supported by LibreTranslate.</remarks>
+    /// <summary>
+    /// Get the language code by country name.
+    /// </summary>
+    /// <remarks>
+    /// More countries can be mapped here. Only some languages are supported by LibreTranslate.
+    /// </remarks>
     /// <param name="countryName">The country name.</param>
     /// <returns><see cref="LanguageCode" /> for LibreTranslate.</returns>
     public static LanguageCode? GetLanguageCodeByCountryName(string countryName)
@@ -59,5 +56,16 @@ public sealed class FlagEmojiService
             "Spain" => LanguageCode.Spanish,
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Get a country name by the Unicode sequence of an emoji.
+    /// </summary>
+    /// <param name="sequence">The Unicode sequence.</param>
+    /// <returns>Country name.</returns>
+    public string? GetCountryNameBySequence(UnicodeSequence sequence)
+    {
+        return _emoji.SingleOrDefault(e => e.Sequence == sequence).Name
+            ?.Replace("flag: ", string.Empty, StringComparison.Ordinal);
     }
 }

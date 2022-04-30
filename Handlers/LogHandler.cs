@@ -4,19 +4,25 @@ using MediatR;
 
 namespace DiscordTranslationBot.Handlers;
 
-/// <summary>Handles the Log event of the Discord client.</summary>
+/// <summary>
+/// Handles the Log event of the Discord client.
+/// </summary>
 internal sealed class LogHandler : INotificationHandler<LogNotification>
 {
     private readonly ILogger<LogHandler> _logger;
 
-    /// <summary>Initializes the handler.</summary>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LogHandler"/> class.
+    /// </summary>
     /// <param name="logger">Logger to use.</param>
     public LogHandler(ILogger<LogHandler> logger)
     {
         _logger = logger;
     }
 
-    /// <summary>Sends all Discord log messages to the logger.</summary>
+    /// <summary>
+    /// Sends all Discord log messages to the logger.
+    /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     public Task Handle(LogNotification notification, CancellationToken cancellationToken)

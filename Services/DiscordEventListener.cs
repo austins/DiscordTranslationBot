@@ -5,7 +5,9 @@ using MediatR;
 
 namespace DiscordTranslationBot.Services;
 
-/// <summary>Configures the events for the Discord client.</summary>
+/// <summary>
+/// Configures the events for the Discord client.
+/// </summary>
 public sealed class DiscordEventListener
 {
     private readonly CancellationToken _cancellationToken;
@@ -13,7 +15,9 @@ public sealed class DiscordEventListener
     private readonly ILogger<DiscordEventListener> _logger;
     private readonly IMediator _mediator;
 
-    /// <summary>Initializes the DiscordEventListener.</summary>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DiscordEventListener"/> class.
+    /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
@@ -28,30 +32,36 @@ public sealed class DiscordEventListener
         _cancellationToken = new CancellationTokenSource().Token;
     }
 
-    /// <summary>Hooks up the events to be published to MediatR handlers.</summary>
-    public async Task InitializeEvents()
+    /// <summary>
+    /// Hooks up the events to be published to MediatR handlers.
+    /// </summary>
+    public Task InitializeEventsAsync()
     {
-        _client.Log += Log;
-        _client.ReactionAdded += ReactionAdded;
+        _client.Log += LogAsync;
+        _client.ReactionAdded += ReactionAddedAsync;
 
         _logger.LogInformation("Notification events initialized.");
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
-    /// <summary>Log event.</summary>
+    /// <summary>
+    /// Log event.
+    /// </summary>
     /// <param name="logMessage">Discord log message.</param>
-    private Task Log(LogMessage logMessage)
+    private Task LogAsync(LogMessage logMessage)
     {
         return _mediator.Publish(
             new LogNotification { LogMessage = logMessage },
             _cancellationToken);
     }
 
-    /// <summary>ReactionAdded event.</summary>
+    /// <summary>
+    /// ReactionAdded event.
+    /// </summary>
     /// <param name="message">Discord user message.</param>
     /// <param name="channel">Discord message channel.</param>
     /// <param name="reaction">The reaction.</param>
-    private Task ReactionAdded(
+    private Task ReactionAddedAsync(
         Cacheable<IUserMessage, ulong> message,
         Cacheable<IMessageChannel, ulong> channel,
         SocketReaction reaction)
