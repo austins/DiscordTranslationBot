@@ -50,7 +50,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         {
             _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
 
-            await SendTempMessageAsync(
+            await SendTempMessage(
                 $"Translation for country {countryName} isn't supported.",
                 notification.Reaction,
                 sourceMessage,
@@ -89,7 +89,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                     $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
             }
 
-            await SendTempMessageAsync(replyText, notification.Reaction, sourceMessage, cancellationToken);
+            await SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
         }
         catch (HttpRequestException ex) when
             (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
@@ -103,7 +103,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// <param name="reaction">The reaction.</param>
     /// <param name="sourceMessage">The source message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    private async Task SendTempMessageAsync(
+    private static Task SendTempMessage(
         string text,
         SocketReaction reaction,
         IMessage sourceMessage,
@@ -124,5 +124,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                 await replyMessage.DeleteAsync();
             },
             cancellationToken);
+
+        return Task.CompletedTask;
     }
 }
