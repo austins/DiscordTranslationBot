@@ -34,14 +34,15 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// <summary>Translates any message that got a flag emoji reaction on it.</summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
+    public Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.Reaction == null || !Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
+        if (notification.Reaction == null || !Emoji.IsEmoji(notification.Reaction.Emote.Name))
+            return Task.CompletedTask;
 
         var countryName =
             _flagEmojiService.GetCountryNameBySequence(notification.Reaction.Emote.Name.AsUnicodeSequence());
 
-        if (countryName == null) return;
+        if (countryName == null) return Task.CompletedTask;
 
         // Wrap the long calls in Task.Run and to allow the calls after delay to not lock the handler.
         _ = Task.Run(
@@ -123,5 +124,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                 }
             },
             cancellationToken);
+
+        return Task.CompletedTask;
     }
 }
