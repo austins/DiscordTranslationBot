@@ -43,27 +43,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
         if (countryName == null) return;
 
-        var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
-
-        if (targetLangCode == null)
-        {
-            _logger.LogWarning($"Language not supported for country [{countryName}].");
-            return;
-        }
-
         var sourceMessage = await notification.Message.GetOrDownloadAsync();
-
-        // Remove all user and channel mentions and custom emotes,
-        // then strip all markdown to make the translation clean.
-        var sanitizedMessage = Format.StripMarkDown(
-            Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty));
-
-        if (string.IsNullOrWhiteSpace(sanitizedMessage))
-        {
-            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
-            _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
-            return;
-        }
 
         // Wrap the long calls in Task.Run and to allow the calls after delay to not lock the handler.
         _ = Task.Run(
@@ -71,42 +51,76 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             {
                 try
                 {
-                    var translatedText = await _libreTranslate.TranslateAsync(
-                        new Translate
-                        {
-                            Source = LanguageCode.AutoDetect, Target = targetLangCode, Text = sanitizedMessage
-                        });
+                    bool doTranslation = true;
+                    IUserMessage? replyMessage = null;
 
                     var channel = await notification.Channel.GetOrDownloadAsync();
 
-                    string replyText;
-                    if (translatedText == sanitizedMessage)
+                    var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
+                    if (targetLangCode == null)
                     {
-                        _logger.LogWarning(
-                            "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
+                        _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
 
-                        replyText =
-                            $"Couldn't detect the source language to translate from.";
-                    }
-                    else
-                    {
-                        replyText =
-                            $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
+                        replyMessage = await channel.SendMessageAsync(
+                            $"Translation for country {countryName} isn't supported.",
+                            messageReference: new MessageReference(sourceMessage.Id));
+
+                        doTranslation = false;
                     }
 
-                    var replyMessage = await channel.SendMessageAsync(
-                        replyText,
-                        messageReference: new MessageReference(sourceMessage.Id));
+                    // Remove all user and channel mentions and custom emotes,
+                    // then strip all markdown to make the translation clean.
+                    var sanitizedMessage = Format.StripMarkDown(
+                        Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty));
 
+                    if (string.IsNullOrWhiteSpace(sanitizedMessage))
+                    {
+                        _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
+                        doTranslation = false;
+                    }
+
+                    if (doTranslation)
+                    {
+                        var translatedText = await _libreTranslate.TranslateAsync(
+                            new Translate
+                            {
+                                Source = LanguageCode.AutoDetect, Target = targetLangCode, Text = sanitizedMessage
+                            });
+
+                        string replyText;
+                        if (translatedText == sanitizedMessage)
+                        {
+                            _logger.LogWarning(
+                                "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
+
+                            replyText = "Couldn't detect the source language to translate from.";
+                        }
+                        else
+                        {
+                            replyText =
+                                $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
+                        }
+
+                        replyMessage = await channel.SendMessageAsync(
+                            replyText,
+                            messageReference: new MessageReference(sourceMessage.Id));
+                    }
+
+                    // Cleanup
                     await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
-                    await replyMessage.DeleteAsync();
+
                     await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+
+                    if (replyMessage != null)
+                    {
+                        await replyMessage.DeleteAsync();
+                    }
                 }
                 catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.MissingPermissions)
                 {
                     _logger.LogError(ex, "Missing permissions for channel.");
                 }
-                catch (HttpRequestException ex)
+                catch (HttpRequestException ex) when (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
                 {
                     _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
                 }

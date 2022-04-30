@@ -58,7 +58,7 @@ public class Worker : BackgroundService
         {
             await _libreTranslate.GetSupportedLanguagesAsync();
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException ex) when (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
         {
             _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
             _hostApplicationLifetime.StopApplication();
