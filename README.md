@@ -45,5 +45,3 @@ LibreTranslate__ApiUrl=http://localhost:5000
 See LICENSE file in this repo.
 
 This app has been developed by Austin S.
-
-You may contribute code to this app. You may fork, modify, and use this app as a basis for your own project.
