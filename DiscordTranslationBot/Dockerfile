@@ -9,7 +9,7 @@ RUN dotnet restore
 RUN dotnet publish -c Release -o out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:6.0-alpine
 WORKDIR /app
 COPY --from=build-env /app/out .
 ENV DOTNET_EnableDiagnostics=0
