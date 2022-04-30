@@ -86,7 +86,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             if (translatedText == sanitizedMessage)
             {
                 _logger.LogWarning(
-                    "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
+                    "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0 or the source language is the same as the target language.");
 
                 replyText = "Couldn't detect the source language to translate from.";
             }
