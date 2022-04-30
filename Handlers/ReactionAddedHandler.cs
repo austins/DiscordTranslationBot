@@ -34,97 +34,92 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// <summary>Translates any message that got a flag emoji reaction on it.</summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.Reaction == null || !Emoji.IsEmoji(notification.Reaction.Emote.Name))
-            return Task.CompletedTask;
+        if (notification.Reaction == null || !Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
 
         var countryName =
             _flagEmojiService.GetCountryNameBySequence(notification.Reaction.Emote.Name.AsUnicodeSequence());
 
-        if (countryName == null) return Task.CompletedTask;
+        if (countryName == null) return;
 
-        // Wrap the long calls in Task.Run and to allow the calls after delay to not lock the handler.
-        _ = Task.Run(
-            async () =>
+        var doTranslation = true;
+        IUserMessage? replyMessage = null;
+
+        try
+        {
+            var sourceMessage = await notification.Message.GetOrDownloadAsync();
+            var channel = await notification.Channel.GetOrDownloadAsync();
+
+            var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
+            if (targetLangCode == null)
             {
-                try
+                _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
+
+                replyMessage = await channel.SendMessageAsync(
+                    $"Translation for country {countryName} isn't supported.",
+                    messageReference: new MessageReference(sourceMessage.Id));
+
+                doTranslation = false;
+            }
+
+            // Remove all user and channel mentions and custom emotes,
+            // then strip all markdown to make the translation clean.
+            var sanitizedMessage = Format.StripMarkDown(
+                Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty));
+
+            if (string.IsNullOrWhiteSpace(sanitizedMessage))
+            {
+                _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
+                doTranslation = false;
+            }
+
+            if (doTranslation)
+            {
+                var translatedText = await _libreTranslate.TranslateAsync(
+                    new Translate
+                    {
+                        Source = LanguageCode.AutoDetect, Target = targetLangCode, Text = sanitizedMessage
+                    });
+
+                string replyText;
+                if (translatedText == sanitizedMessage)
                 {
-                    var doTranslation = true;
-                    IUserMessage? replyMessage = null;
+                    _logger.LogWarning(
+                        "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
 
-                    var sourceMessage = await notification.Message.GetOrDownloadAsync();
-                    var channel = await notification.Channel.GetOrDownloadAsync();
+                    replyText = "Couldn't detect the source language to translate from.";
+                }
+                else
+                {
+                    replyText =
+                        $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
+                }
 
-                    var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
-                    if (targetLangCode == null)
-                    {
-                        _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
+                replyMessage = await channel.SendMessageAsync(
+                    replyText,
+                    messageReference: new MessageReference(sourceMessage.Id));
+            }
 
-                        replyMessage = await channel.SendMessageAsync(
-                            $"Translation for country {countryName} isn't supported.",
-                            messageReference: new MessageReference(sourceMessage.Id));
-
-                        doTranslation = false;
-                    }
-
-                    // Remove all user and channel mentions and custom emotes,
-                    // then strip all markdown to make the translation clean.
-                    var sanitizedMessage = Format.StripMarkDown(
-                        Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty));
-
-                    if (string.IsNullOrWhiteSpace(sanitizedMessage))
-                    {
-                        _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
-                        doTranslation = false;
-                    }
-
-                    if (doTranslation)
-                    {
-                        var translatedText = await _libreTranslate.TranslateAsync(
-                            new Translate
-                            {
-                                Source = LanguageCode.AutoDetect, Target = targetLangCode, Text = sanitizedMessage
-                            });
-
-                        string replyText;
-                        if (translatedText == sanitizedMessage)
-                        {
-                            _logger.LogWarning(
-                                "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0.");
-
-                            replyText = "Couldn't detect the source language to translate from.";
-                        }
-                        else
-                        {
-                            replyText =
-                                $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
-                        }
-
-                        replyMessage = await channel.SendMessageAsync(
-                            replyText,
-                            messageReference: new MessageReference(sourceMessage.Id));
-                    }
-
+            // Cleanup wrapped in Task.Run and to allow the calls after delay that's longer than 3 seconds to not block the handler.
+            _ = Task.Run(
+                async () =>
+                {
                     // Cleanup
                     await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
-
                     await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
-
                     if (replyMessage != null) await replyMessage.DeleteAsync();
-                }
-                catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.MissingPermissions)
-                {
-                    _logger.LogError(ex, "Missing permissions for channel.");
-                }
-                catch (HttpRequestException ex) when
-                    (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
-                {
-                    _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
-                }
-            },
-            cancellationToken);
-
-        return Task.CompletedTask;
+                },
+                cancellationToken);
+        }
+        catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.MissingPermissions)
+        {
+            _logger.LogError(ex, "Missing permissions for channel.");
+        }
+        catch (HttpRequestException ex) when
+            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate)) == true)
+        {
+            _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
+        }
     }
 }
