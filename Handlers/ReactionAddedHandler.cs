@@ -43,8 +43,6 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
         if (countryName == null) return;
 
-        var sourceMessage = await notification.Message.GetOrDownloadAsync();
-
         // Wrap the long calls in Task.Run and to allow the calls after delay to not lock the handler.
         _ = Task.Run(
             async () =>
@@ -54,6 +52,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                     var doTranslation = true;
                     IUserMessage? replyMessage = null;
 
+                    var sourceMessage = await notification.Message.GetOrDownloadAsync();
                     var channel = await notification.Channel.GetOrDownloadAsync();
 
                     var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
