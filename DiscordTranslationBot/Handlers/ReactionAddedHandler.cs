@@ -15,6 +15,7 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
+    private readonly DiscordSocketClient _client;
     private readonly FlagEmojiService _flagEmojiService;
     private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;
     private readonly ILogger<ReactionAddedHandler> _logger;
@@ -23,14 +24,17 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// Initializes a new instance of the <see cref="ReactionAddedHandler"/> class.
     /// </summary>
     /// <param name="libreTranslate">LibreTranslate client to use.</param>
+    /// <param name="client">Discord client to use.</param>
     /// <param name="flagEmojiService">FlagEmojiService to use.</param>
     /// <param name="logger">Logger to use.</param>
     public ReactionAddedHandler(
         LibreTranslate.Net.LibreTranslate libreTranslate,
+        DiscordSocketClient client,
         FlagEmojiService flagEmojiService,
         ILogger<ReactionAddedHandler> logger)
     {
         _libreTranslate = libreTranslate;
+        _client = client;
         _flagEmojiService = flagEmojiService;
         _logger = logger;
     }
@@ -50,6 +54,13 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
         if (countryName == null) return;
 
         var sourceMessage = await notification.Message.GetOrDownloadAsync();
+
+        if (sourceMessage.Author.Id == _client.CurrentUser.Id)
+        {
+            _logger.LogInformation("Translating this bot's messages isn't allowed.");
+            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+            return;
+        }
 
         var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
         if (targetLangCode == null)
