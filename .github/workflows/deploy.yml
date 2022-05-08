@@ -17,6 +17,7 @@ jobs:
         uses: ./.github/workflows/analyze.yml
     docker:
         needs: analyze
+        environment: production
         uses: ./.github/workflows/docker.yml
         with:
             push: true
