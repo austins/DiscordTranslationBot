@@ -15,9 +15,8 @@ jobs:
         needs: analyze
         uses: ./.github/workflows/docker.yml
         with:
-            deploy: false
+            push: false
     automerge:
-        if: ${{ github.actor == 'dependabot[bot]' }}
         needs: docker
         runs-on: ubuntu-latest
         steps:

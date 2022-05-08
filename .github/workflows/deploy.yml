@@ -4,6 +4,7 @@ on:
     push:
         branches: [ master ]
         paths-ignore:
+            - '.github/**'
             - 'README.md'
             - 'LICENSE'
 
@@ -18,7 +19,7 @@ jobs:
         needs: analyze
         uses: ./.github/workflows/docker.yml
         with:
-            deploy: true
+            push: true
         secrets:
             DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
             DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
