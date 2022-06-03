@@ -16,7 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="3.7.1" />
+    <PackageReference Include="Discord.Net" Version="3.7.2" />
     <PackageReference Include="LibreTranslate.Net" Version="1.0.1" />
     <PackageReference Include="MediatR" Version="10.0.1" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
