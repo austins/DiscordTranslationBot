@@ -79,6 +79,8 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
                 throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
             }
 
+            // Azure has a limit of 10,000 characters for text in a request:
+            // See: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/reference/v3-0-translate#request-body.
             if (text.Length >= 10000)
             {
                 _logger.LogError($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
