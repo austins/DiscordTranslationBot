@@ -79,6 +79,12 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
                 throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
             }
 
+            if (text.Length >= 10000)
+            {
+                _logger.LogError($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
+                throw new ArgumentException($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
+            }
+
             var result = new TranslationResult { ProviderName = "Azure Translator", TargetLanguageCode = langCode };
 
             using var httpClient = _httpClientFactory.CreateClient();

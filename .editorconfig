@@ -181,3 +181,4 @@ dotnet_style_qualification_for_method = false:silent
 dotnet_style_qualification_for_event = false:silent
 dotnet_diagnostic.IDE0044.severity = silent
 dotnet_diagnostic.CA1031.severity = suggestion
+dotnet_diagnostic.CA1062.severity = silent
