@@ -137,6 +137,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
             CountryName.Mexico => LanguageCode.Spanish,
             CountryName.Spain => LanguageCode.Spanish,
             CountryName.Vietnam => LanguageCode.Vietnamese,
+            CountryName.Thailand => LanguageCode.Thai,
             _ => null
         };
 
@@ -171,5 +172,6 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
         public const string Russian = "ru";
         public const string Spanish = "es";
         public const string Vietnamese = "vi";
+        public const string Thai = "th";
     }
 }
