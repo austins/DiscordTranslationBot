@@ -3,8 +3,8 @@
 A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 It supports the following translation providers that run in the following order:
-1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - this runs first, if it fails to provide a translation, moves on to the next provider.
-2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - this is required as a fallback.
+1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - This is optional. If it fails to provide a translation, the bot will use the next provider.
+2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - This is required as a fallback, such as when request limits have been reached for the previous providers.
 
 ## Requirements
 
