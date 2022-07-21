@@ -53,7 +53,7 @@ public sealed class LibreTranslateProvider : ITranslationProvider
     {
         try
         {
-            var langCode = LangCodeMap.SingleOrDefault(c => c.Value.Contains(countryName)).Key;
+            var langCode = LangCodeMap.SingleOrDefault(x => x.Value.Contains(countryName)).Key;
             if (langCode == null)
             {
                 _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");

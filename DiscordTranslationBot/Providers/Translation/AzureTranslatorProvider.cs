@@ -72,7 +72,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     {
         try
         {
-            var langCode = LangCodeMap.SingleOrDefault(c => c.Value.Contains(countryName)).Key;
+            var langCode = LangCodeMap.SingleOrDefault(x => x.Value.Contains(countryName)).Key;
             if (string.IsNullOrWhiteSpace(langCode))
             {
                 _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
