@@ -29,7 +29,7 @@ try
 
                 services.AddSingleton(
                         new LibreTranslate.Net.LibreTranslate(translationProvidersOptions.LibreTranslate.ApiUrl!.AbsoluteUri))
-                    .AddTransient<ITranslationProvider, LibreTranslateProvider>();
+                    .AddSingleton<ITranslationProvider, LibreTranslateProvider>();
 
                 // Other services.
                 services
