@@ -2,6 +2,8 @@
 
 public sealed class TranslationResult
 {
+    public string ProviderName { get; set; }
+
     public string? DetectedLanguageCode { get; set; }
 
     public string TargetLanguageCode { get; set; }

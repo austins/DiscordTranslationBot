@@ -43,7 +43,11 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     {
         try
         {
-            var result = new TranslationResult { TargetLanguageCode = GetTargetLanguageCodeByCountryName(countryName) };
+            var result = new TranslationResult
+            {
+                ProviderName = "Azure Translator",
+                TargetLanguageCode = GetTargetLanguageCodeByCountryName(countryName),
+            };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
@@ -138,7 +142,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
         if (langCode == null)
         {
             _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-            throw new UnsupportedCountryException($"Translation for country [{countryName}] isn't supported.");
+            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported using Azure Translator.");
         }
 
         return langCode;

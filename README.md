@@ -42,6 +42,15 @@ It supports the following translation providers that run in the following order:
 ```
 2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
 
+If you want to disable the Azure Translator provider, simply omit the config section for it within _TranslationProviders_ like so:
+```json
+  "TranslationProviders": {
+    "LibreTranslate": {
+      "ApiUrl": "http://localhost:5000"
+    }
+  }
+```
+
 ## Deployment
 
 1. Build a Docker image and create a container with the following required environment variables configured. Example below:

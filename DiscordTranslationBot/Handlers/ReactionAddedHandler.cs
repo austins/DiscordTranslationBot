@@ -87,10 +87,10 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                     translationResult = await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
                     break;
                 }
-                catch (UnsupportedCountryException) when (translationProvider is LibreTranslateProvider)
+                catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
                 {
                     SendTempMessage(
-                        $"Translation for country {countryName} isn't supported.",
+                        ex.Message,
                         notification.Reaction,
                         sourceMessage,
                         cancellationToken);
@@ -114,8 +114,8 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             else
             {
                 replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}";
+                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({translationResult.ProviderName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({translationResult.ProviderName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
             }
 
             SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);

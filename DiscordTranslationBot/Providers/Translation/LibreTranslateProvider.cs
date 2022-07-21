@@ -29,7 +29,11 @@ public sealed class LibreTranslateProvider : ITranslationProvider
         try
         {
             var langCode = GetTargetLanguageCodeByCountryName(countryName);
-            var result = new TranslationResult { TargetLanguageCode = langCode.ToString() };
+            var result = new TranslationResult
+            {
+                ProviderName = "LibreTranslate",
+                TargetLanguageCode = langCode.ToString(),
+            };
 
             result.TranslatedText = await _libreTranslate.TranslateAsync(
                 new Translate
@@ -91,7 +95,7 @@ public sealed class LibreTranslateProvider : ITranslationProvider
         if (langCode == null)
         {
             _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-            throw new UnsupportedCountryException($"Translation for country [{countryName}] isn't supported.");
+            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported using LibreTranslate.");
         }
 
         return langCode;
