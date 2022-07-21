@@ -112,30 +112,30 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     {
         var langCode = countryName switch
         {
-            "Australia" => LanguageCodes.English,
-            "Canada" => LanguageCodes.English,
-            "United Kingdom" => LanguageCodes.English,
-            "United States" => LanguageCodes.English,
-            "U.S. Outlying Islands" => LanguageCodes.English,
-            "Algeria" => LanguageCodes.Arabic,
-            "Bahrain" => LanguageCodes.Arabic,
-            "Egypt" => LanguageCodes.Arabic,
-            "Saudi Arabia" => LanguageCodes.Arabic,
-            "China" => LanguageCodes.ChineseSimplified,
-            "Hong Kong SAR China" => LanguageCodes.ChineseTraditional,
-            "Taiwan" => LanguageCodes.ChineseTraditional,
-            "France" => LanguageCodes.French,
-            "Germany" => LanguageCodes.German,
-            "India" => LanguageCodes.Hindi,
-            "Ireland" => LanguageCodes.Irish,
-            "Italy" => LanguageCodes.Italian,
-            "Japan" => LanguageCodes.Japanese,
-            "South Korea" => LanguageCodes.Korean,
-            "Brazil" => LanguageCodes.PortugueseBrazil,
-            "Portugal" => LanguageCodes.PortuguesePortugal,
-            "Russia" => LanguageCodes.Russian,
-            "Mexico" => LanguageCodes.Spanish,
-            "Spain" => LanguageCodes.Spanish,
+            CountryName.Australia => LanguageCode.English,
+            CountryName.Canada => LanguageCode.English,
+            CountryName.UnitedKingdom => LanguageCode.English,
+            CountryName.UnitedStates => LanguageCode.English,
+            CountryName.UnitedStatesOutlyingIslands => LanguageCode.English,
+            CountryName.Algeria => LanguageCode.Arabic,
+            CountryName.Bahrain => LanguageCode.Arabic,
+            CountryName.Egypt => LanguageCode.Arabic,
+            CountryName.SaudiArabia => LanguageCode.Arabic,
+            CountryName.China => LanguageCode.ChineseSimplified,
+            CountryName.HongKong => LanguageCode.ChineseTraditional,
+            CountryName.Taiwan => LanguageCode.ChineseTraditional,
+            CountryName.France => LanguageCode.French,
+            CountryName.Germany => LanguageCode.German,
+            CountryName.India => LanguageCode.Hindi,
+            CountryName.Ireland => LanguageCode.Irish,
+            CountryName.Italy => LanguageCode.Italian,
+            CountryName.Japan => LanguageCode.Japanese,
+            CountryName.SouthKorea => LanguageCode.Korean,
+            CountryName.Brazil => LanguageCode.PortugueseBrazil,
+            CountryName.Portugal => LanguageCode.PortuguesePortugal,
+            CountryName.Russia => LanguageCode.Russian,
+            CountryName.Mexico => LanguageCode.Spanish,
+            CountryName.Spain => LanguageCode.Spanish,
             _ => null
         };
 
@@ -149,10 +149,10 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     }
 
     /// <summary>
-    /// Language codes.
+    /// Language code map.
     /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
     /// </summary>
-    private static class LanguageCodes
+    private static class LanguageCode
     {
         public const string English = "en";
         public const string Arabic = "ar";
