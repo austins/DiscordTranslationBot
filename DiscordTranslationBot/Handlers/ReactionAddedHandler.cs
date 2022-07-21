@@ -101,7 +101,11 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                 }
             }
 
-            if (translationResult == null) return;
+            if (translationResult == null)
+            {
+                await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+                return;
+            }
 
             string replyText;
             if (translationResult.TranslatedText == sanitizedMessage)
