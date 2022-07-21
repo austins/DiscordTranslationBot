@@ -1,5 +1,4 @@
-﻿using LibreTranslate.Net;
-using NeoSmart.Unicode;
+﻿using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Services;
 
@@ -17,45 +16,6 @@ public sealed class FlagEmojiService
     public FlagEmojiService()
     {
         _emoji = Emoji.All.Where(e => e.Group == "Flags");
-    }
-
-    /// <summary>
-    /// Get the language code by country name.
-    /// </summary>
-    /// <remarks>
-    /// More countries can be mapped here. Only some languages are supported by LibreTranslate.
-    /// </remarks>
-    /// <param name="countryName">The country name.</param>
-    /// <returns><see cref="LanguageCode" /> for LibreTranslate.</returns>
-    public static LanguageCode? GetLanguageCodeByCountryName(string countryName)
-    {
-        return countryName switch
-        {
-            "Australia" => LanguageCode.English,
-            "Canada" => LanguageCode.English,
-            "United Kingdom" => LanguageCode.English,
-            "United States" => LanguageCode.English,
-            "U.S. Outlying Islands" => LanguageCode.English,
-            "Algeria" => LanguageCode.Arabic,
-            "Bahrain" => LanguageCode.Arabic,
-            "Egypt" => LanguageCode.Arabic,
-            "Saudi Arabia" => LanguageCode.Arabic,
-            "China" => LanguageCode.Chinese,
-            "Hong Kong SAR China" => LanguageCode.Chinese,
-            "Taiwan" => LanguageCode.Chinese,
-            "France" => LanguageCode.French,
-            "Germany" => LanguageCode.German,
-            "India" => LanguageCode.Hindi,
-            "Ireland" => LanguageCode.Irish,
-            "Italy" => LanguageCode.Italian,
-            "Japan" => LanguageCode.Japanese,
-            "South Korea" => LanguageCode.Korean,
-            "Portugal" => LanguageCode.Portuguese,
-            "Russia" => LanguageCode.Russian,
-            "Mexico" => LanguageCode.Spanish,
-            "Spain" => LanguageCode.Spanish,
-            _ => null
-        };
     }
 
     /// <summary>

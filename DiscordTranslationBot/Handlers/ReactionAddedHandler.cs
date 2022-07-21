@@ -1,11 +1,14 @@
 ﻿using System.Text.RegularExpressions;
 using Discord;
 using Discord.WebSocket;
+using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using LibreTranslate.Net;
 using MediatR;
 using NeoSmart.Unicode;
+
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
@@ -15,25 +18,25 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
+    private readonly IEnumerable<ITranslationProvider> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly FlagEmojiService _flagEmojiService;
-    private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;
     private readonly ILogger<ReactionAddedHandler> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReactionAddedHandler"/> class.
     /// </summary>
-    /// <param name="libreTranslate">LibreTranslate client to use.</param>
+    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="flagEmojiService">FlagEmojiService to use.</param>
     /// <param name="logger">Logger to use.</param>
     public ReactionAddedHandler(
-        LibreTranslate.Net.LibreTranslate libreTranslate,
+        IEnumerable<ITranslationProvider> translationProviders,
         DiscordSocketClient client,
         FlagEmojiService flagEmojiService,
         ILogger<ReactionAddedHandler> logger)
     {
-        _libreTranslate = libreTranslate;
+        _translationProviders = translationProviders;
         _client = client;
         _flagEmojiService = flagEmojiService;
         _logger = logger;
@@ -62,20 +65,6 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             return;
         }
 
-        var targetLangCode = FlagEmojiService.GetLanguageCodeByCountryName(countryName);
-        if (targetLangCode == null)
-        {
-            _logger.LogInformation($"Translation for country [{countryName}] isn't supported.");
-
-            SendTempMessage(
-                $"Translation for country {countryName} isn't supported.",
-                notification.Reaction,
-                sourceMessage,
-                cancellationToken);
-
-            return;
-        }
-
         // Remove all user and channel mentions and custom emotes,
         // then strip all markdown to make the translation clean.
         var sanitizedMessage = Format.StripMarkDown(
@@ -90,21 +79,43 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
         try
         {
-            var translatedText = await _libreTranslate.TranslateAsync(
-                new Translate { Source = LanguageCode.AutoDetect, Target = targetLangCode, Text = sanitizedMessage });
+            TranslationResult? translationResult = null;
+            foreach (var translationProvider in _translationProviders)
+            {
+                try
+                {
+                    translationResult = await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
+                    break;
+                }
+                catch (UnsupportedCountryException) when (translationProvider is LibreTranslateProvider)
+                {
+                    SendTempMessage(
+                        $"Translation for country {countryName} isn't supported.",
+                        notification.Reaction,
+                        sourceMessage,
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to translate text with {translationProvider.GetType()}.");
+                }
+            }
+
+            if (translationResult == null) return;
 
             string replyText;
-            if (translatedText == sanitizedMessage)
+            if (translationResult.TranslatedText == sanitizedMessage)
             {
                 _logger.LogWarning(
-                    "Couldn't detect the source language to translate from. This could happen when the LibreTranslate detected language confidence is 0 or the source language is the same as the target language.");
+                    "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.");
 
-                replyText = "Couldn't detect the source language to translate from.";
+                replyText = "Couldn't detect the source language to translate from or the result is the same.";
             }
             else
             {
-                replyText =
-                    $"Translated message to {Format.Italics(targetLangCode.ToString())}:\n{Format.BlockQuote(translatedText)}";
+                replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
+                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}";
             }
 
             SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);

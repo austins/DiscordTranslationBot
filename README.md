@@ -1,6 +1,10 @@
 # DiscordTranslationBot
 
-A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET, [Discord.Net](https://github.com/discord-net/Discord.Net) and [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate).
+A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET, [Discord.Net](https://github.com/discord-net/Discord.Net).
+
+It supports the following translation providers that run in the following order:
+1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - this runs first, if it fails to provide a translation, moves on to the next provider.
+2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - this is required.
 
 ## Requirements
 
@@ -24,9 +28,16 @@ A Discord bot that allows translations of messages in a Discord server (guild) u
   "Discord": {
     "BotToken": ""
   },
-  "LibreTranslate": {
-    "ApiUrl": "http://localhost:5000"
-  } 
+  "TranslationProviders": {
+    "AzureTranslator": {
+      "ApiUrl": "https://api.cognitive.microsofttranslator.com",
+      "SecretKey": "",
+      "Region": ""
+    },
+    "LibreTranslate": {
+      "ApiUrl": "http://localhost:5000"
+    }
+  }
 }
 ```
 2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
@@ -36,7 +47,10 @@ A Discord bot that allows translations of messages in a Discord server (guild) u
 1. Build a Docker image and create a container with the following required environment variables configured. Example below:
 ```
 Discord__BotToken=
-LibreTranslate__ApiUrl=http://localhost:5000
+TranslationProviders__AzureTranslator__ApiUrl=https://api.cognitive.microsofttranslator.com
+TranslationProviders__AzureTranslator__SecretKey=
+TranslationProviders__AzureTranslator__Region=
+TranslationProviders__LibreTranslate__ApiUrl=http://localhost:5000
 ```
 2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
 

@@ -96,6 +96,7 @@ dotnet_diagnostic.SA1615.severity = suggestion
 
 # SA1503: Braces should not be omitted
 dotnet_diagnostic.SA1503.severity = none
+dotnet_diagnostic.SA1000.severity = silent
 
 [*.{cs,vb}]
 #### Naming styles ####
