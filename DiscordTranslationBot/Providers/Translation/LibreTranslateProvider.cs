@@ -16,21 +16,21 @@ public sealed class LibreTranslateProvider : ITranslationProvider
     /// Only some languages are supported by LibreTranslate.
     /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
     /// </remarks>
-    private static readonly IDictionary<LanguageCode, IList<string>> LangCodeMap = new Dictionary<LanguageCode, IList<string>>
+    private static readonly IDictionary<LanguageCode, ISet<string>> LangCodeMap = new Dictionary<LanguageCode, ISet<string>>
     {
-        { LanguageCode.English, new List<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
-        { LanguageCode.Arabic, new List<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
-        { LanguageCode.Chinese, new List<string> { CountryName.China, CountryName.HongKong, CountryName.Taiwan } },
-        { LanguageCode.French, new List<string> { CountryName.France } },
-        { LanguageCode.German, new List<string> { CountryName.Germany } },
-        { LanguageCode.Hindi, new List<string> { CountryName.India } },
-        { LanguageCode.Irish, new List<string> { CountryName.Ireland } },
-        { LanguageCode.Italian, new List<string> { CountryName.Italy } },
-        { LanguageCode.Japanese, new List<string> { CountryName.Japan } },
-        { LanguageCode.Korean, new List<string> { CountryName.SouthKorea } },
-        { LanguageCode.Portuguese, new List<string> { CountryName.Brazil, CountryName.Portugal } },
-        { LanguageCode.Russian, new List<string> { CountryName.Russia } },
-        { LanguageCode.Spanish, new List<string> { CountryName.Mexico, CountryName.Spain } },
+        { LanguageCode.English, new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
+        { LanguageCode.Arabic, new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
+        { LanguageCode.Chinese, new HashSet<string> { CountryName.China, CountryName.HongKong, CountryName.Taiwan } },
+        { LanguageCode.French, new HashSet<string> { CountryName.France } },
+        { LanguageCode.German, new HashSet<string> { CountryName.Germany } },
+        { LanguageCode.Hindi, new HashSet<string> { CountryName.India } },
+        { LanguageCode.Irish, new HashSet<string> { CountryName.Ireland } },
+        { LanguageCode.Italian, new HashSet<string> { CountryName.Italy } },
+        { LanguageCode.Japanese, new HashSet<string> { CountryName.Japan } },
+        { LanguageCode.Korean, new HashSet<string> { CountryName.SouthKorea } },
+        { LanguageCode.Portuguese, new HashSet<string> { CountryName.Brazil, CountryName.Portugal } },
+        { LanguageCode.Russian, new HashSet<string> { CountryName.Russia } },
+        { LanguageCode.Spanish, new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
     };
 
     private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;

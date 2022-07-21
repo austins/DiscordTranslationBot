@@ -20,25 +20,25 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
     /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
     /// </remarks>
-    private static readonly IDictionary<string, IList<string>> LangCodeMap = new Dictionary<string, IList<string>>
+    private static readonly IDictionary<string, ISet<string>> LangCodeMap = new Dictionary<string, ISet<string>>
     {
-        { "en", new List<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
-        { "ar", new List<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
-        { "zh-Hans", new List<string> { CountryName.China } },
-        { "zh-Hant", new List<string> { CountryName.HongKong, CountryName.Taiwan } },
-        { "fr", new List<string> { CountryName.France } },
-        { "de", new List<string> { CountryName.Germany } },
-        { "hi", new List<string> { CountryName.India } },
-        { "ga", new List<string> { CountryName.Ireland } },
-        { "it", new List<string> { CountryName.Italy } },
-        { "ja", new List<string> { CountryName.Japan } },
-        { "ko", new List<string> { CountryName.SouthKorea } },
-        { "pt-br", new List<string> { CountryName.Brazil } },
-        { "pt-pt", new List<string> { CountryName.Portugal } },
-        { "ru", new List<string> { CountryName.Russia } },
-        { "es", new List<string> { CountryName.Mexico, CountryName.Spain } },
-        { "vi", new List<string> { CountryName.Vietnam } },
-        { "th", new List<string> { CountryName.Thailand } },
+        { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
+        { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
+        { "zh-Hans", new HashSet<string> { CountryName.China } },
+        { "zh-Hant", new HashSet<string> { CountryName.HongKong, CountryName.Taiwan } },
+        { "fr", new HashSet<string> { CountryName.France } },
+        { "de", new HashSet<string> { CountryName.Germany } },
+        { "hi", new HashSet<string> { CountryName.India } },
+        { "ga", new HashSet<string> { CountryName.Ireland } },
+        { "it", new HashSet<string> { CountryName.Italy } },
+        { "ja", new HashSet<string> { CountryName.Japan } },
+        { "ko", new HashSet<string> { CountryName.SouthKorea } },
+        { "pt-br", new HashSet<string> { CountryName.Brazil } },
+        { "pt-pt", new HashSet<string> { CountryName.Portugal } },
+        { "ru", new HashSet<string> { CountryName.Russia } },
+        { "es", new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
+        { "vi", new HashSet<string> { CountryName.Vietnam } },
+        { "th", new HashSet<string> { CountryName.Thailand } },
     };
 
     private readonly IHttpClientFactory _httpClientFactory;
