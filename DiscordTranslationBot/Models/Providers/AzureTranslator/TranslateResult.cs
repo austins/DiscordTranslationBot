@@ -17,5 +17,5 @@ public sealed class TranslateResult
     /// The translation results.
     /// </summary>
     [JsonPropertyName("translations")]
-    public IList<Translation> Translations { get; init; } = null!;
+    public IList<TranslationData> Translations { get; init; } = null!;
 }

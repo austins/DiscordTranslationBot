@@ -8,6 +8,8 @@ namespace DiscordTranslationBot.Models;
 /// </summary>
 public static class CountryName
 {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable SA1600 // Elements should be documented
     public const string Australia = "Australia";
     public const string Canada = "Canada";
     public const string UnitedKingdom = "United Kingdom";
@@ -32,4 +34,6 @@ public static class CountryName
     public const string Russia = "Russia";
     public const string Mexico = "Mexico";
     public const string Spain = "Spain";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning restore SA1600 // Elements should be documented
 }
