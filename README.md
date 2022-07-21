@@ -4,7 +4,7 @@ A Discord bot that allows translations of messages in a Discord server (guild) u
 
 It supports the following translation providers that run in the following order:
 1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - this runs first, if it fails to provide a translation, moves on to the next provider.
-2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - this is required.
+2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - this is required as a fallback.
 
 ## Requirements
 
