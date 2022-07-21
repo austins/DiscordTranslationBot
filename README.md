@@ -42,7 +42,7 @@ It supports the following translation providers that run in the following order:
 ```
 2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
 
-If you want to disable the Azure Translator provider, simply omit the config section for it within _TranslationProviders_ like so:
+If you want to disable the Azure Translator provider, simply omit the config section for it within `TranslationProviders` like so:
 ```json
   "TranslationProviders": {
     "LibreTranslate": {
@@ -62,6 +62,8 @@ TranslationProviders__AzureTranslator__Region=
 TranslationProviders__LibreTranslate__ApiUrl=http://localhost:5000
 ```
 2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
+
+If you want to disable the Azure Translator provider, don't set the environment variables for `TranslationProviders__AzureTranslator`.
 
 ## License
 
