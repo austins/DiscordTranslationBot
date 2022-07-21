@@ -16,7 +16,7 @@ public sealed class LibreTranslateProvider : ITranslationProvider
     /// Only some languages are supported by LibreTranslate.
     /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
     /// </remarks>
-    private static readonly IDictionary<LanguageCode, ISet<string>> LangCodeMap = new Dictionary<LanguageCode, ISet<string>>
+    private static readonly IReadOnlyDictionary<LanguageCode, ISet<string>> LangCodeMap = new Dictionary<LanguageCode, ISet<string>>
     {
         { LanguageCode.English, new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
         { LanguageCode.Arabic, new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },

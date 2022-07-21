@@ -20,7 +20,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
     /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
     /// </remarks>
-    private static readonly IDictionary<string, ISet<string>> LangCodeMap = new Dictionary<string, ISet<string>>
+    private static readonly IReadOnlyDictionary<string, ISet<string>> LangCodeMap = new Dictionary<string, ISet<string>>
     {
         { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
         { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
