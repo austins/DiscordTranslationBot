@@ -1,6 +1,6 @@
 # DiscordTranslationBot
 
-A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET, [Discord.Net](https://github.com/discord-net/Discord.Net).
+A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 It supports the following translation providers that run in the following order:
 1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - this runs first, if it fails to provide a translation, moves on to the next provider.
