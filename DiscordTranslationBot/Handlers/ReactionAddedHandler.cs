@@ -94,6 +94,8 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                         notification.Reaction,
                         sourceMessage,
                         cancellationToken);
+
+                    return;
                 }
                 catch (Exception ex)
                 {

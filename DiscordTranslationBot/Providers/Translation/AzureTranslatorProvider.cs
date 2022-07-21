@@ -13,6 +13,34 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 public sealed class AzureTranslatorProvider : ITranslationProvider
 {
+    /// <summary>
+    /// Language code map.
+    /// </summary>
+    /// <remarks>
+    /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
+    /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
+    /// </remarks>
+    private static readonly IDictionary<string, IList<string>> LangCodeMap = new Dictionary<string, IList<string>>
+    {
+        { "en", new List<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
+        { "ar", new List<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
+        { "zh-Hans", new List<string> { CountryName.China } },
+        { "zh-Hant", new List<string> { CountryName.HongKong, CountryName.Taiwan } },
+        { "fr", new List<string> { CountryName.France } },
+        { "de", new List<string> { CountryName.Germany } },
+        { "hi", new List<string> { CountryName.India } },
+        { "ga", new List<string> { CountryName.Ireland } },
+        { "it", new List<string> { CountryName.Italy } },
+        { "ja", new List<string> { CountryName.Japan } },
+        { "ko", new List<string> { CountryName.SouthKorea } },
+        { "pt-br", new List<string> { CountryName.Brazil } },
+        { "pt-pt", new List<string> { CountryName.Portugal } },
+        { "ru", new List<string> { CountryName.Russia } },
+        { "es", new List<string> { CountryName.Mexico, CountryName.Spain } },
+        { "vi", new List<string> { CountryName.Vietnam } },
+        { "th", new List<string> { CountryName.Thailand } },
+    };
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
     private readonly ILogger<AzureTranslatorProvider> _logger;
@@ -39,15 +67,19 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateAsync"/>
+    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
     public async Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken)
     {
         try
         {
-            var result = new TranslationResult
+            var langCode = LangCodeMap.SingleOrDefault(c => c.Value.Contains(countryName)).Key;
+            if (string.IsNullOrWhiteSpace(langCode))
             {
-                ProviderName = "Azure Translator",
-                TargetLanguageCode = GetTargetLanguageCodeByCountryName(countryName),
-            };
+                _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
+                throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
+            }
+
+            var result = new TranslationResult { ProviderName = "Azure Translator", TargetLanguageCode = langCode };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
@@ -96,82 +128,5 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
             _logger.LogError(ex, "Unable to connect to the Azure Translator API URL.");
             throw;
         }
-    }
-
-    /// <summary>
-    /// Get the target language code by country name.
-    /// </summary>
-    /// <remarks>
-    /// More countries can be mapped here.
-    /// <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
-    /// </remarks>
-    /// <param name="countryName">The country name.</param>
-    /// <returns>Target language code.</returns>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    private string GetTargetLanguageCodeByCountryName(string countryName)
-    {
-        var langCode = countryName switch
-        {
-            CountryName.Australia => LanguageCode.English,
-            CountryName.Canada => LanguageCode.English,
-            CountryName.UnitedKingdom => LanguageCode.English,
-            CountryName.UnitedStates => LanguageCode.English,
-            CountryName.UnitedStatesOutlyingIslands => LanguageCode.English,
-            CountryName.Algeria => LanguageCode.Arabic,
-            CountryName.Bahrain => LanguageCode.Arabic,
-            CountryName.Egypt => LanguageCode.Arabic,
-            CountryName.SaudiArabia => LanguageCode.Arabic,
-            CountryName.China => LanguageCode.ChineseSimplified,
-            CountryName.HongKong => LanguageCode.ChineseTraditional,
-            CountryName.Taiwan => LanguageCode.ChineseTraditional,
-            CountryName.France => LanguageCode.French,
-            CountryName.Germany => LanguageCode.German,
-            CountryName.India => LanguageCode.Hindi,
-            CountryName.Ireland => LanguageCode.Irish,
-            CountryName.Italy => LanguageCode.Italian,
-            CountryName.Japan => LanguageCode.Japanese,
-            CountryName.SouthKorea => LanguageCode.Korean,
-            CountryName.Brazil => LanguageCode.PortugueseBrazil,
-            CountryName.Portugal => LanguageCode.PortuguesePortugal,
-            CountryName.Russia => LanguageCode.Russian,
-            CountryName.Mexico => LanguageCode.Spanish,
-            CountryName.Spain => LanguageCode.Spanish,
-            CountryName.Vietnam => LanguageCode.Vietnamese,
-            CountryName.Thailand => LanguageCode.Thai,
-            _ => null
-        };
-
-        if (langCode == null)
-        {
-            _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
-        }
-
-        return langCode;
-    }
-
-    /// <summary>
-    /// Language code map.
-    /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
-    /// </summary>
-    private static class LanguageCode
-    {
-        public const string English = "en";
-        public const string Arabic = "ar";
-        public const string ChineseSimplified = "zh-Hans";
-        public const string ChineseTraditional = "zh-Hant";
-        public const string French = "fr";
-        public const string German = "de";
-        public const string Hindi = "hi";
-        public const string Irish = "ga";
-        public const string Italian = "it";
-        public const string Japanese = "ja";
-        public const string Korean = "ko";
-        public const string PortugueseBrazil = "pt-br";
-        public const string PortuguesePortugal = "pt-pt";
-        public const string Russian = "ru";
-        public const string Spanish = "es";
-        public const string Vietnamese = "vi";
-        public const string Thai = "th";
     }
 }
