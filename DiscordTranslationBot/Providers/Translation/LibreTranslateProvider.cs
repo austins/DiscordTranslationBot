@@ -28,7 +28,7 @@ public sealed class LibreTranslateProvider : ITranslationProvider
         { LanguageCode.Italian, new List<string> { CountryName.Italy } },
         { LanguageCode.Japanese, new List<string> { CountryName.Japan } },
         { LanguageCode.Korean, new List<string> { CountryName.SouthKorea } },
-        { LanguageCode.Portuguese, new List<string> { CountryName.Portugal, CountryName.Brazil } },
+        { LanguageCode.Portuguese, new List<string> { CountryName.Brazil, CountryName.Portugal } },
         { LanguageCode.Russian, new List<string> { CountryName.Russia } },
         { LanguageCode.Spanish, new List<string> { CountryName.Mexico, CountryName.Spain } },
     };
