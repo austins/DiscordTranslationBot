@@ -143,7 +143,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
         if (langCode == null)
         {
             _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported using Azure Translator.");
+            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
         }
 
         return langCode;

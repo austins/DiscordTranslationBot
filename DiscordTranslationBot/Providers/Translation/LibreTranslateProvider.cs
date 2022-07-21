@@ -95,7 +95,7 @@ public sealed class LibreTranslateProvider : ITranslationProvider
         if (langCode == null)
         {
             _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported using LibreTranslate.");
+            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (LibreTranslate).");
         }
 
         return langCode;
