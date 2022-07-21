@@ -12,10 +12,4 @@ public sealed class DetectedLanguage
     /// </summary>
     [JsonPropertyName("language")]
     public string LanguageCode { get; set; } = null!;
-
-    /// <summary>
-    /// The confidence of the automatic language detection.
-    /// </summary>
-    [JsonPropertyName("score")]
-    public float Score { get; set; }
 }

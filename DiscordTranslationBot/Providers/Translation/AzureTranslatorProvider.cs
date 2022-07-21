@@ -113,7 +113,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
                 throw new InvalidOperationException("No translation returned.");
             }
 
-            result.DetectedLanguageCode = translation.DetectedLanguage.LanguageCode;
+            result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
             result.TranslatedText = translation.Translations[0].Text;
 
             return result;

@@ -11,7 +11,7 @@ public sealed class TranslateResult
     /// The automatically detected language.
     /// </summary>
     [JsonPropertyName("detectedLanguage")]
-    public DetectedLanguage DetectedLanguage { get; init; } = null!;
+    public DetectedLanguage? DetectedLanguage { get; init; }
 
     /// <summary>
     /// The translation results.
