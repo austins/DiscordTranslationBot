@@ -156,7 +156,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
                     messageReference: new MessageReference(sourceMessage.Id));
 
                 // Cleanup.
-                await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
                 await sourceMessage.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                 await replyMessage.DeleteAsync();
             },
