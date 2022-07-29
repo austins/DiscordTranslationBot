@@ -18,7 +18,7 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
-    private readonly IEnumerable<ITranslationProvider> _translationProviders;
+    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly FlagEmojiService _flagEmojiService;
     private readonly ILogger<ReactionAddedHandler> _logger;
@@ -31,7 +31,7 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
     /// <param name="flagEmojiService">FlagEmojiService to use.</param>
     /// <param name="logger">Logger to use.</param>
     public ReactionAddedHandler(
-        IEnumerable<ITranslationProvider> translationProviders,
+        IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         FlagEmojiService flagEmojiService,
         ILogger<ReactionAddedHandler> logger)
@@ -79,12 +79,15 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
         try
         {
+            string? providerName = null;
             TranslationResult? translationResult = null;
             foreach (var translationProvider in _translationProviders)
             {
                 try
                 {
-                    translationResult = await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
+                    providerName = translationProvider.ProviderName;
+                    translationResult =
+                        await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
                     break;
                 }
                 catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
@@ -97,13 +100,17 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
 
                     return;
                 }
+                catch (UnsupportedCountryException ex)
+                {
+                    _logger.LogWarning(ex, $"Unsupported country {countryName} for {translationProvider.GetType()}.");
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Failed to translate text with {translationProvider.GetType()}.");
                 }
             }
 
-            if (translationResult == null)
+            if (providerName == null || translationResult == null)
             {
                 await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
                 return;
@@ -120,8 +127,8 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             else
             {
                 replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({translationResult.ProviderName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({translationResult.ProviderName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
             }
 
             SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);

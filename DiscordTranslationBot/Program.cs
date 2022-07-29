@@ -25,11 +25,11 @@ try
 
                 // Register translation providers. They are injected in the order added.
                 if (translationProvidersOptions.AzureTranslator.ApiUrl != null)
-                    services.AddSingleton<ITranslationProvider, AzureTranslatorProvider>();
+                    services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
 
                 services.AddSingleton(
                         new LibreTranslate.Net.LibreTranslate(translationProvidersOptions.LibreTranslate.ApiUrl!.AbsoluteUri))
-                    .AddSingleton<ITranslationProvider, LibreTranslateProvider>();
+                    .AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
 
                 // Other services.
                 services

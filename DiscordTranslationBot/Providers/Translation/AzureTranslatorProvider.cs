@@ -11,36 +11,8 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Provider for Azure Translator.
 /// </summary>
-public sealed class AzureTranslatorProvider : ITranslationProvider
+public sealed class AzureTranslatorProvider : TranslationProviderBase
 {
-    /// <summary>
-    /// Language code map.
-    /// </summary>
-    /// <remarks>
-    /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
-    /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
-    /// </remarks>
-    private static readonly IReadOnlyDictionary<string, ISet<string>> LangCodeMap = new Dictionary<string, ISet<string>>
-    {
-        { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
-        { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
-        { "zh-Hans", new HashSet<string> { CountryName.China } },
-        { "zh-Hant", new HashSet<string> { CountryName.HongKong, CountryName.Taiwan } },
-        { "fr", new HashSet<string> { CountryName.France } },
-        { "de", new HashSet<string> { CountryName.Germany } },
-        { "hi", new HashSet<string> { CountryName.India } },
-        { "ga", new HashSet<string> { CountryName.Ireland } },
-        { "it", new HashSet<string> { CountryName.Italy } },
-        { "ja", new HashSet<string> { CountryName.Japan } },
-        { "ko", new HashSet<string> { CountryName.SouthKorea } },
-        { "pt-br", new HashSet<string> { CountryName.Brazil } },
-        { "pt-pt", new HashSet<string> { CountryName.Portugal } },
-        { "ru", new HashSet<string> { CountryName.Russia } },
-        { "es", new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
-        { "vi", new HashSet<string> { CountryName.Vietnam } },
-        { "th", new HashSet<string> { CountryName.Thailand } },
-    };
-
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
     private readonly ILogger<AzureTranslatorProvider> _logger;
@@ -66,18 +38,43 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
         _logger = logger;
     }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync"/>
+    /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
+    public override string ProviderName => "Azure Translator";
+
+    /// <summary>
+    /// <inheritdoc cref="TranslationProviderBase.LangCodeMap"/>
+    /// </summary>
+    /// <remarks>
+    /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
+    /// </remarks>
+    protected override IReadOnlyDictionary<string, ISet<string>> LangCodeMap { get; } = new Dictionary<string, ISet<string>>
+    {
+        { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
+        { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
+        { "zh-Hans", new HashSet<string> { CountryName.China } },
+        { "zh-Hant", new HashSet<string> { CountryName.HongKong, CountryName.Taiwan } },
+        { "fr", new HashSet<string> { CountryName.France } },
+        { "de", new HashSet<string> { CountryName.Germany } },
+        { "hi", new HashSet<string> { CountryName.India } },
+        { "ga", new HashSet<string> { CountryName.Ireland } },
+        { "it", new HashSet<string> { CountryName.Italy } },
+        { "ja", new HashSet<string> { CountryName.Japan } },
+        { "ko", new HashSet<string> { CountryName.SouthKorea } },
+        { "pt-br", new HashSet<string> { CountryName.Brazil } },
+        { "pt-pt", new HashSet<string> { CountryName.Portugal } },
+        { "ru", new HashSet<string> { CountryName.Russia } },
+        { "es", new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
+        { "vi", new HashSet<string> { CountryName.Vietnam } },
+        { "th", new HashSet<string> { CountryName.Thailand } },
+    };
+
+    /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
     /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    public async Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken)
+    public override async Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken)
     {
         try
         {
-            var langCode = LangCodeMap.SingleOrDefault(x => x.Value.Contains(countryName)).Key;
-            if (string.IsNullOrWhiteSpace(langCode))
-            {
-                _logger.LogWarning($"Translation for country [{countryName}] isn't supported.");
-                throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported (Azure Translator).");
-            }
+            var langCode = GetLangCodeByCountryName(countryName);
 
             // Azure has a limit of 10,000 characters for text in a request:
             // See: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/reference/v3-0-translate#request-body.
@@ -87,7 +84,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
                 throw new ArgumentException($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
             }
 
-            var result = new TranslationResult { ProviderName = "Azure Translator", TargetLanguageCode = langCode };
+            var result = new TranslationResult { TargetLanguageCode = langCode };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
@@ -133,7 +130,7 @@ public sealed class AzureTranslatorProvider : ITranslationProvider
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Unable to connect to the Azure Translator API URL.");
+            _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
             throw;
         }
     }

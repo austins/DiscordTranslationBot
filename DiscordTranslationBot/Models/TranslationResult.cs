@@ -6,11 +6,6 @@
 public sealed class TranslationResult
 {
     /// <summary>
-    /// The translation provider display name.
-    /// </summary>
-    public string ProviderName { get; set; } = null!;
-
-    /// <summary>
     /// The detected language code from the provider's automatic detection.
     /// </summary>
     public string? DetectedLanguageCode { get; set; }
