@@ -24,7 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\build.yml = .github\workflows\build.yml
 		.github\workflows\deploy.yml = .github\workflows\deploy.yml
 		.github\workflows\docker.yml = .github\workflows\docker.yml
-		test.yml = test.yml
+		.github\workflows\test.yml = .github\workflows\test.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordTranslationBot.Tests", "DiscordTranslationBot.Tests\DiscordTranslationBot.Tests.csproj", "{37E2BB9E-A9DD-4E58-B538-464335461B13}"
