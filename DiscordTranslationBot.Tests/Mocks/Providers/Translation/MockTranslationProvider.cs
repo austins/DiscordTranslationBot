@@ -3,6 +3,7 @@ using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Mocks.Providers.Translation;
+
 internal sealed class MockTranslationProvider : TranslationProviderBase
 {
     public override string ProviderName => "Mock Translation Provider";
