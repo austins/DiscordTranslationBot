@@ -3,7 +3,8 @@ using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
-using DiscordTranslationBot.Models.Providers.AzureTranslator;
+using DiscordTranslationBot.Models.Providers.Translation;
+using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -13,6 +14,12 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 public sealed class AzureTranslatorProvider : TranslationProviderBase
 {
+    /// <summary>
+    /// Azure has a limit of 10,000 characters for text in a request.
+    /// See: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/reference/v3-0-translate#request-body.
+    /// </summary>
+    public const int TextCharacterLimit = 10000;
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
     private readonly ILogger<AzureTranslatorProvider> _logger;
@@ -29,12 +36,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         ILogger<AzureTranslatorProvider> logger)
     {
         _httpClientFactory = httpClientFactory;
-
-        if (translationProvidersOptions == null)
-            throw new ArgumentNullException(nameof(translationProvidersOptions));
-
         _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
-
         _logger = logger;
     }
 
@@ -76,9 +78,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         {
             var langCode = GetLangCodeByCountryName(countryName);
 
-            // Azure has a limit of 10,000 characters for text in a request:
-            // See: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/reference/v3-0-translate#request-body.
-            if (text.Length >= 10000)
+            if (text.Length >= TextCharacterLimit)
             {
                 _logger.LogError($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
                 throw new ArgumentException($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
@@ -90,9 +90,8 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             using var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri =
-                    new Uri(
-                        $"{_azureTranslatorOptions.ApiUrl}/translate?api-version=3.0&to={result.TargetLanguageCode}"),
+                RequestUri = new Uri(
+                    $"{_azureTranslatorOptions.ApiUrl}/translate?api-version=3.0&to={result.TargetLanguageCode}"),
             };
 
             var requestBody = JsonSerializer.Serialize(new object[] { new { Text = text } });
@@ -108,11 +107,11 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
                 throw new InvalidOperationException($"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            var translations = JsonSerializer.Deserialize<IList<TranslateResult>>(content);
+            var content = JsonSerializer.Deserialize<IList<TranslateResult>>(
+                await response.Content.ReadAsStringAsync(cancellationToken));
 
-            var translation = translations?.SingleOrDefault();
-            if (translation == null)
+            var translation = content?.SingleOrDefault();
+            if (translation?.Translations.Any() != true)
             {
                 _logger.LogError("No translation returned.");
                 throw new InvalidOperationException("No translation returned.");

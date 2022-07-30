@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the Log event of the Discord client.
 /// </summary>
-internal sealed class LogHandler : INotificationHandler<LogNotification>
+public sealed class LogHandler : INotificationHandler<LogNotification>
 {
     private readonly ILogger<LogHandler> _logger;
 

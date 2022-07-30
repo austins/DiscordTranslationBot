@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Models;
+﻿namespace DiscordTranslationBot.Models.Providers.Translation;
 
 /// <summary>
 /// Translation data to use in a Discord message.

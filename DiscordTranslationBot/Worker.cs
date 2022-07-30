@@ -15,27 +15,23 @@ public class Worker : BackgroundService
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
-    private readonly LibreTranslate.Net.LibreTranslate _libreTranslate;
     private readonly ILogger<Worker> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker"/> class.
     /// </summary>
-    /// <param name="libreTranslate">LibreTranslate client to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="eventListener">Discord event listener to use.</param>
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     /// <param name="logger">Logger to use.</param>
     public Worker(
-        LibreTranslate.Net.LibreTranslate libreTranslate,
         DiscordSocketClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
         ILogger<Worker> logger)
     {
-        _libreTranslate = libreTranslate;
         _client = client;
         _eventListener = eventListener;
         _discordOptions = discordOptions;
@@ -49,19 +45,6 @@ public class Worker : BackgroundService
     /// <param name="cancellationToken">Cancellation token.</param>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        // Verify that the LibreTranslate API URL can be connected to initially.
-        try
-        {
-            await _libreTranslate.GetSupportedLanguagesAsync();
-        }
-        catch (HttpRequestException ex) when
-            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true)
-        {
-            _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
-            _hostApplicationLifetime.StopApplication();
-            return;
-        }
-
         // Verify that the Discord BotToken is set.
         if (string.IsNullOrWhiteSpace(_discordOptions.Value.BotToken))
         {

@@ -1,5 +1,5 @@
 ﻿using DiscordTranslationBot.Exceptions;
-using DiscordTranslationBot.Models;
+using DiscordTranslationBot.Models.Providers.Translation;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
@@ -38,8 +38,8 @@ public abstract class TranslationProviderBase
     {
         var langCode = LangCodeMap.SingleOrDefault(x => x.Value.Contains(countryName)).Key;
 
-        return string.IsNullOrWhiteSpace(langCode) ?
-            throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported.") :
-            langCode;
+        return string.IsNullOrWhiteSpace(langCode)
+            ? throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported.")
+            : langCode;
     }
 }

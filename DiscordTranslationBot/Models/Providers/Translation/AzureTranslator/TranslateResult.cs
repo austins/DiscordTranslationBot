@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DiscordTranslationBot.Models.Providers.AzureTranslator;
+namespace DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 
 /// <summary>
 /// The result from the Azure Translator translate endpoint.

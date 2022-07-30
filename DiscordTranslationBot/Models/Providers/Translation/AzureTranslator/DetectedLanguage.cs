@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DiscordTranslationBot.Models.Providers.AzureTranslator;
+namespace DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 
 /// <summary>
 /// The detected language from the Azure Translator translate endpoint.
@@ -11,5 +11,5 @@ public sealed class DetectedLanguage
     /// The detected language code.
     /// </summary>
     [JsonPropertyName("language")]
-    public string LanguageCode { get; set; } = null!;
+    public string LanguageCode { get; init; } = null!;
 }

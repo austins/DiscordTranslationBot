@@ -2,7 +2,7 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Exceptions;
-using DiscordTranslationBot.Models;
+using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
@@ -16,7 +16,7 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the ReactionAdded event of the Discord client.
 /// </summary>
-internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
+public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
@@ -77,67 +77,59 @@ internal sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedN
             return;
         }
 
-        try
+        string? providerName = null;
+        TranslationResult? translationResult = null;
+        foreach (var translationProvider in _translationProviders)
         {
-            string? providerName = null;
-            TranslationResult? translationResult = null;
-            foreach (var translationProvider in _translationProviders)
+            try
             {
-                try
-                {
-                    providerName = translationProvider.ProviderName;
-                    translationResult =
-                        await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
-                    break;
-                }
-                catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
-                {
-                    SendTempMessage(
-                        ex.Message,
-                        notification.Reaction,
-                        sourceMessage,
-                        cancellationToken);
-
-                    return;
-                }
-                catch (UnsupportedCountryException ex)
-                {
-                    _logger.LogWarning(ex, $"Unsupported country {countryName} for {translationProvider.GetType()}.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Failed to translate text with {translationProvider.GetType()}.");
-                }
+                providerName = translationProvider.ProviderName;
+                translationResult =
+                    await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
+                break;
             }
-
-            if (providerName == null || translationResult == null)
+            catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
             {
-                await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+                SendTempMessage(
+                    ex.Message,
+                    notification.Reaction,
+                    sourceMessage,
+                    cancellationToken);
+
                 return;
             }
-
-            string replyText;
-            if (translationResult.TranslatedText == sanitizedMessage)
+            catch (UnsupportedCountryException ex)
             {
-                _logger.LogWarning(
-                    "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.");
-
-                replyText = "Couldn't detect the source language to translate from or the result is the same.";
+                _logger.LogWarning(ex, $"Unsupported country {countryName} for {translationProvider.GetType()}.");
             }
-            else
+            catch (Exception ex)
             {
-                replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                    $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                    $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+                _logger.LogError(ex, $"Failed to translate text with {translationProvider.GetType()}.");
             }
-
-            SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
         }
-        catch (HttpRequestException ex) when
-            (ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true)
+
+        if (providerName == null || translationResult == null)
         {
-            _logger.LogError(ex, "Unable to connect to the LibreTranslate API URL.");
+            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+            return;
         }
+
+        string replyText;
+        if (translationResult.TranslatedText == sanitizedMessage)
+        {
+            _logger.LogWarning(
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.");
+
+            replyText = "Couldn't detect the source language to translate from or the result is the same.";
+        }
+        else
+        {
+            replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
+                $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+        }
+
+        SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
     }
 
     /// <summary>

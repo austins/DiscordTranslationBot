@@ -27,9 +27,7 @@ try
                 if (translationProvidersOptions.AzureTranslator.ApiUrl != null)
                     services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
 
-                services.AddSingleton(
-                        new LibreTranslate.Net.LibreTranslate(translationProvidersOptions.LibreTranslate.ApiUrl!.AbsoluteUri))
-                    .AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
+                services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
 
                 // Other services.
                 services
@@ -49,11 +47,9 @@ try
 
     await host.RunAsync();
 }
-catch (Exception ex) when ((ex is InvalidOperationException &&
-                               (ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal) ||
-                                ex.Message.Contains(TranslationProvidersOptions.SectionName, StringComparison.Ordinal))) ||
-                           (ex is ArgumentNullException or UriFormatException or NotSupportedException &&
-                            ex.StackTrace?.Contains(nameof(LibreTranslate.Net.LibreTranslate), StringComparison.Ordinal) == true))
+catch (Exception ex) when (ex is InvalidOperationException &&
+                           (ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal) ||
+                            ex.Message.Contains(TranslationProvidersOptions.SectionName, StringComparison.Ordinal)))
 {
     // The app is missing configuration options.
     Console.WriteLine(
