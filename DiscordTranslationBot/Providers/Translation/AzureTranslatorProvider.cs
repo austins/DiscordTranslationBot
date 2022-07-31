@@ -1,6 +1,6 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
@@ -106,10 +106,8 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(
                     $"{_azureTranslatorOptions.ApiUrl}/translate?api-version=3.0&to={result.TargetLanguageCode}"),
+                Content = httpClient.SerializeTranslationRequestContent(new object[] { new { Text = text } }),
             };
-
-            var requestBody = JsonSerializer.Serialize(new object[] { new { Text = text } });
-            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
 
             request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
             request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);
@@ -121,8 +119,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
                 throw new InvalidOperationException($"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
-            var content = JsonSerializer.Deserialize<IList<TranslateResult>>(
-                await response.Content.ReadAsStringAsync(cancellationToken));
+            var content = await response.Content.DeserializeTranslationResponseContentAsync<IList<TranslateResult>>(cancellationToken);
 
             var translation = content?.SingleOrDefault();
             if (translation?.Translations.Any() != true)

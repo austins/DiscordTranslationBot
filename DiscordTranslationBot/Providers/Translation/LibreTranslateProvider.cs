@@ -1,6 +1,6 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
@@ -93,17 +93,14 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(
                     $"{_libreTranslateOptions.ApiUrl}/translate"),
+                Content = httpClient.SerializeTranslationRequestContent(new
+                {
+                    q = text,
+                    source = "auto",
+                    target = supportedLanguage.LangCode,
+                    format = "text",
+                }),
             };
-
-            var requestBody = JsonSerializer.Serialize(new
-            {
-                q = text,
-                source = "auto",
-                target = supportedLanguage.LangCode,
-                format = "text",
-            });
-
-            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -112,9 +109,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 throw new InvalidOperationException($"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
-            var content = JsonSerializer.Deserialize<TranslateResult>(
-                await response.Content.ReadAsStringAsync(cancellationToken));
-
+            var content = await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(cancellationToken);
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
                 _logger.LogError("No translation returned.");
