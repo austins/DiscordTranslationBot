@@ -49,8 +49,13 @@ public sealed class CountryService : ICountryService
     }
 
     /// <summary>
-    /// Initializes supported language codes to countries.
+    /// Maps supported language codes to countries.
     /// </summary>
+    /// <remarks>
+    /// The language codes should be the primary language of the country that translation providers
+    /// will translate to when the associated flag emoji is received. The language codes are based on
+    /// the supported languages of each translation provider.
+    /// </remarks>
     private void InitializeSupportedLangCodes()
     {
         SetLangCodes(Emoji.FlagAustralia, "en");
