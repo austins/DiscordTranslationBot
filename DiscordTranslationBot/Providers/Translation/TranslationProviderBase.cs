@@ -1,4 +1,5 @@
 ﻿using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -14,32 +15,39 @@ public abstract class TranslationProviderBase
     public abstract string ProviderName { get; }
 
     /// <summary>
-    /// Language code to country name map for languages that are supported by a translation provider.
-    /// Refer to <see cref="NeoSmart.Unicode.Emoji"/> for list of country names by flag.
+    /// Supported language codes for the provider.
     /// </summary>
-    protected abstract IReadOnlyDictionary<string, ISet<string>> LangCodeMap { get; }
+#pragma warning disable CA2227
+    protected ISet<string> SupportedLangCodes { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+#pragma warning restore CA2227
 
     /// <summary>
     /// Translate text.
     /// </summary>
-    /// <param name="countryName">The country name that will be used to get the target language code.</param>
+    /// <remarks>
+    /// Must call <see cref="InitializeSupportedLangCodesAsync"/> first.
+    /// </remarks>
+    /// <param name="country">The country containing language codes to translate to.</param>
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
-    public abstract Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken);
+    public abstract Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Get lang code from <see cref="LangCodeMap"/> by country name.
+    /// Initialize the <see cref="SupportedLangCodes"/> for the provider.
     /// </summary>
-    /// <param name="countryName">The country name that will be used to get the target language code.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    protected abstract Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the lang code that a country supports.
+    /// </summary>
+    /// <param name="country">The country containing language codes it supports.</param>
     /// <returns>Lang code.</returns>
     /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    protected string GetLangCodeByCountryName(string countryName)
+    protected string GetLangCodeByCountry(Country country)
     {
-        var langCode = LangCodeMap.SingleOrDefault(x => x.Value.Contains(countryName)).Key;
-
-        return string.IsNullOrWhiteSpace(langCode)
-            ? throw new UnsupportedCountryException($"Translation for country {countryName} isn't supported.")
-            : langCode;
+        return country.LangCodes.FirstOrDefault(countryLangCode => SupportedLangCodes.Contains(countryLangCode))
+               ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
     }
 }

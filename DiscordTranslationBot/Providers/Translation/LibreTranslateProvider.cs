@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
@@ -37,36 +36,15 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "LibreTranslate";
 
-    /// <summary>
-    /// <inheritdoc cref="TranslationProviderBase.LangCodeMap"/>
-    /// </summary>
-    /// <remarks>
-    /// Only some languages are supported by LibreTranslate.
-    /// </remarks>
-    protected override IReadOnlyDictionary<string, ISet<string>> LangCodeMap { get; } = new Dictionary<string, ISet<string>>
-    {
-        { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
-        { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
-        { "zh", new HashSet<string> { CountryName.China, CountryName.HongKong, CountryName.Taiwan } },
-        { "fr", new HashSet<string> { CountryName.France } },
-        { "de", new HashSet<string> { CountryName.Germany } },
-        { "hi", new HashSet<string> { CountryName.India } },
-        { "ga", new HashSet<string> { CountryName.Ireland } },
-        { "it", new HashSet<string> { CountryName.Italy } },
-        { "ja", new HashSet<string> { CountryName.Japan } },
-        { "ko", new HashSet<string> { CountryName.SouthKorea } },
-        { "pt", new HashSet<string> { CountryName.Brazil, CountryName.Portugal } },
-        { "ru", new HashSet<string> { CountryName.Russia } },
-        { "es", new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
-    };
-
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    public override async Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken)
+    /// <exception cref="InvalidOperationException">An error occured.</exception>
+    public override async Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken)
     {
+        await InitializeSupportedLangCodesAsync(cancellationToken);
+
         try
         {
-            var langCode = GetLangCodeByCountryName(countryName);
+            var langCode = GetLangCodeByCountry(country);
             var result = new TranslationResult { TargetLanguageCode = langCode };
 
             using var httpClient = _httpClientFactory.CreateClient();
@@ -118,5 +96,36 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
             throw;
         }
+    }
+
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    {
+        if (SupportedLangCodes.Any()) return;
+
+        using var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages"),
+        };
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+        }
+
+        var content = JsonSerializer.Deserialize<IList<Language>>(await response.Content.ReadAsStringAsync(cancellationToken));
+        if (content?.Any() != true)
+        {
+            _logger.LogError("Languages endpoint returned no language codes.");
+            throw new InvalidOperationException("Languages endpoint returned no language codes.");
+        }
+
+        SupportedLangCodes = content
+            .Select(lc => lc.LangCode)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }

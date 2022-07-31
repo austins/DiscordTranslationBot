@@ -10,16 +10,14 @@ using DiscordTranslationBot.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NeoSmart.Unicode;
 using Xunit;
-using Emoji = Discord.Emoji;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class ReactionAddedHandlerTests
 {
     private readonly Mock<TranslationProviderBase> _translationProvider;
-    private readonly Mock<IFlagEmojiService> _flagEmojiService;
+    private readonly Mock<ICountryService> _countryService;
 
     private readonly ReactionAddedHandler _sut;
     private readonly Mock<IUserMessage> _message;
@@ -31,14 +29,14 @@ public sealed class ReactionAddedHandlerTests
         _translationProvider.Setup(x => x.ProviderName).Returns("Test Provider");
 
         var client = new Mock<DiscordSocketClient>(MockBehavior.Strict);
-        client.Setup(x => x.CurrentUser).Returns((SocketSelfUser) null!);
+        client.Setup(x => x.CurrentUser).Returns((SocketSelfUser)null!);
 
-        _flagEmojiService = new Mock<IFlagEmojiService>(MockBehavior.Strict);
+        _countryService = new Mock<ICountryService>(MockBehavior.Strict);
 
         _sut = new ReactionAddedHandler(
             new[] { _translationProvider.Object },
             client.Object,
-            _flagEmojiService.Object,
+            _countryService.Object,
             Mock.Of<ILogger<ReactionAddedHandler>>());
 
         _message = new Mock<IUserMessage>();
@@ -64,19 +62,26 @@ public sealed class ReactionAddedHandlerTests
     public async Task Handle_Success()
     {
         // Arrange
-        _flagEmojiService
-            .Setup(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()))
-            .Returns(CountryName.France);
+        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+        };
+
+        _countryService
+            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
+            .Returns(true);
 
         var translationResult = new TranslationResult
         {
-            DetectedLanguageCode = "en", TargetLanguageCode = "fr", TranslatedText = "translated_text",
+            DetectedLanguageCode = "en",
+            TargetLanguageCode = "fr",
+            TranslatedText = "translated_text",
         };
 
         _translationProvider
             .Setup(
                 x => x.TranslateAsync(
-                    It.IsAny<string>(),
+                    It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .ReturnsAsync(translationResult);
@@ -120,13 +125,15 @@ public sealed class ReactionAddedHandlerTests
         // Assert
         await act.Should().NotThrowAsync();
 
-        _flagEmojiService.Verify(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()), Times.Once);
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
     }
 
     [Fact]
     public async Task Handle_Returns_IfNotEmoji()
     {
         // Arrange
+        Country? country = null;
+
         _notification.Reaction.Emote = new Emoji("not_an_emoji");
 
         // Act
@@ -137,7 +144,7 @@ public sealed class ReactionAddedHandlerTests
         // Assert
         await act.Should().NotThrowAsync();
 
-        _flagEmojiService.Verify(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()), Times.Never);
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Never);
 
         _message.Verify(
             x => x.RemoveReactionAsync(
@@ -148,7 +155,7 @@ public sealed class ReactionAddedHandlerTests
 
         _translationProvider.Verify(
             x => x.TranslateAsync(
-                It.IsAny<string>(),
+                It.IsAny<Country>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -160,7 +167,8 @@ public sealed class ReactionAddedHandlerTests
         // Arrange
         _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.Cactus.ToString());
 
-        _flagEmojiService.Setup(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>())).Returns((string?) null);
+        Country? country = null;
+        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(false);
 
         // Act
         var act = async () => await _sut.Handle(
@@ -170,7 +178,7 @@ public sealed class ReactionAddedHandlerTests
         // Assert
         await act.Should().NotThrowAsync();
 
-        _flagEmojiService.Verify(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()), Times.Once);
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _message.Verify(
             x => x.RemoveReactionAsync(
@@ -181,7 +189,7 @@ public sealed class ReactionAddedHandlerTests
 
         _translationProvider.Verify(
             x => x.TranslateAsync(
-                It.IsAny<string>(),
+                It.IsAny<Country>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
@@ -191,9 +199,14 @@ public sealed class ReactionAddedHandlerTests
     public async Task Handle_Returns_SanitizesMessageEmpty()
     {
         // Arrange
-        _flagEmojiService
-            .Setup(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()))
-            .Returns(CountryName.France);
+        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+        };
+
+        _countryService
+            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
+            .Returns(true);
 
         _message.Setup(x => x.Content).Returns(string.Empty);
 
@@ -215,12 +228,12 @@ public sealed class ReactionAddedHandlerTests
         // Assert
         await act.Should().NotThrowAsync();
 
-        _flagEmojiService.Verify(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()), Times.Once);
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _translationProvider
             .Verify(
                 x => x.TranslateAsync(
-                    It.IsAny<string>(),
+                    It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never);
@@ -230,14 +243,19 @@ public sealed class ReactionAddedHandlerTests
     public async Task Handle_NoTranslationResult()
     {
         // Arrange
-        _flagEmojiService
-            .Setup(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()))
-            .Returns(CountryName.France);
+        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+        };
+
+        _countryService
+            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
+            .Returns(true);
 
         _translationProvider
             .Setup(
                 x => x.TranslateAsync(
-                    It.IsAny<string>(),
+                    It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
             .ReturnsAsync((TranslationResult)null!);
@@ -260,7 +278,7 @@ public sealed class ReactionAddedHandlerTests
         // Assert
         await act.Should().NotThrowAsync();
 
-        _flagEmojiService.Verify(x => x.GetCountryNameBySequence(It.IsAny<UnicodeSequence>()), Times.Once);
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _message
             .Verify(

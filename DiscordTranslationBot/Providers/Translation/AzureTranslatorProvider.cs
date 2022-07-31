@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
@@ -43,45 +42,21 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "Azure Translator";
 
-    /// <summary>
-    /// <inheritdoc cref="TranslationProviderBase.LangCodeMap"/>
-    /// </summary>
-    /// <remarks>
-    /// Refer to Azure documentation for list of supported language codes: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support.
-    /// </remarks>
-    protected override IReadOnlyDictionary<string, ISet<string>> LangCodeMap { get; } = new Dictionary<string, ISet<string>>
-    {
-        { "en", new HashSet<string> { CountryName.Australia, CountryName.Canada, CountryName.UnitedKingdom, CountryName.UnitedStates, CountryName.UnitedStatesOutlyingIslands } },
-        { "ar", new HashSet<string> { CountryName.Algeria, CountryName.Bahrain, CountryName.Egypt, CountryName.SaudiArabia } },
-        { "zh-Hans", new HashSet<string> { CountryName.China } },
-        { "zh-Hant", new HashSet<string> { CountryName.HongKong, CountryName.Taiwan } },
-        { "fr", new HashSet<string> { CountryName.France } },
-        { "de", new HashSet<string> { CountryName.Germany } },
-        { "hi", new HashSet<string> { CountryName.India } },
-        { "ga", new HashSet<string> { CountryName.Ireland } },
-        { "it", new HashSet<string> { CountryName.Italy } },
-        { "ja", new HashSet<string> { CountryName.Japan } },
-        { "ko", new HashSet<string> { CountryName.SouthKorea } },
-        { "pt-br", new HashSet<string> { CountryName.Brazil } },
-        { "pt-pt", new HashSet<string> { CountryName.Portugal } },
-        { "ru", new HashSet<string> { CountryName.Russia } },
-        { "es", new HashSet<string> { CountryName.Mexico, CountryName.Spain } },
-        { "vi", new HashSet<string> { CountryName.Vietnam } },
-        { "th", new HashSet<string> { CountryName.Thailand } },
-    };
-
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    public override async Task<TranslationResult> TranslateAsync(string countryName, string text, CancellationToken cancellationToken)
+    /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
+    /// <exception cref="InvalidOperationException">An error occured.</exception>
+    public override async Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken)
     {
+        await InitializeSupportedLangCodesAsync(cancellationToken);
+
         try
         {
-            var langCode = GetLangCodeByCountryName(countryName);
+            var langCode = GetLangCodeByCountry(country);
 
             if (text.Length >= TextCharacterLimit)
             {
-                _logger.LogError($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
-                throw new ArgumentException($"The text can't exceed 10,000 characters including spaces. Length: {text.Length}.");
+                _logger.LogError($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
+                throw new ArgumentException($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
             }
 
             var result = new TranslationResult { TargetLanguageCode = langCode };
@@ -132,5 +107,36 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
             throw;
         }
+    }
+
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    {
+        if (SupportedLangCodes.Any()) return;
+
+        using var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
+        };
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+        }
+
+        var content = JsonSerializer.Deserialize<Languages>(await response.Content.ReadAsStringAsync(cancellationToken));
+        if (content?.LangCodes?.Any() != true)
+        {
+            _logger.LogError("Languages endpoint returned no language codes.");
+            throw new InvalidOperationException("Languages endpoint returned no language codes.");
+        }
+
+        SupportedLangCodes = content.LangCodes
+            .Select(lc => lc.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }

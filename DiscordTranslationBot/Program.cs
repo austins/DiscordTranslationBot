@@ -21,7 +21,8 @@ try
                     .Configure<DiscordOptions>(hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
                     .Configure<TranslationProvidersOptions>(translationProvidersOptionsSection)
                     .AddMediatR(typeof(Program))
-                    .AddHttpClient();
+                    .AddHttpClient()
+                    .AddSingleton<ICountryService, CountryService>();
 
                 // Register translation providers. They are injected in the order added.
                 if (translationProvidersOptions.AzureTranslator.ApiUrl != null)
@@ -31,7 +32,6 @@ try
 
                 // Other services.
                 services
-                    .AddSingleton<IFlagEmojiService, FlagEmojiService>()
                     .AddSingleton(
                         new DiscordSocketClient(
                             new DiscordSocketConfig

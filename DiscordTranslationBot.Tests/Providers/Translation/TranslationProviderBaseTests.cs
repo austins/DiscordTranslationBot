@@ -1,4 +1,5 @@
 ﻿using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
 using Xunit;
@@ -10,15 +11,19 @@ public abstract class TranslationProviderBaseTests
     protected abstract TranslationProviderBase Sut { get; }
 
     [Fact]
-    public async Task GetLangCodeByCountryName_Throws_UnsupportedCountryException()
+    public async Task GetLangCodeByCountry_Throws_UnsupportedCountryException()
     {
         // Arrange
-        const string countryName = "unsupported_country";
+        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "unsupported_country")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+        };
+
         const string text = "test";
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateAsync(countryName, text, CancellationToken.None))
+            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<UnsupportedCountryException>();
     }

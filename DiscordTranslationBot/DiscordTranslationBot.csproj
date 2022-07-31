@@ -8,6 +8,7 @@
 	<AnalysisLevel>6.0-all</AnalysisLevel>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<Platforms>AnyCPU;x64</Platforms>
+	<LangVersion>10</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

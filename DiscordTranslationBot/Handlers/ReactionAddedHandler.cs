@@ -8,8 +8,6 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using MediatR;
-using NeoSmart.Unicode;
-
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
@@ -21,7 +19,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
 {
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
-    private readonly IFlagEmojiService _flagEmojiService;
+    private readonly ICountryService _countryService;
     private readonly ILogger<ReactionAddedHandler> _logger;
 
     /// <summary>
@@ -29,17 +27,17 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// </summary>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
-    /// <param name="flagEmojiService">FlagEmojiService to use.</param>
+    /// <param name="countryService">Country service to use.</param>
     /// <param name="logger">Logger to use.</param>
     public ReactionAddedHandler(
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
-        IFlagEmojiService flagEmojiService,
+        ICountryService countryService,
         ILogger<ReactionAddedHandler> logger)
     {
         _translationProviders = translationProviders;
         _client = client;
-        _flagEmojiService = flagEmojiService;
+        _countryService = countryService;
         _logger = logger;
     }
 
@@ -52,10 +50,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     {
         if (!Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
 
-        var countryName =
-            _flagEmojiService.GetCountryNameBySequence(notification.Reaction.Emote.Name.AsUnicodeSequence());
-
-        if (countryName == null) return;
+        if (!_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)) return;
 
         var sourceMessage = await notification.Message;
 
@@ -87,7 +82,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                 providerName = translationProvider.ProviderName;
 
                 translationResult = await translationProvider.TranslateAsync(
-                    countryName,
+                    country!,
                     sanitizedMessage,
                     cancellationToken);
 
@@ -105,7 +100,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
             }
             catch (UnsupportedCountryException ex)
             {
-                _logger.LogWarning(ex, $"Unsupported country {countryName} for {translationProvider.GetType()}.");
+                _logger.LogWarning(ex, $"Unsupported country {country?.Name} for {translationProvider.GetType()}.");
             }
             catch (Exception ex)
             {
