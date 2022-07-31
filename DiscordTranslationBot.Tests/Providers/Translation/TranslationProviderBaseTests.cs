@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Tests.Providers.Translation;
 
 public abstract class TranslationProviderBaseTests : IAsyncLifetime
 {
-    protected TranslationProviderBase Sut { get; init; }
+    protected TranslationProviderBase Sut { get; init; } = null!;
 
     public async Task InitializeAsync()
     {
