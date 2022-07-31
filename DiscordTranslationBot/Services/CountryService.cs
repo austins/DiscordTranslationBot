@@ -4,9 +4,12 @@ using NeoSmart.Unicode;
 namespace DiscordTranslationBot.Services;
 
 /// <summary>
-/// Provides methods to interact with flag emojis. This should be injected as a singleton so the flag emoji list
-/// doesn't have to be regenerated.
+/// Maps all flag emojis to a set of <see cref="Country"/> and assigns language codes to them.
 /// </summary>
+/// <remarks>
+/// This should be injected as a singleton (prior to the translation providers) as the list of countries
+/// should only be generated once and made available to each translation provider.
+/// </remarks>
 public sealed class CountryService : ICountryService
 {
     private readonly ILogger<CountryService> _logger;
