@@ -60,7 +60,7 @@ csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
 dotnet_diagnostic.IDE1006.severity = silent
-dotnet_diagnostic.IDE0090.severity = silent
+dotnet_diagnostic.IDE0090.severity = error
 
 # IDE0160: Convert to block scoped namespace
 dotnet_diagnostic.IDE0160.severity = none
@@ -97,6 +97,7 @@ dotnet_diagnostic.SA1615.severity = suggestion
 # SA1503: Braces should not be omitted
 dotnet_diagnostic.SA1503.severity = none
 dotnet_diagnostic.SA1000.severity = silent
+csharp_style_prefer_method_group_conversion = true:silent
 
 [*.{cs,vb}]
 #### Naming styles ####

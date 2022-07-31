@@ -1,5 +1,5 @@
 ﻿using Discord;
-using Discord.WebSocket;
+using DiscordTranslationBot.Models.Discord;
 using MediatR;
 
 namespace DiscordTranslationBot.Notifications;
@@ -12,15 +12,15 @@ public sealed class ReactionAddedNotification : INotification
     /// <summary>
     /// The user message.
     /// </summary>
-    public Cacheable<IUserMessage, ulong> Message { get; set; }
+    public Task<IUserMessage> Message { get; set; } = null!;
 
     /// <summary>
     /// The message channel.
     /// </summary>
-    public Cacheable<IMessageChannel, ulong> Channel { get; set; }
+    public Task<IMessageChannel> Channel { get; set; } = null!;
 
     /// <summary>
     /// The reaction.
     /// </summary>
-    public SocketReaction? Reaction { get; set; }
+    public Reaction Reaction { get; set; } = null!;
 }

@@ -2,6 +2,7 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
@@ -20,7 +21,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
 {
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
-    private readonly FlagEmojiService _flagEmojiService;
+    private readonly IFlagEmojiService _flagEmojiService;
     private readonly ILogger<ReactionAddedHandler> _logger;
 
     /// <summary>
@@ -33,7 +34,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     public ReactionAddedHandler(
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
-        FlagEmojiService flagEmojiService,
+        IFlagEmojiService flagEmojiService,
         ILogger<ReactionAddedHandler> logger)
     {
         _translationProviders = translationProviders;
@@ -49,16 +50,16 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.Reaction == null || !Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
+        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
 
         var countryName =
             _flagEmojiService.GetCountryNameBySequence(notification.Reaction.Emote.Name.AsUnicodeSequence());
 
         if (countryName == null) return;
 
-        var sourceMessage = await notification.Message.GetOrDownloadAsync();
+        var sourceMessage = await notification.Message;
 
-        if (sourceMessage.Author.Id == _client.CurrentUser.Id)
+        if (sourceMessage.Author.Id == _client.CurrentUser?.Id)
         {
             _logger.LogInformation("Translating this bot's messages isn't allowed.");
             await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
@@ -84,8 +85,12 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
             try
             {
                 providerName = translationProvider.ProviderName;
-                translationResult =
-                    await translationProvider.TranslateAsync(countryName, sanitizedMessage, cancellationToken);
+
+                translationResult = await translationProvider.TranslateAsync(
+                    countryName,
+                    sanitizedMessage,
+                    cancellationToken);
+
                 break;
             }
             catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
@@ -141,7 +146,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// <param name="cancellationToken">Cancellation token.</param>
     private static void SendTempMessage(
         string text,
-        SocketReaction reaction,
+        Reaction reaction,
         IMessage sourceMessage,
         CancellationToken cancellationToken)
     {

@@ -31,7 +31,7 @@ try
 
                 // Other services.
                 services
-                    .AddSingleton(new FlagEmojiService())
+                    .AddSingleton<IFlagEmojiService, FlagEmojiService>()
                     .AddSingleton(
                         new DiscordSocketClient(
                             new DiscordSocketConfig

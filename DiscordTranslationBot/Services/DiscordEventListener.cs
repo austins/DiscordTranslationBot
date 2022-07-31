@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
 using MediatR;
 
@@ -67,7 +68,16 @@ public sealed class DiscordEventListener
         SocketReaction reaction)
     {
         return _mediator.Publish(
-            new ReactionAddedNotification { Message = message, Channel = channel, Reaction = reaction },
+            new ReactionAddedNotification
+            {
+                Message = message.GetOrDownloadAsync(),
+                Channel = channel.GetOrDownloadAsync(),
+                Reaction = new Reaction
+                {
+                    UserId = reaction.UserId,
+                    Emote = reaction.Emote,
+                },
+            },
             _cancellationToken);
     }
 }
