@@ -61,7 +61,7 @@ public class Worker : BackgroundService
         // Initialize the translator providers.
         foreach (var translationProvider in _translationProviders)
         {
-            await translationProvider.InitializeSupportedLangCodesAsync(cancellationToken);
+            await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
         }
 
         // Initialize the Discord client.

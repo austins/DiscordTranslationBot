@@ -25,10 +25,15 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         {
             const string languagesContent = @"[
   {
+    ""code"": ""en"",
+    ""name"": ""English""
+  },
+  {
     ""code"": ""fr"",
     ""name"": ""French""
   }
 ]";
+
             var languagesResponse = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
@@ -74,7 +79,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var expected = new TranslationResult
         {
             DetectedLanguageCode = "en",
+            DetectedLanguageName = "English",
             TargetLanguageCode = "fr",
+            TargetLanguageName = "French",
             TranslatedText = "translated",
         };
 
@@ -139,7 +146,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         // Act & Assert
         await sut
-            .Invoking(x => x.InitializeSupportedLangCodesAsync(CancellationToken.None))
+            .Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }

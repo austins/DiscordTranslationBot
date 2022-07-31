@@ -12,7 +12,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await Sut.InitializeSupportedLangCodesAsync(CancellationToken.None);
+        await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
     }
 
     public Task DisposeAsync()

@@ -42,13 +42,13 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "Azure Translator";
 
-    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync"/>
     /// <remarks>
     /// List of supported language codes reference: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support#translation.
     /// </remarks>
-    public override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
     {
-        if (SupportedLangCodes.Any()) return;
+        if (SupportedLanguages.Any()) return;
 
         using var httpClient = _httpClientFactory.CreateClient();
         using var request = new HttpRequestMessage
@@ -71,9 +71,13 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLangCodes = content.LangCodes
-            .Select(lc => lc.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        SupportedLanguages = content.LangCodes
+            .Select(lc => new SupportedLanguage
+            {
+                LangCode = lc.Key,
+                Name = lc.Value.Name,
+            })
+            .ToHashSet();
     }
 
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
@@ -83,15 +87,18 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     {
         try
         {
-            var langCode = GetLangCodeByCountry(country);
-
             if (text.Length >= TextCharacterLimit)
             {
                 _logger.LogError($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
                 throw new ArgumentException($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
             }
 
-            var result = new TranslationResult { TargetLanguageCode = langCode };
+            var supportedLanguage = GetSupportedLanguageByCountry(country);
+            var result = new TranslationResult
+            {
+                TargetLanguageCode = supportedLanguage.LangCode,
+                TargetLanguageName = supportedLanguage.Name,
+            };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
@@ -125,6 +132,11 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             }
 
             result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
+
+            result.DetectedLanguageName = SupportedLanguages
+                .SingleOrDefault(sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+                ?.Name;
+
             result.TranslatedText = translation.Translations[0].Text;
 
             return result;

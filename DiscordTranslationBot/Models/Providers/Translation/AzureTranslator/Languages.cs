@@ -11,5 +11,5 @@ public sealed class Languages
     /// Language codes stored as the keys.
     /// </summary>
     [JsonPropertyName("translation")]
-    public IDictionary<string, object>? LangCodes { get; init; }
+    public IDictionary<string, Language>? LangCodes { get; init; }
 }

@@ -125,8 +125,8 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         else
         {
             replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                $"Translated message from {Format.Italics(translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+                $"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
         }
 
         SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken, 20);

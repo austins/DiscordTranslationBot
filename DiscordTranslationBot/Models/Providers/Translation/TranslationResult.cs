@@ -11,9 +11,19 @@ public sealed class TranslationResult
     public string? DetectedLanguageCode { get; set; }
 
     /// <summary>
+    /// The detected language name.
+    /// </summary>
+    public string? DetectedLanguageName { get; set; }
+
+    /// <summary>
     /// The target language code.
     /// </summary>
     public string TargetLanguageCode { get; set; } = null!;
+
+    /// <summary>
+    /// The target language name.
+    /// </summary>
+    public string? TargetLanguageName { get; set; }
 
     /// <summary>
     /// The translated text.

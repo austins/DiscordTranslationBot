@@ -36,13 +36,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "LibreTranslate";
 
-    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync"/>
     /// <remarks>
     /// List of supported language codes reference: https://libretranslate.com/languages.
     /// </remarks>
-    public override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
     {
-        if (SupportedLangCodes.Any()) return;
+        if (SupportedLanguages.Any()) return;
 
         using var httpClient = _httpClientFactory.CreateClient();
         using var request = new HttpRequestMessage
@@ -65,9 +65,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLangCodes = content
-            .Select(lc => lc.LangCode)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        SupportedLanguages = content
+            .Select(lc => new SupportedLanguage
+            {
+                LangCode = lc.LangCode,
+                Name = lc.Name,
+            })
+            .ToHashSet();
     }
 
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
@@ -76,8 +80,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     {
         try
         {
-            var langCode = GetLangCodeByCountry(country);
-            var result = new TranslationResult { TargetLanguageCode = langCode };
+            var supportedLanguage = GetSupportedLanguageByCountry(country);
+            var result = new TranslationResult
+            {
+                TargetLanguageCode = supportedLanguage.LangCode,
+                TargetLanguageName = supportedLanguage.Name,
+            };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
@@ -91,7 +99,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             {
                 q = text,
                 source = "auto",
-                target = langCode,
+                target = supportedLanguage.LangCode,
                 format = "text",
             });
 
@@ -114,6 +122,11 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             }
 
             result.DetectedLanguageCode = content.DetectedLanguage?.LanguageCode;
+
+            result.DetectedLanguageName = SupportedLanguages
+                .SingleOrDefault(sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+                ?.Name;
+
             result.TranslatedText = content.TranslatedText;
 
             return result;

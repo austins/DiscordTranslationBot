@@ -23,7 +23,21 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         static HttpResponseMessage GetLanguagesResponseAsync()
         {
-            const string languagesContent = @"{""translation"":{""fr"":{""name"":""French"",""nativeName"":""Français"",""dir"":""ltr""}}}";
+            const string languagesContent = @"{
+  ""translation"": {
+    ""en"": {
+      ""name"": ""English"",
+      ""nativeName"": ""English"",
+      ""dir"": ""ltr""
+    },
+    ""fr"": {
+      ""name"": ""French"",
+      ""nativeName"": ""Français"",
+      ""dir"": ""ltr""
+    }
+  }
+}";
+
             var languagesResponse = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
@@ -74,7 +88,9 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         var expected = new TranslationResult
         {
             DetectedLanguageCode = "en",
+            DetectedLanguageName = "English",
             TargetLanguageCode = "fr",
+            TargetLanguageName = "French",
             TranslatedText = "translated",
         };
 
@@ -148,7 +164,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         // Act & Assert
         await sut
-            .Invoking(x => x.InitializeSupportedLangCodesAsync(CancellationToken.None))
+            .Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }

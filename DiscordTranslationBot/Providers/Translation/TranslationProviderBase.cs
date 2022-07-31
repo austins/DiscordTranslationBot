@@ -18,17 +18,17 @@ public abstract class TranslationProviderBase
     /// Supported language codes for the provider.
     /// </summary>
 #pragma warning disable CA2227
-    protected ISet<string> SupportedLangCodes { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    protected ISet<SupportedLanguage> SupportedLanguages { get; set; } = new HashSet<SupportedLanguage>();
 #pragma warning restore CA2227
 
     /// <summary>
-    /// Initialize the <see cref="SupportedLangCodes"/> for the provider.
+    /// Initialize the <see cref="SupportedLanguages"/> for the provider.
     /// </summary>
     /// <remarks>
     /// This is called for each provider in <see cref="Worker.StartAsync"/> when the application starts up.
     /// </remarks>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public abstract Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken);
+    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Translate text.
@@ -45,9 +45,9 @@ public abstract class TranslationProviderBase
     /// <param name="country">The country containing language codes it supports.</param>
     /// <returns>Lang code.</returns>
     /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    protected string GetLangCodeByCountry(Country country)
+    protected SupportedLanguage GetSupportedLanguageByCountry(Country country)
     {
-        return country.LangCodes.FirstOrDefault(countryLangCode => SupportedLangCodes.Contains(countryLangCode))
+        return SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
                ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
     }
 }

@@ -29,9 +29,7 @@ public class Country : IEquatable<Country>
     /// <summary>
     /// The language codes for the country.
     /// </summary>
-#pragma warning disable CA2227
-    public ISet<string> LangCodes { get; set; } = new HashSet<string>();
-#pragma warning restore CA2227
+    public ISet<string> LangCodes { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Check if two country instances are the same.

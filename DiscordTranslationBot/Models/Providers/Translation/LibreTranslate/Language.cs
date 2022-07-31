@@ -12,4 +12,10 @@ public sealed class Language
     /// </summary>
     [JsonPropertyName("code")]
     public string LangCode { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The language name.
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; init; } = string.Empty;
 }
