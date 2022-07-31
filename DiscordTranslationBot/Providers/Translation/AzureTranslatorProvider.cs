@@ -110,6 +110,9 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <remarks>
+    /// List of supported language codes reference: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support#translation.
+    /// </remarks>
     protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
     {
         if (SupportedLangCodes.Any()) return;

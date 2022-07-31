@@ -99,6 +99,9 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <remarks>
+    /// List of supported language codes reference: https://libretranslate.com/languages.
+    /// </remarks>
     protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
     {
         if (SupportedLangCodes.Any()) return;
