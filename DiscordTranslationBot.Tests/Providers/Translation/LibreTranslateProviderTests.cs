@@ -60,8 +60,6 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             Mock.Of<ILogger<LibreTranslateProvider>>());
     }
 
-    protected override TranslationProviderBase Sut { get; }
-
     [Fact]
     public async Task Translate_Returns_Expected()
     {

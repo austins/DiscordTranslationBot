@@ -60,8 +60,6 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             Mock.Of<ILogger<AzureTranslatorProvider>>());
     }
 
-    protected override TranslationProviderBase Sut { get; }
-
     [Fact]
     public async Task Translate_Returns_Expected()
     {
