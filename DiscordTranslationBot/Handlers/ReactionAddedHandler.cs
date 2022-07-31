@@ -129,7 +129,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                 $"Translated message to {Format.Italics(translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
         }
 
-        SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken);
+        SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken, 20);
     }
 
     /// <summary>
@@ -139,11 +139,13 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// <param name="reaction">The reaction.</param>
     /// <param name="sourceMessage">The source message.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="seconds">How many seconds the message should be shown.</param>
     private static void SendTempMessage(
         string text,
         Reaction reaction,
         IMessage sourceMessage,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        uint seconds = 10)
     {
         // Wrapped in Task.Run to not block the handler as the cleanup has a delay of over 3 seconds.
         _ = Task.Run(
@@ -155,7 +157,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                     messageReference: new MessageReference(sourceMessage.Id));
 
                 // Cleanup.
-                await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
                 await sourceMessage.RemoveReactionAsync(reaction.Emote, reaction.UserId);
                 await replyMessage.DeleteAsync();
             },
