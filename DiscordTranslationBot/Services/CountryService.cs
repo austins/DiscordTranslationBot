@@ -104,6 +104,6 @@ public sealed class CountryService : ICountryService
             throw new InvalidOperationException("Country language codes couldn't be initialized as country couldn't be found.");
         }
 
-        country.LangCodes = langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
     }
 }
