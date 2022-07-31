@@ -16,7 +16,7 @@ public sealed class CountryServiceTests
         _sut = new CountryService(Mock.Of<ILogger<CountryService>>());
     }
 
-    public static IEnumerable<object[]> FlagEmojiUnicode =>
+    public static IEnumerable<object[]> TryGetCountryTestData =>
         new[]
         {
             new object[] { Emoji.FlagUnitedStates.ToString(), "United States" },
@@ -25,7 +25,7 @@ public sealed class CountryServiceTests
         };
 
     [Theory]
-    [MemberData(nameof(FlagEmojiUnicode))]
+    [MemberData(nameof(TryGetCountryTestData))]
     public void TryGetCountry_Returns_Expected(string emojiUnicode, string expectedCountryName)
     {
         // Act & Assert
