@@ -42,13 +42,45 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "Azure Translator";
 
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <remarks>
+    /// List of supported language codes reference: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support#translation.
+    /// </remarks>
+    public override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    {
+        if (SupportedLangCodes.Any()) return;
+
+        using var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
+        };
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+        }
+
+        var content = JsonSerializer.Deserialize<Languages>(await response.Content.ReadAsStringAsync(cancellationToken));
+        if (content?.LangCodes?.Any() != true)
+        {
+            _logger.LogError("Languages endpoint returned no language codes.");
+            throw new InvalidOperationException("Languages endpoint returned no language codes.");
+        }
+
+        SupportedLangCodes = content.LangCodes
+            .Select(lc => lc.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken)
     {
-        await InitializeSupportedLangCodesAsync(cancellationToken);
-
         try
         {
             var langCode = GetLangCodeByCountry(country);
@@ -107,39 +139,5 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
             throw;
         }
-    }
-
-    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
-    /// <remarks>
-    /// List of supported language codes reference: https://docs.microsoft.com/en-us/azure/cognitive-services/translator/language-support#translation.
-    /// </remarks>
-    protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
-    {
-        if (SupportedLangCodes.Any()) return;
-
-        using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
-        };
-
-        var response = await httpClient.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
-            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
-        }
-
-        var content = JsonSerializer.Deserialize<Languages>(await response.Content.ReadAsStringAsync(cancellationToken));
-        if (content?.LangCodes?.Any() != true)
-        {
-            _logger.LogError("Languages endpoint returned no language codes.");
-            throw new InvalidOperationException("Languages endpoint returned no language codes.");
-        }
-
-        SupportedLangCodes = content.LangCodes
-            .Select(lc => lc.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }

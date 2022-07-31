@@ -112,12 +112,8 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
-        };
-
-        const string text = "test";
+        var httpClient = new Mock<HttpClient>(MockBehavior.Strict);
+        httpClient.As<IDisposable>().Setup(x => x.Dispose());
 
         const string languagesContent = "{}";
         using var languagesResponse = new HttpResponseMessage
@@ -132,9 +128,29 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(languagesResponse);
 
+        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
+        httpClientFactory
+            .Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(_httpClient.Object);
+
+        var translationProvidersOptions = Options.Create(new TranslationProvidersOptions
+        {
+            AzureTranslator = new AzureTranslatorOptions
+            {
+                ApiUrl = new Uri("http://localhost"),
+                Region = "westus2",
+                SecretKey = "test",
+            },
+        });
+
+        var sut = new AzureTranslatorProvider(
+            httpClientFactory.Object,
+            translationProvidersOptions,
+            Mock.Of<ILogger<AzureTranslatorProvider>>());
+
         // Act & Assert
-        await Sut
-            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await sut
+            .Invoking(x => x.InitializeSupportedLangCodesAsync(CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }

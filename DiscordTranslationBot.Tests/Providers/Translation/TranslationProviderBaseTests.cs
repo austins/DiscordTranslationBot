@@ -6,9 +6,19 @@ using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
-public abstract class TranslationProviderBaseTests
+public abstract class TranslationProviderBaseTests : IAsyncLifetime
 {
     protected abstract TranslationProviderBase Sut { get; }
+
+    public async Task InitializeAsync()
+    {
+        await Sut.InitializeSupportedLangCodesAsync(CancellationToken.None);
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
 
     [Fact]
     public async Task GetLangCodeByCountry_Throws_UnsupportedCountryException()

@@ -22,22 +22,22 @@ public abstract class TranslationProviderBase
 #pragma warning restore CA2227
 
     /// <summary>
-    /// Translate text.
+    /// Initialize the <see cref="SupportedLangCodes"/> for the provider.
     /// </summary>
     /// <remarks>
-    /// Must call <see cref="InitializeSupportedLangCodesAsync"/> first.
+    /// This is called for each provider in <see cref="Worker.StartAsync"/> when the application starts up.
     /// </remarks>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public abstract Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Translate text.
+    /// </summary>
     /// <param name="country">The country containing language codes to translate to.</param>
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
     public abstract Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Initialize the <see cref="SupportedLangCodes"/> for the provider.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    protected abstract Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the lang code that a country supports.

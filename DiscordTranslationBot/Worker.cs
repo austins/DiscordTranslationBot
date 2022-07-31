@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Configuration;
+using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Microsoft.Extensions.Options;
 
@@ -11,6 +12,7 @@ namespace DiscordTranslationBot;
 /// </summary>
 public class Worker : BackgroundService
 {
+    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
@@ -20,18 +22,21 @@ public class Worker : BackgroundService
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker"/> class.
     /// </summary>
+    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="eventListener">Discord event listener to use.</param>
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     /// <param name="logger">Logger to use.</param>
     public Worker(
+        IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
         ILogger<Worker> logger)
     {
+        _translationProviders = translationProviders;
         _client = client;
         _eventListener = eventListener;
         _discordOptions = discordOptions;
@@ -51,6 +56,12 @@ public class Worker : BackgroundService
             _logger.LogError($"The Discord {nameof(_discordOptions.Value.BotToken)} must be set.");
             _hostApplicationLifetime.StopApplication();
             return;
+        }
+
+        // Initialize the translator providers.
+        foreach (var translationProvider in _translationProviders)
+        {
+            await translationProvider.InitializeSupportedLangCodesAsync(cancellationToken);
         }
 
         // Initialize the Discord client.

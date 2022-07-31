@@ -36,12 +36,44 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "LibreTranslate";
 
+    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
+    /// <remarks>
+    /// List of supported language codes reference: https://libretranslate.com/languages.
+    /// </remarks>
+    public override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
+    {
+        if (SupportedLangCodes.Any()) return;
+
+        using var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages"),
+        };
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+        }
+
+        var content = JsonSerializer.Deserialize<IList<Language>>(await response.Content.ReadAsStringAsync(cancellationToken));
+        if (content?.Any() != true)
+        {
+            _logger.LogError("Languages endpoint returned no language codes.");
+            throw new InvalidOperationException("Languages endpoint returned no language codes.");
+        }
+
+        SupportedLangCodes = content
+            .Select(lc => lc.LangCode)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken)
     {
-        await InitializeSupportedLangCodesAsync(cancellationToken);
-
         try
         {
             var langCode = GetLangCodeByCountry(country);
@@ -96,39 +128,5 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
             throw;
         }
-    }
-
-    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLangCodesAsync"/>
-    /// <remarks>
-    /// List of supported language codes reference: https://libretranslate.com/languages.
-    /// </remarks>
-    protected override async Task InitializeSupportedLangCodesAsync(CancellationToken cancellationToken)
-    {
-        if (SupportedLangCodes.Any()) return;
-
-        using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages"),
-        };
-
-        var response = await httpClient.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
-            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
-        }
-
-        var content = JsonSerializer.Deserialize<IList<Language>>(await response.Content.ReadAsStringAsync(cancellationToken));
-        if (content?.Any() != true)
-        {
-            _logger.LogError("Languages endpoint returned no language codes.");
-            throw new InvalidOperationException("Languages endpoint returned no language codes.");
-        }
-
-        SupportedLangCodes = content
-            .Select(lc => lc.LangCode)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }
