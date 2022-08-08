@@ -87,13 +87,14 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     {
         try
         {
+            var supportedLanguage = GetSupportedLanguageByCountry(country);
+
             if (text.Length >= TextCharacterLimit)
             {
                 _logger.LogError($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
                 throw new ArgumentException($"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
             }
 
-            var supportedLanguage = GetSupportedLanguageByCountry(country);
             var result = new TranslationResult
             {
                 TargetLanguageCode = supportedLanguage.LangCode,
