@@ -57,7 +57,12 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         if (sourceMessage.Author.Id == _client.CurrentUser?.Id)
         {
             _logger.LogInformation("Translating this bot's messages isn't allowed.");
-            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+
+            await sourceMessage.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
             return;
         }
 
@@ -69,7 +74,12 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
-            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+
+            await sourceMessage.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
             return;
         }
 
@@ -93,7 +103,8 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                 SendTempMessage(
                     ex.Message,
                     notification.Reaction,
-                    sourceMessage,
+                    sourceMessage.Channel,
+                    sourceMessage.Id,
                     cancellationToken);
 
                 return;
@@ -110,7 +121,11 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
 
         if (providerName == null || translationResult == null)
         {
-            await sourceMessage.RemoveReactionAsync(notification.Reaction.Emote, notification.Reaction.UserId);
+            await sourceMessage.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
             return;
         }
 
@@ -129,7 +144,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                 $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
         }
 
-        SendTempMessage(replyText, notification.Reaction, sourceMessage, cancellationToken, 20);
+        SendTempMessage(replyText, notification.Reaction, sourceMessage.Channel, sourceMessage.Id, cancellationToken, 20);
     }
 
     /// <summary>
@@ -137,13 +152,15 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// </summary>
     /// <param name="text">Text to send in message.</param>
     /// <param name="reaction">The reaction.</param>
-    /// <param name="sourceMessage">The source message.</param>
+    /// <param name="channel">The channel to post the message in.</param>
+    /// <param name="referencedMessageId">The source message ID to reference.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="seconds">How many seconds the message should be shown.</param>
     private static void SendTempMessage(
         string text,
         Reaction reaction,
-        IMessage sourceMessage,
+        IMessageChannel channel,
+        ulong referencedMessageId,
         CancellationToken cancellationToken,
         uint seconds = 10)
     {
@@ -152,14 +169,29 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
             async () =>
             {
                 // Send message.
-                var replyMessage = await sourceMessage.Channel.SendMessageAsync(
+                var replyMessage = await channel.SendMessageAsync(
                     text,
-                    messageReference: new MessageReference(sourceMessage.Id));
+                    messageReference: new MessageReference(referencedMessageId),
+                    options: new RequestOptions { CancelToken = cancellationToken });
 
                 // Cleanup.
                 await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
-                await sourceMessage.RemoveReactionAsync(reaction.Emote, reaction.UserId);
-                await replyMessage.DeleteAsync();
+
+                // If the source message still exists, remove the reaction from it.
+                var sourceMessage = await replyMessage.Channel.GetMessageAsync(
+                    referencedMessageId,
+                    options: new RequestOptions { CancelToken = cancellationToken });
+
+                if (sourceMessage != null)
+                {
+                    await sourceMessage.RemoveReactionAsync(
+                        reaction.Emote,
+                        reaction.UserId,
+                        options: new RequestOptions { CancelToken = cancellationToken });
+                }
+
+                // Delete the reply message.
+                await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
             },
             cancellationToken);
     }
