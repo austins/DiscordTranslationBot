@@ -129,22 +129,26 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
             return;
         }
 
-        string replyText;
         if (translationResult.TranslatedText == sanitizedMessage)
         {
             _logger.LogWarning(
                 "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.");
 
-            replyText = "Couldn't detect the source language to translate from or the result is the same.";
-        }
-        else
-        {
-            replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                $"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+            SendTempMessage(
+                "Couldn't detect the source language to translate from or the result is the same.",
+                notification.Reaction,
+                sourceMessage.Channel,
+                sourceMessage.Id,
+                cancellationToken);
+
+            return;
         }
 
         // Send the reply message.
+        var replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
+                        $"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
+                        $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+
         SendTempMessage(replyText, notification.Reaction, sourceMessage.Channel, sourceMessage.Id, cancellationToken, 20);
     }
 
