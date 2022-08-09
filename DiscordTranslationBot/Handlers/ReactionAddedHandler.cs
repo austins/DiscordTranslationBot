@@ -145,9 +145,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         }
 
         // Send the reply message.
-        var typingState = sourceMessage.Channel.EnterTypingState();
         SendTempMessage(replyText, notification.Reaction, sourceMessage.Channel, sourceMessage.Id, cancellationToken, 20);
-        typingState.Dispose();
     }
 
     /// <summary>
@@ -167,6 +165,8 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         CancellationToken cancellationToken,
         uint seconds = 10)
     {
+        using var typingState = channel.EnterTypingState();
+
         // Wrapped in Task.Run to not block the handler as the cleanup has a delay of over 3 seconds.
         _ = Task.Run(
             async () =>
