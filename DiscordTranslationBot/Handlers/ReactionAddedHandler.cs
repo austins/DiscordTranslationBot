@@ -144,7 +144,10 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
                 $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
         }
 
+        // Send the reply message.
+        var typingState = sourceMessage.Channel.EnterTypingState();
         SendTempMessage(replyText, notification.Reaction, sourceMessage.Channel, sourceMessage.Id, cancellationToken, 20);
+        typingState.Dispose();
     }
 
     /// <summary>
@@ -168,7 +171,7 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
         _ = Task.Run(
             async () =>
             {
-                // Send message.
+                // Send reply message.
                 var replyMessage = await channel.SendMessageAsync(
                     text,
                     messageReference: new MessageReference(referencedMessageId),
