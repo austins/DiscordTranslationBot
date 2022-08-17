@@ -48,7 +48,10 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     /// </remarks>
     public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
     {
-        if (SupportedLanguages.Any()) return;
+        if (SupportedLanguages.Any())
+        {
+            return;
+        }
 
         using var httpClient = _httpClientFactory.CreateClient();
         using var request = new HttpRequestMessage

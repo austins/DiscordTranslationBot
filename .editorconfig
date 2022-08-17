@@ -23,7 +23,7 @@ dotnet_diagnostic.CA1303.severity = none
 csharp_indent_labels = one_less_than_current
 csharp_using_directive_placement = outside_namespace:silent
 csharp_prefer_simple_using_statement = true:suggestion
-csharp_prefer_braces = when_multiline:warning
+csharp_prefer_braces = when_multiline:error
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_constructors = false:silent
@@ -61,6 +61,7 @@ csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
 dotnet_diagnostic.IDE1006.severity = silent
 dotnet_diagnostic.IDE0090.severity = error
+dotnet_diagnostic.IDE0060.severity = suggestion
 
 # IDE0160: Convert to block scoped namespace
 dotnet_diagnostic.IDE0160.severity = none
@@ -95,7 +96,7 @@ dotnet_diagnostic.SA1623.severity = none
 dotnet_diagnostic.SA1615.severity = suggestion
 
 # SA1503: Braces should not be omitted
-dotnet_diagnostic.SA1503.severity = none
+dotnet_diagnostic.SA1503.severity = error
 dotnet_diagnostic.SA1000.severity = silent
 csharp_style_prefer_method_group_conversion = true:silent
 

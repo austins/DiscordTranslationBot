@@ -48,9 +48,11 @@ public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNot
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name)) return;
-
-        if (!_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)) return;
+        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name) ||
+            !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country))
+        {
+            return;
+        }
 
         var sourceMessage = await notification.Message;
 
