@@ -12,8 +12,9 @@ It supports the following translation providers that run in the following order:
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a new application with the name you want the bot to have.
 2. Go to the "Bot" tab in the sidebar and create a bot. Take note of the bot token to use for development or production. Check the setting for whether you want it to be a Public Bot or not.
-3. Go to the "OAuth2" -> "URL Generator" tab in the sidebar. Check the following scopes: `bot` and permissions: `Send Messages`, `Manage Messages`, and `Read Message History`.
-4. Copy the Generated URL and open it in your browser to add the bot to your Discord server.
+3. Enable "Message Content Intent" under _Privileged Gateway Intents_.
+4. Go to the "OAuth2" -> "URL Generator" tab in the sidebar. Check the following scopes: `bot` and permissions: `Send Messages`, `Manage Messages`, and `Read Message History`.
+5. Copy the Generated URL and open it in your browser to add the bot to your Discord server.
 
 ### Run LibreTranslate
 
