@@ -14,16 +14,24 @@ using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class ReactionAddedHandlerTests
+public sealed class FlagReactionAddedHandlerTests
 {
+    private const string Content = @"👍 test<:disdainsam:630009232128868353> _test_*test*
+> test
+__test__";
+
+    private const string ExpectedSanitizedMessage = @"👍 test testtest
+ test
+test";
+
     private readonly Mock<TranslationProviderBase> _translationProvider;
     private readonly Mock<ICountryService> _countryService;
 
-    private readonly ReactionAddedHandler _sut;
+    private readonly FlagReactionAddedHandler _sut;
     private readonly Mock<IUserMessage> _message;
     private readonly ReactionAddedNotification _notification;
 
-    public ReactionAddedHandlerTests()
+    public FlagReactionAddedHandlerTests()
     {
         _translationProvider = new Mock<TranslationProviderBase>(MockBehavior.Strict);
         _translationProvider.Setup(x => x.ProviderName).Returns("Test Provider");
@@ -33,16 +41,16 @@ public sealed class ReactionAddedHandlerTests
 
         _countryService = new Mock<ICountryService>(MockBehavior.Strict);
 
-        _sut = new ReactionAddedHandler(
+        _sut = new FlagReactionAddedHandler(
             new[] { _translationProvider.Object },
             client.Object,
             _countryService.Object,
-            Mock.Of<ILogger<ReactionAddedHandler>>());
+            Mock.Of<ILogger<FlagReactionAddedHandler>>());
 
         _message = new Mock<IUserMessage>();
         _message.Setup(x => x.Id).Returns(1);
         _message.Setup(x => x.Author.Id).Returns(2);
-        _message.Setup(x => x.Content).Returns("test");
+        _message.Setup(x => x.Content).Returns(Content);
 
         var channel = new Mock<IMessageChannel>();
 
@@ -82,7 +90,7 @@ public sealed class ReactionAddedHandlerTests
             .Setup(
                 x => x.TranslateAsync(
                     It.IsAny<Country>(),
-                    It.IsAny<string>(),
+                    ExpectedSanitizedMessage,
                     It.IsAny<CancellationToken>()))
             .ReturnsAsync(translationResult);
 
@@ -94,27 +102,6 @@ public sealed class ReactionAddedHandlerTests
                     It.IsAny<RequestOptions>()))
             .Returns(Task.CompletedTask);
 
-        var replyMessage = new Mock<IUserMessage>(MockBehavior.Strict);
-
-        _message
-            .Setup(
-                x => x.Channel.SendMessageAsync(
-                    It.Is<string>(t => t.Contains(translationResult.TranslatedText, StringComparison.Ordinal)),
-                    It.IsAny<bool>(),
-                    It.IsAny<Embed>(),
-                    It.IsAny<RequestOptions>(),
-                    It.IsAny<AllowedMentions>(),
-                    It.IsAny<MessageReference>(),
-                    It.IsAny<MessageComponent>(),
-                    It.IsAny<ISticker[]>(),
-                    It.IsAny<Embed[]>(),
-                    It.IsAny<MessageFlags>()))
-            .ReturnsAsync(replyMessage.Object);
-
-        replyMessage
-            .Setup(x => x.DeleteAsync(It.IsAny<RequestOptions>()))
-            .Returns(Task.CompletedTask);
-
         _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString());
 
         // Act
@@ -124,6 +111,14 @@ public sealed class ReactionAddedHandlerTests
 
         // Assert
         await act.Should().NotThrowAsync();
+
+        _translationProvider
+            .Verify(
+                x => x.TranslateAsync(
+                    It.IsAny<Country>(),
+                    ExpectedSanitizedMessage,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
 
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
     }

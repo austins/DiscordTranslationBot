@@ -13,27 +13,27 @@ using Emoji = NeoSmart.Unicode.Emoji;
 namespace DiscordTranslationBot.Handlers;
 
 /// <summary>
-/// Handles the ReactionAdded event of the Discord client.
+/// Handles the ReactionAdded event of the Discord client for flag emotes.
 /// </summary>
-public sealed class ReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
+public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly ICountryService _countryService;
-    private readonly ILogger<ReactionAddedHandler> _logger;
+    private readonly ILogger<FlagReactionAddedHandler> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReactionAddedHandler"/> class.
+    /// Initializes a new instance of the <see cref="FlagReactionAddedHandler"/> class.
     /// </summary>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="countryService">Country service to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public ReactionAddedHandler(
+    public FlagReactionAddedHandler(
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         ICountryService countryService,
-        ILogger<ReactionAddedHandler> logger)
+        ILogger<FlagReactionAddedHandler> logger)
     {
         _translationProviders = translationProviders;
         _client = client;
