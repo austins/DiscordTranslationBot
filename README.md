@@ -1,4 +1,4 @@
-# DiscordTranslationBot
+# Discord Translation Bot
 
 A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
