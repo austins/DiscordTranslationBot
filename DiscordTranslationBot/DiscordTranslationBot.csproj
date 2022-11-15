@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 	<PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+    <AnalysisLevel>7.0-all</AnalysisLevel>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-DiscordTranslationBot-92BF073E-600E-4E16-B57C-2B418D8A07E3</UserSecretsId>
 	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	<AnalysisLevel>6.0-all</AnalysisLevel>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	<Platforms>AnyCPU;x64</Platforms>
 	<LangVersion>10</LangVersion>
@@ -19,8 +19,8 @@
     <PackageReference Include="Discord.Net" Version="3.8.1" />
     <PackageReference Include="MediatR" Version="11.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.4.27">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

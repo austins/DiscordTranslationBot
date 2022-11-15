@@ -19,13 +19,13 @@ try
                 // Initial configuration.
                 services
                     .Configure<DiscordOptions>(hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
-                    .Configure<TranslationProvidersOptions>(translationProvidersOptionsSection)
+                    .Configure<TranslationProvidersOptions>(hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName))
                     .AddMediatR(typeof(Program))
                     .AddHttpClient()
                     .AddSingleton<ICountryService, CountryService>();
 
                 // Register translation providers. They are injected in the order added.
-                if (translationProvidersOptions.AzureTranslator.ApiUrl != null)
+                if (translationProvidersOptions!.AzureTranslator.ApiUrl != null)
                 {
                     services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
                 }

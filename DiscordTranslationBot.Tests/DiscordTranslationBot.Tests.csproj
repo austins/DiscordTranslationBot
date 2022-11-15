@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+    <AnalysisLevel>7.0-all</AnalysisLevel>
     <Nullable>enable</Nullable>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	<AnalysisLevel>6.0-all</AnalysisLevel>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
 	<Platforms>AnyCPU;x64</Platforms>
