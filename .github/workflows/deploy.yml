@@ -13,8 +13,8 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    analyze:
-        uses: ./.github/workflows/analyze.yml
+#    analyze:
+#        uses: ./.github/workflows/analyze.yml
     test:
         needs: analyze
         uses: ./.github/workflows/test.yml
