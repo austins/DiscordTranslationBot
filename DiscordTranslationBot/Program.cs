@@ -41,8 +41,10 @@ try
                         new DiscordSocketClient(
                             new DiscordSocketConfig
                             {
-                                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages |
-                                                 GatewayIntents.GuildMessageReactions | GatewayIntents.MessageContent,
+                                GatewayIntents = GatewayIntents.Guilds |
+                                                 GatewayIntents.GuildMessages |
+                                                 GatewayIntents.GuildMessageReactions |
+                                                 GatewayIntents.MessageContent,
                                 MessageCacheSize = 100,
                             }))
                     .AddSingleton<DiscordEventListener>()
