@@ -13,13 +13,16 @@ try
         .ConfigureServices(
             (hostBuilder, services) =>
             {
-                var translationProvidersOptionsSection = hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName);
+                var translationProvidersOptionsSection =
+                    hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName);
+
                 var translationProvidersOptions = translationProvidersOptionsSection.Get<TranslationProvidersOptions>();
 
                 // Initial configuration.
                 services
                     .Configure<DiscordOptions>(hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
-                    .Configure<TranslationProvidersOptions>(hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName))
+                    .Configure<TranslationProvidersOptions>(
+                        hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName))
                     .AddMediatR(typeof(Program))
                     .AddHttpClient()
                     .AddSingleton<ICountryService, CountryService>();
@@ -38,10 +41,8 @@ try
                         new DiscordSocketClient(
                             new DiscordSocketConfig
                             {
-                                GatewayIntents = GatewayIntents.Guilds |
-                                                 GatewayIntents.GuildMessages |
-                                                 GatewayIntents.GuildMessageReactions |
-                                                 GatewayIntents.MessageContent,
+                                GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages |
+                                                 GatewayIntents.GuildMessageReactions | GatewayIntents.MessageContent,
                                 MessageCacheSize = 100,
                             }))
                     .AddSingleton<DiscordEventListener>()
