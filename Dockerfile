@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build-env
 WORKDIR /app
 
-# Copy everything
-COPY . ../Directory.Build.props
-COPY . ./
+# Copy what we need
+COPY . ./Directory.Build.props
+COPY . ./DiscordTranslationBot
 # Restore as distinct layers
 RUN dotnet restore
 # Build and publish a release
