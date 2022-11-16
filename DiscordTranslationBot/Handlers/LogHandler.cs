@@ -1,6 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Notifications;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -25,7 +25,7 @@ public sealed class LogHandler : INotificationHandler<LogNotification>
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public Task Handle(LogNotification notification, CancellationToken cancellationToken)
+    public ValueTask Handle(LogNotification notification, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
         var logLevel = notification.LogMessage.Severity switch
@@ -39,8 +39,12 @@ public sealed class LogHandler : INotificationHandler<LogNotification>
             _ => LogLevel.Trace
         };
 
-        _logger.Log(logLevel, notification.LogMessage.Exception, notification.LogMessage.ToString());
+        _logger.Log(
+            logLevel,
+            notification.LogMessage.Exception,
+            notification.LogMessage.ToString()
+        );
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }

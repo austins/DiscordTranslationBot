@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Services;
 
@@ -25,7 +25,8 @@ public sealed class DiscordEventListener
     public DiscordEventListener(
         DiscordSocketClient client,
         IMediator mediator,
-        ILogger<DiscordEventListener> logger)
+        ILogger<DiscordEventListener> logger
+    )
     {
         _client = client;
         _mediator = mediator;
@@ -51,9 +52,9 @@ public sealed class DiscordEventListener
     /// <param name="logMessage">Discord log message.</param>
     private Task LogAsync(LogMessage logMessage)
     {
-        return _mediator.Publish(
-            new LogNotification { LogMessage = logMessage },
-            _cancellationToken);
+        return _mediator
+            .Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken)
+            .AsTask();
     }
 
     /// <summary>
@@ -65,19 +66,19 @@ public sealed class DiscordEventListener
     private Task ReactionAddedAsync(
         Cacheable<IUserMessage, ulong> message,
         Cacheable<IMessageChannel, ulong> channel,
-        SocketReaction reaction)
+        SocketReaction reaction
+    )
     {
-        return _mediator.Publish(
-            new ReactionAddedNotification
-            {
-                Message = message.GetOrDownloadAsync(),
-                Channel = channel.GetOrDownloadAsync(),
-                Reaction = new Reaction
+        return _mediator
+            .Publish(
+                new ReactionAddedNotification
                 {
-                    UserId = reaction.UserId,
-                    Emote = reaction.Emote,
+                    Message = message.GetOrDownloadAsync(),
+                    Channel = channel.GetOrDownloadAsync(),
+                    Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
                 },
-            },
-            _cancellationToken);
+                _cancellationToken
+            )
+            .AsTask();
     }
 }

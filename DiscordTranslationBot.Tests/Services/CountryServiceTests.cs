@@ -21,7 +21,7 @@ public sealed class CountryServiceTests
         {
             new object[] { Emoji.FlagUnitedStates.ToString(), "United States" },
             new object[] { Emoji.FlagFrance.ToString(), "France" },
-            new object[] { "🇯🇵", "Japan" },
+            new object[] { "🇯🇵", "Japan" }
         };
 
     [Theory]

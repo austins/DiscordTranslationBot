@@ -20,7 +20,10 @@ public static class TranslationExtensions
     /// <param name="httpClient">The HttpClient instance.</param>
     /// <param name="requestBody">Request body to serialize.</param>
     /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content"/>.</returns>
-    public static StringContent SerializeTranslationRequestContent(this HttpClient httpClient, object requestBody)
+    public static StringContent SerializeTranslationRequestContent(
+        this HttpClient httpClient,
+        object requestBody
+    )
     {
         var serializedObject = JsonSerializer.Serialize(requestBody, SerializerOptions);
 
@@ -36,7 +39,8 @@ public static class TranslationExtensions
     /// <returns>Deserialized response content.</returns>
     public static Task<T?> DeserializeTranslationResponseContentAsync<T>(
         this HttpContent httpContent,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return httpContent.ReadFromJsonAsync<T>(SerializerOptions, cancellationToken);
     }

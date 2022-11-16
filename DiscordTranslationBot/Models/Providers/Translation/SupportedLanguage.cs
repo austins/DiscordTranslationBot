@@ -8,7 +8,7 @@ public sealed class SupportedLanguage : IEquatable<SupportedLanguage>
     /// <summary>
     /// The language code.
     /// </summary>
-    public string LangCode { get; init; } = string.Empty;
+    public required string LangCode { get; init; }
 
     /// <summary>
     /// The language name.
@@ -22,8 +22,11 @@ public sealed class SupportedLanguage : IEquatable<SupportedLanguage>
     /// <returns>true if they are the same; false if not.</returns>
     public bool Equals(SupportedLanguage? other)
     {
-        return other is { } && (ReferenceEquals(this, other) ||
-            LangCode.Equals(other.LangCode, StringComparison.OrdinalIgnoreCase));
+        return other is { }
+            && (
+                ReferenceEquals(this, other)
+                || LangCode.Equals(other.LangCode, StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     /// <summary>

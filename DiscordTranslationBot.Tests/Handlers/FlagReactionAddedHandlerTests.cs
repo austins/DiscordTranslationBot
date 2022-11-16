@@ -16,20 +16,23 @@ namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class FlagReactionAddedHandlerTests
 {
-    private const string Content = @"👍 test<:disdainsam:630009232128868353> _test_*test*
+    private const string Content =
+        @"👍 test<:disdainsam:630009232128868353> _test_*test*
 > test
 __test__";
 
-    private const string ExpectedSanitizedMessage = @"👍 test testtest
+    private const string ExpectedSanitizedMessage =
+        @"👍 test testtest
  test
 test";
 
-    private readonly Mock<TranslationProviderBase> _translationProvider;
     private readonly Mock<ICountryService> _countryService;
-
-    private readonly FlagReactionAddedHandler _sut;
     private readonly Mock<IUserMessage> _message;
     private readonly ReactionAddedNotification _notification;
+
+    private readonly FlagReactionAddedHandler _sut;
+
+    private readonly Mock<TranslationProviderBase> _translationProvider;
 
     public FlagReactionAddedHandlerTests()
     {
@@ -45,7 +48,8 @@ test";
             new[] { _translationProvider.Object },
             client.Object,
             _countryService.Object,
-            Mock.Of<ILogger<FlagReactionAddedHandler>>());
+            Mock.Of<ILogger<FlagReactionAddedHandler>>()
+        );
 
         _message = new Mock<IUserMessage>();
         _message.Setup(x => x.Id).Returns(1);
@@ -54,15 +58,13 @@ test";
 
         var channel = new Mock<IMessageChannel>();
 
-        _message
-            .Setup(x => x.Channel)
-            .Returns(channel.Object);
+        _message.Setup(x => x.Channel).Returns(channel.Object);
 
         _notification = new ReactionAddedNotification
         {
             Message = Task.FromResult(_message.Object),
             Channel = Task.FromResult(channel.Object),
-            Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji"), },
+            Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji") }
         };
     }
 
@@ -72,53 +74,59 @@ test";
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
-            .Returns(true);
+        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
 
         var translationResult = new TranslationResult
         {
             DetectedLanguageCode = "en",
             TargetLanguageCode = "fr",
-            TranslatedText = "translated_text",
+            TranslatedText = "translated_text"
         };
 
         _translationProvider
             .Setup(
-                x => x.TranslateAsync(
-                    It.IsAny<Country>(),
-                    ExpectedSanitizedMessage,
-                    It.IsAny<CancellationToken>()))
+                x =>
+                    x.TranslateAsync(
+                        It.IsAny<Country>(),
+                        ExpectedSanitizedMessage,
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(translationResult);
 
         _message
             .Setup(
-                x => x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<IUser>(),
-                    It.IsAny<RequestOptions>()))
+                x =>
+                    x.RemoveReactionAsync(
+                        It.IsAny<IEmote>(),
+                        It.IsAny<IUser>(),
+                        It.IsAny<RequestOptions>()
+                    )
+            )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString());
+        _notification.Reaction.Emote = new Emoji(
+            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
+        );
 
         // Act
-        var act = async () => await _sut.Handle(
-            _notification,
-            CancellationToken.None);
+        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
 
-        _translationProvider
-            .Verify(
-                x => x.TranslateAsync(
+        _translationProvider.Verify(
+            x =>
+                x.TranslateAsync(
                     It.IsAny<Country>(),
                     ExpectedSanitizedMessage,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
 
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
     }
@@ -132,9 +140,7 @@ test";
         _notification.Reaction.Emote = new Emoji("not_an_emoji");
 
         // Act
-        var act = async () => await _sut.Handle(
-            _notification,
-            CancellationToken.None);
+        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -142,18 +148,24 @@ test";
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Never);
 
         _message.Verify(
-            x => x.RemoveReactionAsync(
-                It.IsAny<IEmote>(),
-                It.IsAny<ulong>(),
-                It.IsAny<RequestOptions>()),
-            Times.Never);
+            x =>
+                x.RemoveReactionAsync(
+                    It.IsAny<IEmote>(),
+                    It.IsAny<ulong>(),
+                    It.IsAny<RequestOptions>()
+                ),
+            Times.Never
+        );
 
         _translationProvider.Verify(
-            x => x.TranslateAsync(
-                It.IsAny<Country>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
+            x =>
+                x.TranslateAsync(
+                    It.IsAny<Country>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -166,9 +178,7 @@ test";
         _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(false);
 
         // Act
-        var act = async () => await _sut.Handle(
-            _notification,
-            CancellationToken.None);
+        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -176,18 +186,24 @@ test";
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _message.Verify(
-            x => x.RemoveReactionAsync(
-                It.IsAny<IEmote>(),
-                It.IsAny<ulong>(),
-                It.IsAny<RequestOptions>()),
-            Times.Never);
+            x =>
+                x.RemoveReactionAsync(
+                    It.IsAny<IEmote>(),
+                    It.IsAny<ulong>(),
+                    It.IsAny<RequestOptions>()
+                ),
+            Times.Never
+        );
 
         _translationProvider.Verify(
-            x => x.TranslateAsync(
-                It.IsAny<Country>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
+            x =>
+                x.TranslateAsync(
+                    It.IsAny<Country>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -196,42 +212,45 @@ test";
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
-            .Returns(true);
+        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
 
         _message.Setup(x => x.Content).Returns(string.Empty);
 
         _message
             .Setup(
-                x => x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<IUser>(),
-                    It.IsAny<RequestOptions>()))
+                x =>
+                    x.RemoveReactionAsync(
+                        It.IsAny<IEmote>(),
+                        It.IsAny<IUser>(),
+                        It.IsAny<RequestOptions>()
+                    )
+            )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString());
+        _notification.Reaction.Emote = new Emoji(
+            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
+        );
 
         // Act
-        var act = async () => await _sut.Handle(
-            _notification,
-            CancellationToken.None);
+        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
 
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
-        _translationProvider
-            .Verify(
-                x => x.TranslateAsync(
+        _translationProvider.Verify(
+            x =>
+                x.TranslateAsync(
                     It.IsAny<Country>(),
                     It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -240,44 +259,48 @@ test";
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .Setup(x => x.TryGetCountry(It.IsAny<string>(), out country))
-            .Returns(true);
+        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
 
         _translationProvider
             .Setup(
-                x => x.TranslateAsync(
-                    It.IsAny<Country>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                x =>
+                    x.TranslateAsync(
+                        It.IsAny<Country>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync((TranslationResult)null!);
 
         _message
             .Setup(
-                x => x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<IUser>(),
-                    It.IsAny<RequestOptions>()))
+                x =>
+                    x.RemoveReactionAsync(
+                        It.IsAny<IEmote>(),
+                        It.IsAny<IUser>(),
+                        It.IsAny<RequestOptions>()
+                    )
+            )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString());
+        _notification.Reaction.Emote = new Emoji(
+            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
+        );
 
         // Act
-        var act = async () => await _sut.Handle(
-            _notification,
-            CancellationToken.None);
+        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
 
         _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
-        _message
-            .Verify(
-                x => x.Channel.SendMessageAsync(
+        _message.Verify(
+            x =>
+                x.Channel.SendMessageAsync(
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<Embed>(),
@@ -287,7 +310,9 @@ test";
                     It.IsAny<MessageComponent>(),
                     It.IsAny<ISticker[]>(),
                     It.IsAny<Embed[]>(),
-                    It.IsAny<MessageFlags>()),
-                Times.Never());
+                    It.IsAny<MessageFlags>()
+                ),
+            Times.Never()
+        );
     }
 }

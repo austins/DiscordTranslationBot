@@ -11,5 +11,5 @@ public sealed class DetectedLanguage
     /// The detected language code.
     /// </summary>
     [JsonPropertyName("language")]
-    public string LanguageCode { get; init; } = null!;
+    public required string LanguageCode { get; init; }
 }

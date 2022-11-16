@@ -12,12 +12,12 @@ namespace DiscordTranslationBot;
 /// </summary>
 public class Worker : BackgroundService
 {
-    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly ILogger<Worker> _logger;
+    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker"/> class.
@@ -34,7 +34,8 @@ public class Worker : BackgroundService
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
-        ILogger<Worker> logger)
+        ILogger<Worker> logger
+    )
     {
         _translationProviders = translationProviders;
         _client = client;

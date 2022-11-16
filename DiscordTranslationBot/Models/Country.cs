@@ -29,7 +29,8 @@ public class Country : IEquatable<Country>
     /// <summary>
     /// The language codes for the country.
     /// </summary>
-    public ISet<string> LangCodes { get; init; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public ISet<string> LangCodes { get; init; } =
+        new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Check if two country instances are the same.
@@ -48,7 +49,8 @@ public class Country : IEquatable<Country>
     /// <returns>true if they are the same; false if not.</returns>
     public override bool Equals(object? obj)
     {
-        return obj is { } && (ReferenceEquals(this, obj) || (obj.GetType() == this.GetType() && Equals((Country)obj)));
+        return obj is { }
+            && (ReferenceEquals(this, obj) || (obj.GetType() == GetType() && Equals((Country)obj)));
     }
 
     /// <summary>

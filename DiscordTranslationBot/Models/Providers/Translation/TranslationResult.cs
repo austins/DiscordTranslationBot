@@ -18,7 +18,7 @@ public sealed class TranslationResult
     /// <summary>
     /// The target language code.
     /// </summary>
-    public string TargetLanguageCode { get; set; } = null!;
+    public required string TargetLanguageCode { get; set; }
 
     /// <summary>
     /// The target language name.

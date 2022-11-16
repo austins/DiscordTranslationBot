@@ -11,5 +11,5 @@ public sealed class TranslationData
     /// The translated text.
     /// </summary>
     [JsonPropertyName("text")]
-    public string Text { get; init; } = null!;
+    public required string Text { get; init; }
 }

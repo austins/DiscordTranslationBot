@@ -1,5 +1,5 @@
 ﻿using Discord;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Notifications;
 
@@ -11,5 +11,5 @@ public sealed class LogNotification : INotification
     /// <summary>
     /// Discord client log message.
     /// </summary>
-    public LogMessage LogMessage { get; set; }
+    public required LogMessage LogMessage { get; init; }
 }

@@ -11,5 +11,5 @@ public sealed class Language
     /// The language name.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    public required string Name { get; init; }
 }

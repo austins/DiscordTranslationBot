@@ -34,10 +34,11 @@ public sealed class TranslationExtensionsTests
         const string detectedLanguageCode = "en";
         const string translation = "の";
 
-        const string content = $@"[{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}]";
+        const string content =
+            $@"[{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}]";
         using var httpResponseMessage = new HttpResponseMessage
         {
-            Content = new StringContent(content, Encoding.UTF8, "application/json"),
+            Content = new StringContent(content, Encoding.UTF8, "application/json")
         };
 
         var expected = new List<TranslateResult>
@@ -45,12 +46,14 @@ public sealed class TranslationExtensionsTests
             new()
             {
                 DetectedLanguage = new DetectedLanguage { LanguageCode = detectedLanguageCode },
-                Translations = new List<TranslationData> { new() { Text = translation } },
-            },
+                Translations = new List<TranslationData> { new() { Text = translation } }
+            }
         };
 
         // Act
-        var result = await httpResponseMessage.Content.DeserializeTranslationResponseContentAsync<IList<TranslateResult>>(CancellationToken.None);
+        var result = await httpResponseMessage.Content.DeserializeTranslationResponseContentAsync<
+            IList<TranslateResult>
+        >(CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);

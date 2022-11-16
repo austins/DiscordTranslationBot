@@ -7,7 +7,7 @@ using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using MediatR;
+using Mediator;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
@@ -17,10 +17,10 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
 {
-    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
     private readonly DiscordSocketClient _client;
     private readonly ICountryService _countryService;
     private readonly ILogger<FlagReactionAddedHandler> _logger;
+    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FlagReactionAddedHandler"/> class.
@@ -33,7 +33,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         ICountryService countryService,
-        ILogger<FlagReactionAddedHandler> logger)
+        ILogger<FlagReactionAddedHandler> logger
+    )
     {
         _translationProviders = translationProviders;
         _client = client;
@@ -46,10 +47,15 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(
+        ReactionAddedNotification notification,
+        CancellationToken cancellationToken
+    )
     {
-        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name) ||
-            !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country))
+        if (
+            !Emoji.IsEmoji(notification.Reaction.Emote.Name)
+            || !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)
+        )
         {
             return;
         }
@@ -63,7 +69,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
                 notification.Reaction.UserId,
-                options: new RequestOptions { CancelToken = cancellationToken });
+                new RequestOptions { CancelToken = cancellationToken }
+            );
 
             return;
         }
@@ -71,7 +78,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         // Remove all user and channel mentions and custom emotes,
         // then strip all markdown to make the translation clean.
         var sanitizedMessage = Format.StripMarkDown(
-            Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty));
+            Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty)
+        );
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
@@ -80,7 +88,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
                 notification.Reaction.UserId,
-                options: new RequestOptions { CancelToken = cancellationToken });
+                new RequestOptions { CancelToken = cancellationToken }
+            );
 
             return;
         }
@@ -96,28 +105,37 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
                 translationResult = await translationProvider.TranslateAsync(
                     country!,
                     sanitizedMessage,
-                    cancellationToken);
+                    cancellationToken
+                );
 
                 break;
             }
-            catch (UnsupportedCountryException ex) when (translationProvider is LibreTranslateProvider)
+            catch (UnsupportedCountryException ex)
+                when (translationProvider is LibreTranslateProvider)
             {
                 SendTempMessage(
                     ex.Message,
                     notification.Reaction,
                     sourceMessage.Channel,
                     sourceMessage.Id,
-                    cancellationToken);
+                    cancellationToken
+                );
 
                 return;
             }
             catch (UnsupportedCountryException ex)
             {
-                _logger.LogWarning(ex, $"Unsupported country {country?.Name} for {translationProvider.GetType()}.");
+                _logger.LogWarning(
+                    ex,
+                    $"Unsupported country {country?.Name} for {translationProvider.GetType()}."
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to translate text with {translationProvider.GetType()}.");
+                _logger.LogError(
+                    ex,
+                    $"Failed to translate text with {translationProvider.GetType()}."
+                );
             }
         }
 
@@ -126,7 +144,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
                 notification.Reaction.UserId,
-                options: new RequestOptions { CancelToken = cancellationToken });
+                new RequestOptions { CancelToken = cancellationToken }
+            );
 
             return;
         }
@@ -134,24 +153,33 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         if (translationResult.TranslatedText == sanitizedMessage)
         {
             _logger.LogWarning(
-                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.");
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
+            );
 
             SendTempMessage(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 notification.Reaction,
                 sourceMessage.Channel,
                 sourceMessage.Id,
-                cancellationToken);
+                cancellationToken
+            );
 
             return;
         }
 
         // Send the reply message.
-        var replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode) ?
-                        $"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}" :
-                        $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
+        var replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode)
+            ? $"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}"
+            : $"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):\n{Format.BlockQuote(translationResult.TranslatedText)}";
 
-        SendTempMessage(replyText, notification.Reaction, sourceMessage.Channel, sourceMessage.Id, cancellationToken, 20);
+        SendTempMessage(
+            replyText,
+            notification.Reaction,
+            sourceMessage.Channel,
+            sourceMessage.Id,
+            cancellationToken,
+            20
+        );
     }
 
     /// <summary>
@@ -169,7 +197,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         IMessageChannel channel,
         ulong referencedMessageId,
         CancellationToken cancellationToken,
-        uint seconds = 10)
+        uint seconds = 10
+    )
     {
         using var typingState = channel.EnterTypingState();
 
@@ -181,7 +210,8 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
                 var replyMessage = await channel.SendMessageAsync(
                     text,
                     messageReference: new MessageReference(referencedMessageId),
-                    options: new RequestOptions { CancelToken = cancellationToken });
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
                 // Cleanup.
                 await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
@@ -189,19 +219,24 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
                 // If the source message still exists, remove the reaction from it.
                 var sourceMessage = await replyMessage.Channel.GetMessageAsync(
                     referencedMessageId,
-                    options: new RequestOptions { CancelToken = cancellationToken });
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
                 if (sourceMessage != null)
                 {
                     await sourceMessage.RemoveReactionAsync(
                         reaction.Emote,
                         reaction.UserId,
-                        options: new RequestOptions { CancelToken = cancellationToken });
+                        new RequestOptions { CancelToken = cancellationToken }
+                    );
                 }
 
                 // Delete the reply message.
-                await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+                await replyMessage.DeleteAsync(
+                    new RequestOptions { CancelToken = cancellationToken }
+                );
             },
-            cancellationToken);
+            cancellationToken
+        );
     }
 }

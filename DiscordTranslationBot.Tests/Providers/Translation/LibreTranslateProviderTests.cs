@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NeoSmart.Unicode;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
@@ -23,7 +24,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         static HttpResponseMessage GetLanguagesResponseAsync()
         {
-            const string languagesContent = @"[
+            const string languagesContent =
+                @"[
   {
     ""code"": ""en"",
     ""name"": ""English""
@@ -37,16 +39,22 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             var languagesResponse = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(languagesContent),
+                Content = new StringContent(languagesContent)
             };
 
             return languagesResponse;
         }
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(GetLanguagesResponseAsync);
 
         var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
@@ -54,24 +62,27 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Setup(x => x.CreateClient(It.IsAny<string>()))
             .Returns(_httpClient.Object);
 
-        var translationProvidersOptions = Options.Create(new TranslationProvidersOptions
-        {
-            LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") },
-        });
+        var translationProvidersOptions = Options.Create(
+            new TranslationProvidersOptions
+            {
+                LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") }
+            }
+        );
 
         Sut = new LibreTranslateProvider(
             httpClientFactory.Object,
             translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>());
+            Mock.Of<ILogger<LibreTranslateProvider>>()
+        );
     }
 
     [Fact]
     public async Task Translate_Returns_Expected()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         const string text = "test";
@@ -82,10 +93,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             DetectedLanguageName = "English",
             TargetLanguageCode = "fr",
             TargetLanguageName = "French",
-            TranslatedText = "translated",
+            TranslatedText = "translated"
         };
 
-        var content = $@"{{
+        var content =
+            $@"{{
     ""detectedLanguage"": {{""confidence"": 100, ""language"": ""{expected.DetectedLanguageCode}""}},
     ""translatedText"": ""{expected.TranslatedText}""
 }}";
@@ -93,13 +105,19 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         using var response = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content),
+            Content = new StringContent(content)
         };
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(response);
 
         // Act
@@ -120,13 +138,19 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         using var languagesResponse = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(languagesContent),
+            Content = new StringContent(languagesContent)
         };
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(languagesResponse);
 
         var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
@@ -134,19 +158,21 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Setup(x => x.CreateClient(It.IsAny<string>()))
             .Returns(_httpClient.Object);
 
-        var translationProvidersOptions = Options.Create(new TranslationProvidersOptions
-        {
-            LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") },
-        });
+        var translationProvidersOptions = Options.Create(
+            new TranslationProvidersOptions
+            {
+                LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") }
+            }
+        );
 
         var sut = new LibreTranslateProvider(
             httpClientFactory.Object,
             translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>());
+            Mock.Of<ILogger<LibreTranslateProvider>>()
+        );
 
         // Act & Assert
-        await sut
-            .Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
+        await sut.Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -154,12 +180,14 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     [Theory]
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
-    public async Task TranslateAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(HttpStatusCode statusCode)
+    public async Task TranslateAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
+        HttpStatusCode statusCode
+    )
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         const string text = "test";
@@ -167,14 +195,19 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         using var response = new HttpResponseMessage { StatusCode = statusCode };
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut
-            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -183,14 +216,15 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         const string text = "test";
 
-        var content = @"{
+        var content =
+            @"{
     ""detectedLanguage"": {""confidence"": 0, ""language"": ""de""},
     ""translatedText"": """"
 }";
@@ -198,18 +232,23 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         using var response = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content),
+            Content = new StringContent(content)
         };
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut
-            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -218,9 +257,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateAsync_Throws_JsonException_OnFailureToDeserialize()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         const string text = "test";
@@ -230,18 +269,23 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         using var response = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content),
+            Content = new StringContent(content)
         };
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut
-            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<JsonException>();
     }
@@ -250,22 +294,27 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateAsync_Throws_HttpRequestException_OnFailureToSendRequest()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" },
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         const string text = "test";
 
         _httpClient
-            .Setup(x => x.SendAsync(
-                It.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
-                It.IsAny<CancellationToken>()))
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
             .ThrowsAsync(new HttpRequestException());
 
         // Act & Assert
-        await Sut
-            .Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<HttpRequestException>();
     }

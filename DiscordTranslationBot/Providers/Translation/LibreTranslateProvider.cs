@@ -26,7 +26,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     public LibreTranslateProvider(
         IHttpClientFactory httpClientFactory,
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<LibreTranslateProvider> logger)
+        ILogger<LibreTranslateProvider> logger
+    )
     {
         _httpClientFactory = httpClientFactory;
         _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
@@ -40,7 +41,9 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// <remarks>
     /// List of supported language codes reference: https://libretranslate.com/languages.
     /// </remarks>
-    public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
+    public override async Task InitializeSupportedLanguagesAsync(
+        CancellationToken cancellationToken
+    )
     {
         if (SupportedLanguages.Any())
         {
@@ -51,17 +54,23 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         using var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
-            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages"),
+            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages")
         };
 
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
-            throw new InvalidOperationException($"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+            _logger.LogError(
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
+            );
+            throw new InvalidOperationException(
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
+            );
         }
 
-        var content = JsonSerializer.Deserialize<IList<Language>>(await response.Content.ReadAsStringAsync(cancellationToken));
+        var content = JsonSerializer.Deserialize<IList<Language>>(
+            await response.Content.ReadAsStringAsync(cancellationToken)
+        );
         if (content?.Any() != true)
         {
             _logger.LogError("Languages endpoint returned no language codes.");
@@ -69,17 +78,17 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         }
 
         SupportedLanguages = content
-            .Select(lc => new SupportedLanguage
-            {
-                LangCode = lc.LangCode,
-                Name = lc.Name,
-            })
+            .Select(lc => new SupportedLanguage { LangCode = lc.LangCode, Name = lc.Name })
             .ToHashSet();
     }
 
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
-    public override async Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken)
+    public override async Task<TranslationResult> TranslateAsync(
+        Country country,
+        string text,
+        CancellationToken cancellationToken
+    )
     {
         try
         {
@@ -87,32 +96,40 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             var result = new TranslationResult
             {
                 TargetLanguageCode = supportedLanguage.LangCode,
-                TargetLanguageName = supportedLanguage.Name,
+                TargetLanguageName = supportedLanguage.Name
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
             using var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(
-                    $"{_libreTranslateOptions.ApiUrl}/translate"),
-                Content = httpClient.SerializeTranslationRequestContent(new
-                {
-                    q = text,
-                    source = "auto",
-                    target = supportedLanguage.LangCode,
-                    format = "text",
-                }),
+                RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
+                Content = httpClient.SerializeTranslationRequestContent(
+                    new
+                    {
+                        q = text,
+                        source = "auto",
+                        target = supportedLanguage.LangCode,
+                        format = "text"
+                    }
+                )
             };
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
-                throw new InvalidOperationException($"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
+                _logger.LogError(
+                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
+                );
+                throw new InvalidOperationException(
+                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
+                );
             }
 
-            var content = await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(cancellationToken);
+            var content =
+                await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(
+                    cancellationToken
+                );
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
                 _logger.LogError("No translation returned.");
@@ -122,7 +139,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             result.DetectedLanguageCode = content.DetectedLanguage?.LanguageCode;
 
             result.DetectedLanguageName = SupportedLanguages
-                .SingleOrDefault(sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+                .SingleOrDefault(
+                    sl =>
+                        sl.LangCode.Equals(
+                            result.DetectedLanguageCode,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                )
                 ?.Name;
 
             result.TranslatedText = content.TranslatedText;

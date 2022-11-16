@@ -1,6 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Models.Discord;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Notifications;
 
@@ -12,15 +12,15 @@ public sealed class ReactionAddedNotification : INotification
     /// <summary>
     /// The user message.
     /// </summary>
-    public Task<IUserMessage> Message { get; set; } = null!;
+    public required Task<IUserMessage> Message { get; init; }
 
     /// <summary>
     /// The message channel.
     /// </summary>
-    public Task<IMessageChannel> Channel { get; set; } = null!;
+    public required Task<IMessageChannel> Channel { get; init; }
 
     /// <summary>
     /// The reaction.
     /// </summary>
-    public Reaction Reaction { get; set; } = null!;
+    public required Reaction Reaction { get; init; }
 }

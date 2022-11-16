@@ -18,7 +18,8 @@ public abstract class TranslationProviderBase
     /// Supported language codes for the provider.
     /// </summary>
 #pragma warning disable CA2227
-    protected ISet<SupportedLanguage> SupportedLanguages { get; set; } = new HashSet<SupportedLanguage>();
+    protected ISet<SupportedLanguage> SupportedLanguages { get; set; } =
+        new HashSet<SupportedLanguage>();
 #pragma warning restore CA2227
 
     /// <summary>
@@ -37,7 +38,11 @@ public abstract class TranslationProviderBase
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
-    public abstract Task<TranslationResult> TranslateAsync(Country country, string text, CancellationToken cancellationToken);
+    public abstract Task<TranslationResult> TranslateAsync(
+        Country country,
+        string text,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Gets the lang code that a country supports.
@@ -47,7 +52,11 @@ public abstract class TranslationProviderBase
     /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
     protected SupportedLanguage GetSupportedLanguageByCountry(Country country)
     {
-        return SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
-               ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
+        return SupportedLanguages.FirstOrDefault(
+                supportedLang => country.LangCodes.Contains(supportedLang.LangCode)
+            )
+            ?? throw new UnsupportedCountryException(
+                $"Translation for country {country.Name} isn't supported."
+            );
     }
 }

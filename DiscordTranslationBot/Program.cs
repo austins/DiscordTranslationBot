@@ -5,7 +5,6 @@ using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using MediatR;
 
 try
 {
@@ -14,16 +13,24 @@ try
             (hostBuilder, services) =>
             {
                 var translationProvidersOptionsSection =
-                    hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName);
+                    hostBuilder.Configuration.GetRequiredSection(
+                        TranslationProvidersOptions.SectionName
+                    );
 
-                var translationProvidersOptions = translationProvidersOptionsSection.Get<TranslationProvidersOptions>();
+                var translationProvidersOptions =
+                    translationProvidersOptionsSection.Get<TranslationProvidersOptions>();
 
                 // Initial configuration.
                 services
-                    .Configure<DiscordOptions>(hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
+                    .Configure<DiscordOptions>(
+                        hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
+                    )
                     .Configure<TranslationProvidersOptions>(
-                        hostBuilder.Configuration.GetRequiredSection(TranslationProvidersOptions.SectionName))
-                    .AddMediatR(typeof(Program))
+                        hostBuilder.Configuration.GetRequiredSection(
+                            TranslationProvidersOptions.SectionName
+                        )
+                    )
+                    .AddMediator()
                     .AddHttpClient()
                     .AddSingleton<ICountryService, CountryService>();
 
@@ -41,24 +48,36 @@ try
                         new DiscordSocketClient(
                             new DiscordSocketConfig
                             {
-                                GatewayIntents = GatewayIntents.Guilds |
-                                                 GatewayIntents.GuildMessages |
-                                                 GatewayIntents.GuildMessageReactions |
-                                                 GatewayIntents.MessageContent,
-                                MessageCacheSize = 100,
-                            }))
+                                GatewayIntents =
+                                    GatewayIntents.Guilds
+                                    | GatewayIntents.GuildMessages
+                                    | GatewayIntents.GuildMessageReactions
+                                    | GatewayIntents.MessageContent,
+                                MessageCacheSize = 100
+                            }
+                        )
+                    )
                     .AddSingleton<DiscordEventListener>()
                     .AddHostedService<Worker>();
-            })
+            }
+        )
         .Build();
 
     await host.RunAsync();
 }
-catch (Exception ex) when (ex is InvalidOperationException &&
-                           (ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal) ||
-                            ex.Message.Contains(TranslationProvidersOptions.SectionName, StringComparison.Ordinal)))
+catch (Exception ex)
+    when (ex is InvalidOperationException
+        && (
+            ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal)
+            || ex.Message.Contains(
+                TranslationProvidersOptions.SectionName,
+                StringComparison.Ordinal
+            )
+        )
+    )
 {
     // The app is missing configuration options.
     Console.WriteLine(
-        $"The {DiscordOptions.SectionName} and {TranslationProvidersOptions.SectionName} options are not configured or set to an invalid format.");
+        $"The {DiscordOptions.SectionName} and {TranslationProvidersOptions.SectionName} options are not configured or set to an invalid format."
+    );
 }

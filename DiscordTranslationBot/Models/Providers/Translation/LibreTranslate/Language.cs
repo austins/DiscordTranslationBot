@@ -11,11 +11,11 @@ public sealed class Language
     /// The language code.
     /// </summary>
     [JsonPropertyName("code")]
-    public string LangCode { get; init; } = string.Empty;
+    public required string LangCode { get; init; }
 
     /// <summary>
     /// The language name.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    public required string Name { get; init; }
 }

@@ -12,9 +12,8 @@ namespace DiscordTranslationBot.Services;
 /// </remarks>
 public sealed class CountryService : ICountryService
 {
-    private readonly ILogger<CountryService> _logger;
-
     private readonly ISet<Country> _countries;
+    private readonly ILogger<CountryService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CountryService"/> class.
@@ -26,13 +25,16 @@ public sealed class CountryService : ICountryService
         _logger = logger;
 
         // Get all flag emojis.
-        var flagEmoji = Emoji.All
-            .Where(e => e.Group == "Flags" && e.Subgroup == "country-flag");
+        var flagEmoji = Emoji.All.Where(e => e.Group == "Flags" && e.Subgroup == "country-flag");
 
         _countries = flagEmoji
-            .Select(e => new Country(
-                e.ToString(),
-                e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
+            .Select(
+                e =>
+                    new Country(
+                        e.ToString(),
+                        e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)
+                    )
+            )
             .ToHashSet();
 
         if (!_countries.Any())
@@ -100,8 +102,12 @@ public sealed class CountryService : ICountryService
         var country = _countries.SingleOrDefault(c => c.EmojiUnicode == flagEmoji.ToString());
         if (country == null)
         {
-            _logger.LogCritical("Country language codes couldn't be initialized as country couldn't be found.");
-            throw new InvalidOperationException("Country language codes couldn't be initialized as country couldn't be found.");
+            _logger.LogCritical(
+                "Country language codes couldn't be initialized as country couldn't be found."
+            );
+            throw new InvalidOperationException(
+                "Country language codes couldn't be initialized as country couldn't be found."
+            );
         }
 
         country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
