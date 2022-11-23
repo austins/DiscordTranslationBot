@@ -5,17 +5,17 @@ using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
+using Serilog;
 
 try
 {
     var host = Host.CreateDefaultBuilder(args)
         .ConfigureServices(
-            (hostBuilder, services) =>
+            (builder, services) =>
             {
-                var translationProvidersOptionsSection =
-                    hostBuilder.Configuration.GetRequiredSection(
-                        TranslationProvidersOptions.SectionName
-                    );
+                var translationProvidersOptionsSection = builder.Configuration.GetRequiredSection(
+                    TranslationProvidersOptions.SectionName
+                );
 
                 var translationProvidersOptions =
                     translationProvidersOptionsSection.Get<TranslationProvidersOptions>();
@@ -23,10 +23,10 @@ try
                 // Initial configuration.
                 services
                     .Configure<DiscordOptions>(
-                        hostBuilder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
+                        builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
                     )
                     .Configure<TranslationProvidersOptions>(
-                        hostBuilder.Configuration.GetRequiredSection(
+                        builder.Configuration.GetRequiredSection(
                             TranslationProvidersOptions.SectionName
                         )
                     )
@@ -60,6 +60,13 @@ try
                     .AddSingleton<DiscordEventListener>()
                     .AddHostedService<Worker>();
             }
+        )
+        .UseSerilog(
+            (hostingContext, services, loggerConfiguration) =>
+                loggerConfiguration.ReadFrom
+                    .Configuration(hostingContext.Configuration)
+                    .Enrich.FromLogContext()
+                    .WriteTo.Console()
         )
         .Build();
 

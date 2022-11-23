@@ -4,6 +4,7 @@ using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Microsoft.Extensions.Options;
+using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot;
 
@@ -16,7 +17,7 @@ public class Worker : BackgroundService
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger _logger;
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
@@ -34,7 +35,7 @@ public class Worker : BackgroundService
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
-        ILogger<Worker> logger
+        ILogger logger
     )
     {
         _translationProviders = translationProviders;
@@ -54,7 +55,11 @@ public class Worker : BackgroundService
         // Verify that the Discord BotToken is set.
         if (string.IsNullOrWhiteSpace(_discordOptions.Value.BotToken))
         {
-            _logger.LogError($"The Discord {nameof(_discordOptions.Value.BotToken)} must be set.");
+            _logger.Error(
+                "The Discord {ConfigName} must be set.",
+                nameof(_discordOptions.Value.BotToken)
+            );
+
             _hostApplicationLifetime.StopApplication();
             return;
         }

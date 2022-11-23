@@ -1,6 +1,8 @@
 ﻿using Discord;
 using DiscordTranslationBot.Notifications;
 using Mediator;
+using Serilog.Events;
+using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -9,13 +11,13 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public sealed class LogHandler : INotificationHandler<LogNotification>
 {
-    private readonly ILogger<LogHandler> _logger;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LogHandler"/> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
-    public LogHandler(ILogger<LogHandler> logger)
+    public LogHandler(ILogger logger)
     {
         _logger = logger;
     }
@@ -30,19 +32,20 @@ public sealed class LogHandler : INotificationHandler<LogNotification>
         // Map the Discord log message severities to the logger log levels accordingly.
         var logLevel = notification.LogMessage.Severity switch
         {
-            LogSeverity.Debug => LogLevel.Trace,
-            LogSeverity.Verbose => LogLevel.Debug,
-            LogSeverity.Info => LogLevel.Information,
-            LogSeverity.Warning => LogLevel.Warning,
-            LogSeverity.Error => LogLevel.Error,
-            LogSeverity.Critical => LogLevel.Critical,
-            _ => LogLevel.Trace
+            LogSeverity.Debug => LogEventLevel.Debug,
+            LogSeverity.Verbose => LogEventLevel.Verbose,
+            LogSeverity.Info => LogEventLevel.Information,
+            LogSeverity.Warning => LogEventLevel.Warning,
+            LogSeverity.Error => LogEventLevel.Error,
+            LogSeverity.Critical => LogEventLevel.Fatal,
+            _ => LogEventLevel.Debug
         };
 
-        _logger.Log(
+        _logger.Write(
             logLevel,
             notification.LogMessage.Exception,
-            notification.LogMessage.ToString()
+            "Discord: {LogMessage}",
+            notification.LogMessage
         );
 
         return ValueTask.CompletedTask;

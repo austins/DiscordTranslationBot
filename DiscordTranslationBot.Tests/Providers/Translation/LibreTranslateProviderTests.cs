@@ -5,10 +5,10 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NeoSmart.Unicode;
+using Serilog.Core;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
@@ -72,7 +72,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         Sut = new LibreTranslateProvider(
             httpClientFactory.Object,
             translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>()
+            Logger.None
         );
     }
 
@@ -168,7 +168,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var sut = new LibreTranslateProvider(
             httpClientFactory.Object,
             translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>()
+            Logger.None
         );
 
         // Act & Assert

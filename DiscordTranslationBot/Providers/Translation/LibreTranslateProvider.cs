@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using Microsoft.Extensions.Options;
+using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
@@ -15,7 +16,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LibreTranslateOptions _libreTranslateOptions;
-    private readonly ILogger<LibreTranslateProvider> _logger;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider"/> class.
@@ -26,7 +27,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     public LibreTranslateProvider(
         IHttpClientFactory httpClientFactory,
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<LibreTranslateProvider> logger
+        ILogger logger
     )
     {
         _httpClientFactory = httpClientFactory;
@@ -54,15 +55,17 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         using var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
-            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/languages")
+            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages")
         };
 
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
+            _logger.Error(
+                "Languages endpoint returned unsuccessful status code {StatusCode}.",
+                response.StatusCode
             );
+
             throw new InvalidOperationException(
                 $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
             );
@@ -71,9 +74,10 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         var content = JsonSerializer.Deserialize<IList<Language>>(
             await response.Content.ReadAsStringAsync(cancellationToken)
         );
+
         if (content?.Any() != true)
         {
-            _logger.LogError("Languages endpoint returned no language codes.");
+            _logger.Error("Languages endpoint returned no language codes.");
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -118,9 +122,11 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError(
-                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
+                _logger.Error(
+                    "Translate endpoint returned unsuccessful status code {StatusCode}.",
+                    response.StatusCode
                 );
+
                 throw new InvalidOperationException(
                     $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
                 );
@@ -130,9 +136,10 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(
                     cancellationToken
                 );
+
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
-                _logger.LogError("No translation returned.");
+                _logger.Error("No translation returned.");
                 throw new InvalidOperationException("No translation returned.");
             }
 
@@ -154,12 +161,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Failed to deserialize the response.");
+            _logger.Error(ex, "Failed to deserialize the response.");
             throw;
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
+            _logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
             throw;
         }
     }

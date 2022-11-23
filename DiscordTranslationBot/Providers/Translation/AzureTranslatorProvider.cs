@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
+using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
@@ -22,7 +23,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
 
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<AzureTranslatorProvider> _logger;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureTranslatorProvider"/> class.
@@ -33,7 +34,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     public AzureTranslatorProvider(
         IHttpClientFactory httpClientFactory,
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<AzureTranslatorProvider> logger
+        ILogger logger
     )
     {
         _httpClientFactory = httpClientFactory;
@@ -69,9 +70,11 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
+            _logger.Error(
+                "Languages endpoint returned unsuccessful status code {StatusCode}.",
+                response.StatusCode
             );
+
             throw new InvalidOperationException(
                 $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
             );
@@ -82,7 +85,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         );
         if (content?.LangCodes?.Any() != true)
         {
-            _logger.LogError("Languages endpoint returned no language codes.");
+            _logger.Error("Languages endpoint returned no language codes.");
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -106,9 +109,12 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
 
             if (text.Length >= TextCharacterLimit)
             {
-                _logger.LogError(
-                    $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}."
+                _logger.Error(
+                    "The text can't exceed {TextCharacterLimit} characters including spaces. Length: {TextLength}.",
+                    TextCharacterLimit,
+                    text.Length
                 );
+
                 throw new ArgumentException(
                     $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}."
                 );
@@ -125,7 +131,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(
-                    $"{_azureTranslatorOptions.ApiUrl}/translate?api-version=3.0&to={result.TargetLanguageCode}"
+                    $"{_azureTranslatorOptions.ApiUrl}translate?api-version=3.0&to={result.TargetLanguageCode}"
                 ),
                 Content = httpClient.SerializeTranslationRequestContent(
                     new object[] { new { Text = text } }
@@ -138,9 +144,11 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError(
-                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
+                _logger.Error(
+                    "Translate endpoint returned unsuccessful status code {StatusCode}.",
+                    response.StatusCode
                 );
+
                 throw new InvalidOperationException(
                     $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
                 );
@@ -153,7 +161,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             var translation = content?.SingleOrDefault();
             if (translation?.Translations.Any() != true)
             {
-                _logger.LogError("No translation returned.");
+                _logger.Error("No translation returned.");
                 throw new InvalidOperationException("No translation returned.");
             }
 
@@ -175,12 +183,12 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Failed to deserialize the response.");
+            _logger.Error(ex, "Failed to deserialize the response.");
             throw;
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, $"Unable to connect to the {ProviderName} API URL.");
+            _logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
             throw;
         }
     }

@@ -9,6 +9,7 @@ using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Mediator;
 using Emoji = NeoSmart.Unicode.Emoji;
+using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -19,7 +20,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
 {
     private readonly DiscordSocketClient _client;
     private readonly ICountryService _countryService;
-    private readonly ILogger<FlagReactionAddedHandler> _logger;
+    private readonly ILogger _logger;
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
@@ -33,7 +34,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         ICountryService countryService,
-        ILogger<FlagReactionAddedHandler> logger
+        ILogger logger
     )
     {
         _translationProviders = translationProviders;
@@ -64,7 +65,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
 
         if (sourceMessage.Author.Id == _client.CurrentUser?.Id)
         {
-            _logger.LogInformation("Translating this bot's messages isn't allowed.");
+            _logger.Information("Translating this bot's messages isn't allowed.");
 
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
@@ -83,7 +84,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
-            _logger.LogInformation("Nothing to translate. The sanitized source message is empty.");
+            _logger.Information("Nothing to translate. The sanitized source message is empty.");
 
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
@@ -125,16 +126,19 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
             }
             catch (UnsupportedCountryException ex)
             {
-                _logger.LogWarning(
+                _logger.Warning(
                     ex,
-                    $"Unsupported country {country?.Name} for {translationProvider.GetType()}."
+                    "Unsupported country {CountryName} for {ProviderType}.",
+                    country?.Name,
+                    translationProvider.GetType()
                 );
             }
             catch (Exception ex)
             {
-                _logger.LogError(
+                _logger.Error(
                     ex,
-                    $"Failed to translate text with {translationProvider.GetType()}."
+                    "Failed to translate text with {ProviderType}.",
+                    translationProvider.GetType()
                 );
             }
         }
@@ -152,7 +156,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
 
         if (translationResult.TranslatedText == sanitizedMessage)
         {
-            _logger.LogWarning(
+            _logger.Warning(
                 "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
             );
 

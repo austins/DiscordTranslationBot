@@ -8,8 +8,8 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
+using Serilog.Core;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
@@ -48,7 +48,7 @@ test";
             new[] { _translationProvider.Object },
             client.Object,
             _countryService.Object,
-            Mock.Of<ILogger<FlagReactionAddedHandler>>()
+            Logger.None
         );
 
         _message = new Mock<IUserMessage>();
