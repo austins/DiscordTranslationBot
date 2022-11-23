@@ -61,6 +61,7 @@ try
                     .AddHostedService<Worker>();
             }
         )
+        .ConfigureLogging(builder => builder.ClearProviders())
         .UseSerilog(
             (hostingContext, services, loggerConfiguration) =>
                 loggerConfiguration.ReadFrom
