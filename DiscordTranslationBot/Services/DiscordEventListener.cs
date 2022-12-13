@@ -31,7 +31,7 @@ public sealed class DiscordEventListener
     }
 
     /// <summary>
-    /// Hooks up the events to be published to MediatR handlers.
+    /// Hooks up the events to be published to Mediator handlers.
     /// </summary>
     public Task InitializeEventsAsync()
     {

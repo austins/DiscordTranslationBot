@@ -18,12 +18,12 @@ public sealed class TranslationResult
     /// <summary>
     /// The target language code.
     /// </summary>
-    public required string TargetLanguageCode { get; set; }
+    public required string TargetLanguageCode { get; init; }
 
     /// <summary>
     /// The target language name.
     /// </summary>
-    public string? TargetLanguageName { get; set; }
+    public string? TargetLanguageName { get; init; }
 
     /// <summary>
     /// The translated text.

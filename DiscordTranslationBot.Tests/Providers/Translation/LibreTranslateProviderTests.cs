@@ -214,7 +214,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        var content =
+        const string content =
             @"{
     ""detectedLanguage"": {""confidence"": 0, ""language"": ""de""},
     ""translatedText"": """"

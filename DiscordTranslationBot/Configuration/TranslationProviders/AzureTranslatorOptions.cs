@@ -8,15 +8,15 @@ public sealed class AzureTranslatorOptions
     /// <summary>
     /// The API URL for Azure Translator.
     /// </summary>
-    public Uri? ApiUrl { get; set; }
+    public Uri? ApiUrl { get; init; }
 
     /// <summary>
     /// The secret key for the Azure Translator API.
     /// </summary>
-    public string SecretKey { get; set; } = string.Empty;
+    public string SecretKey { get; init; } = string.Empty;
 
     /// <summary>
     /// The region for the Azure Translator API.
     /// </summary>
-    public string Region { get; set; } = string.Empty;
+    public string Region { get; init; } = string.Empty;
 }

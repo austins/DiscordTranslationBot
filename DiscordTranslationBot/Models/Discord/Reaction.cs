@@ -14,10 +14,10 @@ public sealed class Reaction
     /// <summary>
     /// The ID of the user who initiated the reaction.
     /// </summary>
-    public ulong UserId { get; set; }
+    public required ulong UserId { get; init; }
 
     /// <summary>
     /// The emote of the reaction.
     /// </summary>
-    public IEmote Emote { get; set; } = null!;
+    public required IEmote Emote { get; set; }
 }

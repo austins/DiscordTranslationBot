@@ -3,7 +3,7 @@
 /// <summary>
 /// Details about a country.
 /// </summary>
-public class Country : IEquatable<Country>
+public sealed class Country : IEquatable<Country>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Country"/> class.

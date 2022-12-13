@@ -17,7 +17,8 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the ReactionAdded event of the Discord client for flag emotes.
 /// </summary>
-public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAddedNotification>
+public sealed partial class FlagReactionAddedHandler
+    : INotificationHandler<ReactionAddedNotification>
 {
     private static readonly ILogger Logger = Log.ForContext<FlagReactionAddedHandler>();
     private readonly DiscordSocketClient _client;
@@ -77,7 +78,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
         // Remove all user and channel mentions and custom emotes,
         // then strip all markdown to make the translation clean.
         var sanitizedMessage = Format.StripMarkDown(
-            Regex.Replace(sourceMessage.Content, @"<(?::\w+:|@!*&*|#)[0-9]+>", string.Empty)
+            DiscordSyntaxRegex().Replace(sourceMessage.Content, string.Empty)
         );
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
@@ -241,4 +242,7 @@ public sealed class FlagReactionAddedHandler : INotificationHandler<ReactionAdde
             cancellationToken
         );
     }
+
+    [GeneratedRegex("<(?::\\w+:|@!*&*|#)[0-9]+>")]
+    private static partial Regex DiscordSyntaxRegex();
 }

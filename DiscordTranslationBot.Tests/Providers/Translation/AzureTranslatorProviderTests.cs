@@ -255,7 +255,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        var content =
+        const string content =
             @"[
     {
         ""detectedLanguage"": {""language"": ""en"", ""score"": 1.0},

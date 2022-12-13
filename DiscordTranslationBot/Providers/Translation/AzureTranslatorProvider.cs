@@ -82,6 +82,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         var content = JsonSerializer.Deserialize<Languages>(
             await response.Content.ReadAsStringAsync(cancellationToken)
         );
+
         if (content?.LangCodes?.Any() != true)
         {
             Logger.Error("Languages endpoint returned no language codes.");

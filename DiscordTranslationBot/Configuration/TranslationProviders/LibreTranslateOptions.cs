@@ -8,5 +8,5 @@ public sealed class LibreTranslateOptions
     /// <summary>
     /// The API URL for LibreTranslate.
     /// </summary>
-    public Uri? ApiUrl { get; set; }
+    public Uri? ApiUrl { get; init; }
 }

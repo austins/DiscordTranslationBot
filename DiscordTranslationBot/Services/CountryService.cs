@@ -24,7 +24,7 @@ public sealed class CountryService : ICountryService
     public CountryService()
     {
         // Get all flag emojis.
-        var flagEmoji = Emoji.All.Where(e => e.Group == "Flags" && e.Subgroup == "country-flag");
+        var flagEmoji = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" });
 
         _countries = flagEmoji
             .Select(
