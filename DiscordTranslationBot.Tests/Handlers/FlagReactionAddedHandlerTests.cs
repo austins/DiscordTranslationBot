@@ -9,7 +9,6 @@ using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using FluentAssertions;
 using Moq;
-using Serilog.Core;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
@@ -47,8 +46,7 @@ test";
         _sut = new FlagReactionAddedHandler(
             new[] { _translationProvider.Object },
             client.Object,
-            _countryService.Object,
-            Logger.None
+            _countryService.Object
         );
 
         _message = new Mock<IUserMessage>();

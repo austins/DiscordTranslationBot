@@ -1,7 +1,6 @@
 ﻿using DiscordTranslationBot.Services;
 using FluentAssertions;
 using NeoSmart.Unicode;
-using Serilog.Core;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Services;
@@ -12,7 +11,7 @@ public sealed class CountryServiceTests
 
     public CountryServiceTests()
     {
-        _sut = new CountryService(Logger.None);
+        _sut = new CountryService();
     }
 
     public static IEnumerable<object[]> TryGetCountryTestData =>

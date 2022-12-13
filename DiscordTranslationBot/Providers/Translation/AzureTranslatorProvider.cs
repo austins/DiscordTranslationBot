@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -20,26 +21,24 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
     /// </summary>
     public const int TextCharacterLimit = 10000;
 
+    private static readonly ILogger Logger = Log.ForContext<AzureTranslatorProvider>();
+
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
 
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureTranslatorProvider"/> class.
     /// </summary>
     /// <param name="httpClientFactory">HTTP client factory to use.</param>
     /// <param name="translationProvidersOptions">Translation providers options.</param>
-    /// <param name="logger">Logger to use.</param>
     public AzureTranslatorProvider(
         IHttpClientFactory httpClientFactory,
-        IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger logger
+        IOptions<TranslationProvidersOptions> translationProvidersOptions
     )
     {
         _httpClientFactory = httpClientFactory;
         _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
-        _logger = logger;
     }
 
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
@@ -70,7 +69,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.Error(
+            Logger.Error(
                 "Languages endpoint returned unsuccessful status code {StatusCode}.",
                 response.StatusCode
             );
@@ -85,7 +84,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         );
         if (content?.LangCodes?.Any() != true)
         {
-            _logger.Error("Languages endpoint returned no language codes.");
+            Logger.Error("Languages endpoint returned no language codes.");
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -109,7 +108,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
 
             if (text.Length >= TextCharacterLimit)
             {
-                _logger.Error(
+                Logger.Error(
                     "The text can't exceed {TextCharacterLimit} characters including spaces. Length: {TextLength}.",
                     TextCharacterLimit,
                     text.Length
@@ -144,7 +143,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.Error(
+                Logger.Error(
                     "Translate endpoint returned unsuccessful status code {StatusCode}.",
                     response.StatusCode
                 );
@@ -161,7 +160,7 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
             var translation = content?.SingleOrDefault();
             if (translation?.Translations.Any() != true)
             {
-                _logger.Error("No translation returned.");
+                Logger.Error("No translation returned.");
                 throw new InvalidOperationException("No translation returned.");
             }
 
@@ -183,12 +182,12 @@ public sealed class AzureTranslatorProvider : TranslationProviderBase
         }
         catch (JsonException ex)
         {
-            _logger.Error(ex, "Failed to deserialize the response.");
+            Logger.Error(ex, "Failed to deserialize the response.");
             throw;
         }
         catch (HttpRequestException ex)
         {
-            _logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
+            Logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
             throw;
         }
     }

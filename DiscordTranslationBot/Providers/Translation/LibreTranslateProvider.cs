@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using Microsoft.Extensions.Options;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -14,25 +15,22 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 public sealed class LibreTranslateProvider : TranslationProviderBase
 {
+    private static readonly ILogger Logger = Log.ForContext<LibreTranslateProvider>();
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LibreTranslateOptions _libreTranslateOptions;
-    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider"/> class.
     /// </summary>
     /// <param name="httpClientFactory">HTTP client factory to use.</param>
     /// <param name="translationProvidersOptions">Translation providers options.</param>
-    /// <param name="logger">Logger to use.</param>
     public LibreTranslateProvider(
         IHttpClientFactory httpClientFactory,
-        IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger logger
+        IOptions<TranslationProvidersOptions> translationProvidersOptions
     )
     {
         _httpClientFactory = httpClientFactory;
         _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
-        _logger = logger;
     }
 
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
@@ -61,7 +59,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _logger.Error(
+            Logger.Error(
                 "Languages endpoint returned unsuccessful status code {StatusCode}.",
                 response.StatusCode
             );
@@ -77,7 +75,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
         if (content?.Any() != true)
         {
-            _logger.Error("Languages endpoint returned no language codes.");
+            Logger.Error("Languages endpoint returned no language codes.");
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -122,7 +120,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.Error(
+                Logger.Error(
                     "Translate endpoint returned unsuccessful status code {StatusCode}.",
                     response.StatusCode
                 );
@@ -139,7 +137,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
-                _logger.Error("No translation returned.");
+                Logger.Error("No translation returned.");
                 throw new InvalidOperationException("No translation returned.");
             }
 
@@ -161,12 +159,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         }
         catch (JsonException ex)
         {
-            _logger.Error(ex, "Failed to deserialize the response.");
+            Logger.Error(ex, "Failed to deserialize the response.");
             throw;
         }
         catch (HttpRequestException ex)
         {
-            _logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
+            Logger.Error(ex, "Unable to connect to the {ProviderName} API URL.", ProviderName);
             throw;
         }
     }

@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
 using Mediator;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Services;
@@ -12,9 +13,9 @@ namespace DiscordTranslationBot.Services;
 /// </summary>
 public sealed class DiscordEventListener
 {
+    private static readonly ILogger Logger = Log.ForContext<DiscordEventListener>();
     private readonly CancellationToken _cancellationToken;
     private readonly DiscordSocketClient _client;
-    private readonly ILogger _logger;
     private readonly IMediator _mediator;
 
     /// <summary>
@@ -22,12 +23,10 @@ public sealed class DiscordEventListener
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
-    /// <param name="logger">Logger to use.</param>
-    public DiscordEventListener(DiscordSocketClient client, IMediator mediator, ILogger logger)
+    public DiscordEventListener(DiscordSocketClient client, IMediator mediator)
     {
         _client = client;
         _mediator = mediator;
-        _logger = logger;
         _cancellationToken = new CancellationTokenSource().Token;
     }
 
@@ -39,7 +38,7 @@ public sealed class DiscordEventListener
         _client.Log += LogAsync;
         _client.ReactionAdded += ReactionAddedAsync;
 
-        _logger.Information("Notification events initialized.");
+        Logger.Information("Notification events initialized.");
         return Task.CompletedTask;
     }
 

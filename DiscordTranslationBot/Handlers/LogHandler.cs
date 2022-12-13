@@ -1,6 +1,7 @@
 ﻿using Discord;
 using DiscordTranslationBot.Notifications;
 using Mediator;
+using Serilog;
 using Serilog.Events;
 using ILogger = Serilog.ILogger;
 
@@ -11,16 +12,7 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public sealed class LogHandler : INotificationHandler<LogNotification>
 {
-    private readonly ILogger _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LogHandler"/> class.
-    /// </summary>
-    /// <param name="logger">Logger to use.</param>
-    public LogHandler(ILogger logger)
-    {
-        _logger = logger;
-    }
+    private static readonly ILogger Logger = Log.ForContext<LogHandler>();
 
     /// <summary>
     /// Sends all Discord log messages to the logger.
@@ -41,7 +33,7 @@ public sealed class LogHandler : INotificationHandler<LogNotification>
             _ => LogEventLevel.Debug
         };
 
-        _logger.Write(
+        Logger.Write(
             logLevel,
             notification.LogMessage.Exception,
             "Discord: {LogMessage}",

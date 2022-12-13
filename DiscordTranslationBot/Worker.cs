@@ -4,6 +4,7 @@ using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Microsoft.Extensions.Options;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot;
@@ -11,13 +12,13 @@ namespace DiscordTranslationBot;
 /// <summary>
 /// The main worker service.
 /// </summary>
-public class Worker : BackgroundService
+public sealed class Worker : BackgroundService
 {
+    private static readonly ILogger Logger = Log.ForContext<Worker>();
     private readonly DiscordSocketClient _client;
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
-    private readonly ILogger _logger;
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
@@ -28,14 +29,12 @@ public class Worker : BackgroundService
     /// <param name="eventListener">Discord event listener to use.</param>
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
-    /// <param name="logger">Logger to use.</param>
     public Worker(
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
-        IHostApplicationLifetime hostApplicationLifetime,
-        ILogger logger
+        IHostApplicationLifetime hostApplicationLifetime
     )
     {
         _translationProviders = translationProviders;
@@ -43,7 +42,6 @@ public class Worker : BackgroundService
         _eventListener = eventListener;
         _discordOptions = discordOptions;
         _hostApplicationLifetime = hostApplicationLifetime;
-        _logger = logger;
     }
 
     /// <summary>
@@ -55,7 +53,7 @@ public class Worker : BackgroundService
         // Verify that the Discord BotToken is set.
         if (string.IsNullOrWhiteSpace(_discordOptions.Value.BotToken))
         {
-            _logger.Error(
+            Logger.Error(
                 "The Discord {ConfigName} must be set.",
                 nameof(_discordOptions.Value.BotToken)
             );

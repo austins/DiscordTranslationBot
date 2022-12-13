@@ -6,6 +6,10 @@ using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Serilog;
+using Serilog.Templates;
+using Serilog.Templates.Themes;
+
+Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
 
 try
 {
@@ -66,8 +70,14 @@ try
             (hostingContext, services, loggerConfiguration) =>
                 loggerConfiguration.ReadFrom
                     .Configuration(hostingContext.Configuration)
+                    .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
-                    .WriteTo.Console()
+                    .WriteTo.Console(
+                        new ExpressionTemplate(
+                            "[{@t:HH:mm:ss} {@l:u3}{#if SourceContext is not null} {SourceContext}{#end}] {@m}\n{@x}",
+                            theme: TemplateTheme.Literate
+                        )
+                    )
         )
         .Build();
 
@@ -85,7 +95,15 @@ catch (Exception ex)
     )
 {
     // The app is missing configuration options.
-    Console.WriteLine(
+    Log.Fatal(
         $"The {DiscordOptions.SectionName} and {TranslationProvidersOptions.SectionName} options are not configured or set to an invalid format."
     );
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unexpected error occurred.");
+}
+finally
+{
+    Log.CloseAndFlush();
 }

@@ -1,5 +1,6 @@
 ﻿using DiscordTranslationBot.Models;
 using NeoSmart.Unicode;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Services;
@@ -13,18 +14,15 @@ namespace DiscordTranslationBot.Services;
 /// </remarks>
 public sealed class CountryService : ICountryService
 {
+    private static readonly ILogger Logger = Log.ForContext<CountryService>();
     private readonly ISet<Country> _countries;
-    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CountryService"/> class.
     /// </summary>
-    /// <param name="logger">Logger to use.</param>
     /// <exception cref="InvalidOperationException">No flag emoji found.</exception>
-    public CountryService(ILogger logger)
+    public CountryService()
     {
-        _logger = logger;
-
         // Get all flag emojis.
         var flagEmoji = Emoji.All.Where(e => e.Group == "Flags" && e.Subgroup == "country-flag");
 
@@ -40,7 +38,7 @@ public sealed class CountryService : ICountryService
 
         if (!_countries.Any())
         {
-            _logger.Fatal("No flag emoji found.");
+            Logger.Fatal("No flag emoji found.");
             throw new InvalidOperationException("No flag emoji found.");
         }
 
@@ -103,7 +101,7 @@ public sealed class CountryService : ICountryService
         var country = _countries.SingleOrDefault(c => c.EmojiUnicode == flagEmoji.ToString());
         if (country == null)
         {
-            _logger.Fatal(
+            Logger.Fatal(
                 "Country language codes couldn't be initialized as country couldn't be found."
             );
 
