@@ -29,11 +29,7 @@ try
                     .Configure<DiscordOptions>(
                         builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
                     )
-                    .Configure<TranslationProvidersOptions>(
-                        builder.Configuration.GetRequiredSection(
-                            TranslationProvidersOptions.SectionName
-                        )
-                    )
+                    .Configure<TranslationProvidersOptions>(translationProvidersOptionsSection)
                     .AddMediator()
                     .AddHttpClient()
                     .AddSingleton<ICountryService, CountryService>();
