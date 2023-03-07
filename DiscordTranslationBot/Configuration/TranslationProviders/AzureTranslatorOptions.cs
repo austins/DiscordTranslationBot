@@ -13,10 +13,10 @@ public sealed class AzureTranslatorOptions
     /// <summary>
     /// The secret key for the Azure Translator API.
     /// </summary>
-    public string SecretKey { get; init; }
+    public required string SecretKey { get; init; }
 
     /// <summary>
     /// The region for the Azure Translator API.
     /// </summary>
-    public string Region { get; init; }
+    public required string Region { get; init; }
 }
