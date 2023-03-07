@@ -182,7 +182,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         }
     }
 
-    private sealed partial class Log : LogBase
+    private sealed partial class Log : Log<AzureTranslatorProvider>
     {
         public Log(ILogger<AzureTranslatorProvider> logger) : base(logger) { }
 

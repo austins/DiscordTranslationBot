@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models;
@@ -12,7 +11,7 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Provider for LibreTranslate.
 /// </summary>
-public sealed partial class LibreTranslateProvider : TranslationProviderBase
+public sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LibreTranslateOptions _libreTranslateOptions;
@@ -165,37 +164,8 @@ public sealed partial class LibreTranslateProvider : TranslationProviderBase
         }
     }
 
-    private sealed partial class Log
+    private sealed class Log : Log<LibreTranslateProvider>
     {
-        private readonly ILogger<LibreTranslateProvider> _logger;
-
-        public Log(ILogger<LibreTranslateProvider> logger)
-        {
-            _logger = logger;
-        }
-
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}."
-        )]
-        public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
-
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Languages endpoint returned no language codes."
-        )]
-        public partial void NoLanguageCodesReturned();
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
-        public partial void NoTranslationReturned();
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to deserialize the response.")]
-        public partial void DeserializationFailure(Exception ex);
-
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Unable to connect to the {providerName} API URL."
-        )]
-        public partial void ConnectionFailure(Exception ex, string providerName);
+        public Log(ILogger<LibreTranslateProvider> logger) : base(logger) { }
     }
 }

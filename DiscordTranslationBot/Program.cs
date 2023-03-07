@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1852 // Class must be sealed
+﻿#pragma warning disable CA1852 // Class must be sealed.
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;

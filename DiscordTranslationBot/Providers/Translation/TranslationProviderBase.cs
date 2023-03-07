@@ -62,13 +62,15 @@ public abstract partial class TranslationProviderBase
     }
 
 #pragma warning disable CS1591
-    protected abstract partial class LogBase
+    protected abstract partial class Log<TTranslationProvider>
+        where TTranslationProvider : TranslationProviderBase
     {
-#pragma warning disable CA1051
-        protected readonly ILogger<TranslationProviderBase> Logger;
+#pragma warning disable CA1051 // ILogger must be a field for LoggerMessage source generation to work.
+        // ReSharper disable once MemberCanBePrivate.Global
+        protected readonly ILogger<TTranslationProvider> Logger;
 #pragma warning restore CA1051
 
-        protected LogBase(ILogger<TranslationProviderBase> logger)
+        protected Log(ILogger<TTranslationProvider> logger)
         {
             Logger = logger;
         }
