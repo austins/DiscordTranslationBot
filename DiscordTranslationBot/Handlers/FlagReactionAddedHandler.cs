@@ -8,9 +8,7 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using Mediator;
-using Serilog;
 using Emoji = NeoSmart.Unicode.Emoji;
-using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -20,9 +18,9 @@ namespace DiscordTranslationBot.Handlers;
 public sealed partial class FlagReactionAddedHandler
     : INotificationHandler<ReactionAddedNotification>
 {
-    private static readonly ILogger Logger = Log.ForContext<FlagReactionAddedHandler>();
     private readonly DiscordSocketClient _client;
     private readonly ICountryService _countryService;
+    private readonly Log _log;
     private readonly IEnumerable<TranslationProviderBase> _translationProviders;
 
     /// <summary>
@@ -31,15 +29,18 @@ public sealed partial class FlagReactionAddedHandler
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="countryService">Country service to use.</param>
+    /// <param name="logger">Logger to use.</param>
     public FlagReactionAddedHandler(
         IEnumerable<TranslationProviderBase> translationProviders,
         DiscordSocketClient client,
-        ICountryService countryService
+        ICountryService countryService,
+        ILogger<FlagReactionAddedHandler> logger
     )
     {
         _translationProviders = translationProviders;
         _client = client;
         _countryService = countryService;
+        _log = new Log(logger);
     }
 
     /// <summary>
@@ -64,7 +65,7 @@ public sealed partial class FlagReactionAddedHandler
 
         if (sourceMessage.Author.Id == _client.CurrentUser?.Id)
         {
-            Logger.Information("Translating this bot's messages isn't allowed.");
+            _log.TranslatingBotMessageDisallowed();
 
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
@@ -83,7 +84,7 @@ public sealed partial class FlagReactionAddedHandler
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
-            Logger.Information("Nothing to translate. The sanitized source message is empty.");
+            _log.EmptySourceMessage();
 
             await sourceMessage.RemoveReactionAsync(
                 notification.Reaction.Emote,
@@ -125,20 +126,11 @@ public sealed partial class FlagReactionAddedHandler
             }
             catch (UnsupportedCountryException ex)
             {
-                Logger.Warning(
-                    ex,
-                    "Unsupported country {CountryName} for {ProviderType}.",
-                    country?.Name,
-                    translationProvider.GetType()
-                );
+                _log.UnsupportedCountry(ex, country?.Name, translationProvider.GetType());
             }
             catch (Exception ex)
             {
-                Logger.Error(
-                    ex,
-                    "Failed to translate text with {ProviderType}.",
-                    translationProvider.GetType()
-                );
+                _log.TranslationFailure(ex, translationProvider.GetType());
             }
         }
 
@@ -155,9 +147,7 @@ public sealed partial class FlagReactionAddedHandler
 
         if (translationResult.TranslatedText == sanitizedMessage)
         {
-            Logger.Warning(
-                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-            );
+            _log.FailureToDetectSourceLanguage();
 
             SendTempMessage(
                 "Couldn't detect the source language to translate from or the result is the same.",
@@ -245,4 +235,48 @@ public sealed partial class FlagReactionAddedHandler
 
     [GeneratedRegex("<(?::\\w+:|@!*&*|#)[0-9]+>")]
     private static partial Regex DiscordSyntaxRegex();
+
+    private sealed partial class Log
+    {
+        private readonly ILogger<FlagReactionAddedHandler> _logger;
+
+        public Log(ILogger<FlagReactionAddedHandler> logger)
+        {
+            _logger = logger;
+        }
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Translating this bot's messages isn't allowed."
+        )]
+        public partial void TranslatingBotMessageDisallowed();
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Nothing to translate. The sanitized source message is empty."
+        )]
+        public partial void EmptySourceMessage();
+
+        [LoggerMessage(
+            Level = LogLevel.Warning,
+            Message = "Unsupported country {countryName} for {providerType}."
+        )]
+        public partial void UnsupportedCountry(
+            Exception ex,
+            string? countryName,
+            Type providerType
+        );
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to translate text with {providerType}."
+        )]
+        public partial void TranslationFailure(Exception ex, Type providerType);
+
+        [LoggerMessage(
+            Level = LogLevel.Warning,
+            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
+        )]
+        public partial void FailureToDetectSourceLanguage();
+    }
 }

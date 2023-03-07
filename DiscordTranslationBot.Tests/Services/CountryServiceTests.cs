@@ -1,5 +1,7 @@
 ﻿using DiscordTranslationBot.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NeoSmart.Unicode;
 using Xunit;
 
@@ -11,7 +13,7 @@ public sealed class CountryServiceTests
 
     public CountryServiceTests()
     {
-        _sut = new CountryService();
+        _sut = new CountryService(Mock.Of<ILogger<CountryService>>());
     }
 
     public static IEnumerable<object[]> TryGetCountryTestData =>

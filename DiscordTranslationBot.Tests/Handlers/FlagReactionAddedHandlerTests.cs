@@ -8,6 +8,7 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -46,7 +47,8 @@ test";
         _sut = new FlagReactionAddedHandler(
             new[] { _translationProvider.Object },
             client.Object,
-            _countryService.Object
+            _countryService.Object,
+            Mock.Of<ILogger<FlagReactionAddedHandler>>()
         );
 
         _message = new Mock<IUserMessage>();

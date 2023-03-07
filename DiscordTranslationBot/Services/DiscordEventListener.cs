@@ -3,19 +3,17 @@ using Discord.WebSocket;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
 using Mediator;
-using Serilog;
-using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Services;
 
 /// <summary>
 /// Configures the events for the Discord client.
 /// </summary>
-public sealed class DiscordEventListener
+public sealed partial class DiscordEventListener
 {
-    private static readonly ILogger Logger = Log.ForContext<DiscordEventListener>();
     private readonly CancellationToken _cancellationToken;
     private readonly DiscordSocketClient _client;
+    private readonly Log _log;
     private readonly IMediator _mediator;
 
     /// <summary>
@@ -23,11 +21,17 @@ public sealed class DiscordEventListener
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
-    public DiscordEventListener(DiscordSocketClient client, IMediator mediator)
+    /// <param name="logger">Logger to use.</param>
+    public DiscordEventListener(
+        DiscordSocketClient client,
+        IMediator mediator,
+        ILogger<DiscordEventListener> logger
+    )
     {
         _client = client;
         _mediator = mediator;
         _cancellationToken = new CancellationTokenSource().Token;
+        _log = new Log(logger);
     }
 
     /// <summary>
@@ -38,7 +42,7 @@ public sealed class DiscordEventListener
         _client.Log += LogAsync;
         _client.ReactionAdded += ReactionAddedAsync;
 
-        Logger.Information("Notification events initialized.");
+        _log.NotificationEventsInitialized();
         return Task.CompletedTask;
     }
 
@@ -76,5 +80,18 @@ public sealed class DiscordEventListener
                 _cancellationToken
             )
             .AsTask();
+    }
+
+    private sealed partial class Log
+    {
+        private readonly ILogger<DiscordEventListener> _logger;
+
+        public Log(ILogger<DiscordEventListener> logger)
+        {
+            _logger = logger;
+        }
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Notification events initialized.")]
+        public partial void NotificationEventsInitialized();
     }
 }

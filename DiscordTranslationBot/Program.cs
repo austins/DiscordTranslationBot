@@ -1,15 +1,11 @@
-﻿using Discord;
+﻿#pragma warning disable CA1852 // Class must be sealed
+using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using Serilog;
-using Serilog.Templates;
-using Serilog.Templates.Themes;
-
-Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
 
 try
 {
@@ -35,7 +31,7 @@ try
                     .AddSingleton<ICountryService, CountryService>();
 
                 // Register translation providers. They are injected in the order added.
-                if (translationProvidersOptions!.AzureTranslator.ApiUrl != null)
+                if (translationProvidersOptions?.AzureTranslator?.ApiUrl != null)
                 {
                     services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
                 }
@@ -61,20 +57,7 @@ try
                     .AddHostedService<Worker>();
             }
         )
-        .ConfigureLogging(builder => builder.ClearProviders())
-        .UseSerilog(
-            (hostingContext, services, loggerConfiguration) =>
-                loggerConfiguration.ReadFrom
-                    .Configuration(hostingContext.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console(
-                        new ExpressionTemplate(
-                            "[{@t:HH:mm:ss} {@l:u3}{#if SourceContext is not null} {SourceContext}{#end}] {@m}\n{@x}",
-                            theme: TemplateTheme.Literate
-                        )
-                    )
-        )
+        .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
         .Build();
 
     await host.RunAsync();
@@ -91,15 +74,14 @@ catch (Exception ex)
     )
 {
     // The app is missing configuration options.
-    Log.Fatal(
+    Console.WriteLine(
         $"The {DiscordOptions.SectionName} and {TranslationProvidersOptions.SectionName} options are not configured or set to an invalid format."
     );
+
+    throw;
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Unexpected error occurred.");
-}
-finally
-{
-    Log.CloseAndFlush();
+    Console.WriteLine($"Unexpected error occurred: {ex}");
+    throw;
 }

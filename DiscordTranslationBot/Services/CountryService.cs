@@ -1,7 +1,5 @@
 ﻿using DiscordTranslationBot.Models;
 using NeoSmart.Unicode;
-using Serilog;
-using ILogger = Serilog.ILogger;
 
 namespace DiscordTranslationBot.Services;
 
@@ -12,17 +10,20 @@ namespace DiscordTranslationBot.Services;
 /// This should be injected as a singleton (prior to the translation providers) as the list of countries
 /// should only be generated once and made available to each translation provider.
 /// </remarks>
-public sealed class CountryService : ICountryService
+public sealed partial class CountryService : ICountryService
 {
-    private static readonly ILogger Logger = Log.ForContext<CountryService>();
     private readonly ISet<Country> _countries;
+    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CountryService"/> class.
     /// </summary>
+    /// <param name="logger">Logger to use.</param>
     /// <exception cref="InvalidOperationException">No flag emoji found.</exception>
-    public CountryService()
+    public CountryService(ILogger<CountryService> logger)
     {
+        _log = new Log(logger);
+
         // Get all flag emojis.
         var flagEmoji = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" });
 
@@ -38,7 +39,7 @@ public sealed class CountryService : ICountryService
 
         if (!_countries.Any())
         {
-            Logger.Fatal("No flag emoji found.");
+            _log.NoFlagEmojiFound();
             throw new InvalidOperationException("No flag emoji found.");
         }
 
@@ -101,9 +102,7 @@ public sealed class CountryService : ICountryService
         var country = _countries.SingleOrDefault(c => c.EmojiUnicode == flagEmoji.ToString());
         if (country == null)
         {
-            Logger.Fatal(
-                "Country language codes couldn't be initialized as country couldn't be found."
-            );
+            _log.CountryNotFound();
 
             throw new InvalidOperationException(
                 "Country language codes couldn't be initialized as country couldn't be found."
@@ -111,5 +110,24 @@ public sealed class CountryService : ICountryService
         }
 
         country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
+    }
+
+    private sealed partial class Log
+    {
+        private readonly ILogger<CountryService> _logger;
+
+        public Log(ILogger<CountryService> logger)
+        {
+            _logger = logger;
+        }
+
+        [LoggerMessage(Level = LogLevel.Critical, Message = "No flag emoji found.")]
+        public partial void NoFlagEmojiFound();
+
+        [LoggerMessage(
+            Level = LogLevel.Critical,
+            Message = "Country language codes couldn't be initialized as country couldn't be found."
+        )]
+        public partial void CountryNotFound();
     }
 }

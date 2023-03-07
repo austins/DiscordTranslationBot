@@ -13,10 +13,10 @@ public sealed class TranslationProvidersOptions
     /// <summary>
     /// Options for Azure Translator.
     /// </summary>
-    public AzureTranslatorOptions AzureTranslator { get; set; } = new();
+    public AzureTranslatorOptions? AzureTranslator { get; set; }
 
     /// <summary>
     /// Options for LibreTranslate.
     /// </summary>
-    public LibreTranslateOptions LibreTranslate { get; set; } = new();
+    public LibreTranslateOptions? LibreTranslate { get; set; }
 }

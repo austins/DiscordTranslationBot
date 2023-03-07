@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NeoSmart.Unicode;
@@ -77,7 +78,11 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             }
         );
 
-        Sut = new AzureTranslatorProvider(httpClientFactory.Object, translationProvidersOptions);
+        Sut = new AzureTranslatorProvider(
+            httpClientFactory.Object,
+            translationProvidersOptions,
+            Mock.Of<ILogger<AzureTranslatorProvider>>()
+        );
     }
 
     [Fact]
@@ -180,7 +185,8 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         var sut = new AzureTranslatorProvider(
             httpClientFactory.Object,
-            translationProvidersOptions
+            translationProvidersOptions,
+            Mock.Of<ILogger<AzureTranslatorProvider>>()
         );
 
         // Act & Assert

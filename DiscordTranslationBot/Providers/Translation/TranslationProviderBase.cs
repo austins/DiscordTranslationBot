@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Exceptions;
+﻿using System.Net;
+using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 
@@ -7,7 +8,7 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Base class for translation providers.
 /// </summary>
-public abstract class TranslationProviderBase
+public abstract partial class TranslationProviderBase
 {
     /// <summary>
     /// The name of the translation provider.
@@ -59,4 +60,42 @@ public abstract class TranslationProviderBase
                 $"Translation for country {country.Name} isn't supported."
             );
     }
+
+#pragma warning disable CS1591
+    protected abstract partial class LogBase
+    {
+#pragma warning disable CA1051
+        protected readonly ILogger<TranslationProviderBase> Logger;
+#pragma warning restore CA1051
+
+        protected LogBase(ILogger<TranslationProviderBase> logger)
+        {
+            Logger = logger;
+        }
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}."
+        )]
+        public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Languages endpoint returned no language codes."
+        )]
+        public partial void NoLanguageCodesReturned();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
+        public partial void NoTranslationReturned();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to deserialize the response.")]
+        public partial void DeserializationFailure(Exception ex);
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Unable to connect to the {providerName} API URL."
+        )]
+        public partial void ConnectionFailure(Exception ex, string providerName);
+    }
+#pragma warning restore CS1591
 }

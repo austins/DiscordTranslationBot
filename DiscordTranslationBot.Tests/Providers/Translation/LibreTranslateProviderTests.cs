@@ -5,6 +5,7 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NeoSmart.Unicode;
@@ -68,7 +69,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             }
         );
 
-        Sut = new LibreTranslateProvider(httpClientFactory.Object, translationProvidersOptions);
+        Sut = new LibreTranslateProvider(
+            httpClientFactory.Object,
+            translationProvidersOptions,
+            Mock.Of<ILogger<LibreTranslateProvider>>()
+        );
     }
 
     [Fact]
@@ -160,7 +165,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             }
         );
 
-        var sut = new LibreTranslateProvider(httpClientFactory.Object, translationProvidersOptions);
+        var sut = new LibreTranslateProvider(
+            httpClientFactory.Object,
+            translationProvidersOptions,
+            Mock.Of<ILogger<LibreTranslateProvider>>()
+        );
 
         // Act & Assert
         await sut.Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))

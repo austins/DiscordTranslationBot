@@ -13,5 +13,5 @@ public sealed class DiscordOptions
     /// <summary>
     /// The token for the Discord bot.
     /// </summary>
-    public string? BotToken { get; set; }
+    public required string BotToken { get; set; }
 }
