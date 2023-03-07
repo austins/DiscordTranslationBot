@@ -3,12 +3,15 @@
 A Discord bot that allows translations of messages in a Discord server (guild) using country flags, powered by .NET
 and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
-It supports the following translation providers that run in the following order:
+It supports the following translation providers, all of which are disabled by default, that run in the following order:
 
-1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) - This is optional. If
-   it fails to provide a translation, the bot will use the next provider.
-2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) - This is required as a fallback, such as when
-   request limits have been reached for the previous providers.
+1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/)
+2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)
+
+If any provider fails to provide a translation, the bot will use the next provider if any as a fallback. At least one
+provider is required or else the app will exit with an error.
+
+Which providers are enabled can be configured per the instructions below.
 
 ## Requirements
 
@@ -23,7 +26,7 @@ It supports the following translation providers that run in the following order:
    permissions: `Send Messages`, `Manage Messages`, and `Read Message History`.
 5. Copy the Generated URL and open it in your browser to add the bot to your Discord server.
 
-### Run LibreTranslate
+### Optional: Run LibreTranslate
 
 1. Follow the steps
    to [create and run a LibreTranslate Docker container](https://github.com/LibreTranslate/LibreTranslate#run-with-docker=).
@@ -41,47 +44,44 @@ It supports the following translation providers that run in the following order:
   },
   "TranslationProviders": {
     "AzureTranslator": {
+      "Enabled": true,
       "ApiUrl": "https://api.cognitive.microsofttranslator.com",
       "SecretKey": "",
       "Region": ""
     },
     "LibreTranslate": {
+      "Enabled": true,
       "ApiUrl": "http://localhost:5000"
     }
   }
 }
 ```
 
-2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
-
-If you want to disable the Azure Translator provider, simply omit the config section for it
-within `TranslationProviders` like so:
-
-```json
-  "TranslationProviders": {
-    "LibreTranslate": {
-      "ApiUrl": "http://localhost:5000"
-    }
-  }
-```
+2. Make sure that you've created a Discord bot and have configured at least one translation provider using the steps
+   above.
 
 ## Deployment
 
-1. Build a Docker image and create a container with the following required environment variables configured. Example
-   below:
+1. Build a Docker image with `docker build -t DiscordTranslationBot .` in the directory that contains the `Dockerfile`.
+2. Create and run a container with `docker run DiscordTranslationBot` and the following environment variables
+   configured. Make sure that you've created a Discord bot and have configured at least one translation provider using
+   the steps
+   above. Example below:
 
 ```
 Discord__BotToken=
+TranslationProviders__AzureTranslator__Enabled=true
 TranslationProviders__AzureTranslator__ApiUrl=https://api.cognitive.microsofttranslator.com
 TranslationProviders__AzureTranslator__SecretKey=
 TranslationProviders__AzureTranslator__Region=
+TranslationProviders__LibreTranslate__Enabled=true
 TranslationProviders__LibreTranslate__ApiUrl=http://localhost:5000
 ```
 
-2. Make sure that you've created a Discord bot and run LibreTranslate using the steps above.
-
-If you want to disable the Azure Translator provider, don't set the environment variables
-for `TranslationProviders__AzureTranslator`.
+_All translation providers are disabled by default. Set the `TranslationProviders__ProviderName__Enabled` config setting
+to `true` for those you which to
+enable. When a provider is enabled, you must provide the related config settings for the provider or the app will exit
+with an error._
 
 ## License
 

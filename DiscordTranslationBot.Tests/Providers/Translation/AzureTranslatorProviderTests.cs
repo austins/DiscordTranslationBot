@@ -71,6 +71,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             {
                 AzureTranslator = new AzureTranslatorOptions
                 {
+                    Enabled = true,
                     ApiUrl = new Uri("http://localhost"),
                     Region = "westus2",
                     SecretKey = "test"
@@ -176,6 +177,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             {
                 AzureTranslator = new AzureTranslatorOptions
                 {
+                    Enabled = true,
                     ApiUrl = new Uri("http://localhost"),
                     Region = "westus2",
                     SecretKey = "test"

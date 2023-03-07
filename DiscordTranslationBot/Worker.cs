@@ -17,7 +17,7 @@ public sealed partial class Worker : BackgroundService
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly Log _log;
-    private readonly IEnumerable<TranslationProviderBase> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker"/> class.
@@ -37,7 +37,7 @@ public sealed partial class Worker : BackgroundService
         ILogger<Worker> logger
     )
     {
-        _translationProviders = translationProviders;
+        _translationProviders = translationProviders.ToList();
         _client = client;
         _eventListener = eventListener;
         _discordOptions = discordOptions;
@@ -51,17 +51,22 @@ public sealed partial class Worker : BackgroundService
     /// <param name="cancellationToken">Cancellation token.</param>
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        // Verify that the Discord BotToken is set.
-        if (string.IsNullOrWhiteSpace(_discordOptions.Value.BotToken))
+        // Check if no translation providers are enabled.
+        if (!_translationProviders.Any())
         {
-            _log.DiscordConfigurationNotSet(nameof(_discordOptions.Value.BotToken));
+            _log.NoTranslationProvidersEnabled();
             _hostApplicationLifetime.StopApplication();
             return;
         }
 
+        _log.TranslationProvidersEnabled(
+            string.Join(", ", _translationProviders.Select(tp => tp.ProviderName))
+        );
+
         // Initialize the translator providers.
         foreach (var translationProvider in _translationProviders)
         {
+            _log.InitializingTranslationProvider(translationProvider.ProviderName);
             await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
         }
 
@@ -108,7 +113,22 @@ public sealed partial class Worker : BackgroundService
             _logger = logger;
         }
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "The Discord {configName} must be set.")]
-        public partial void DiscordConfigurationNotSet(string configName);
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "No translation providers enabled. Please configure and enable at least one translation provider."
+        )]
+        public partial void NoTranslationProvidersEnabled();
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Translation providers enabled: {providerNames}"
+        )]
+        public partial void TranslationProvidersEnabled(string providerNames);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Initializing translation provider: {providerName}"
+        )]
+        public partial void InitializingTranslationProvider(string providerName);
     }
 }

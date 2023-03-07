@@ -65,7 +65,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
-                LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") }
+                LibreTranslate = new LibreTranslateOptions
+                {
+                    Enabled = true,
+                    ApiUrl = new Uri("http://localhost")
+                }
             }
         );
 
@@ -161,7 +165,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
-                LibreTranslate = new LibreTranslateOptions { ApiUrl = new Uri("http://localhost") }
+                LibreTranslate = new LibreTranslateOptions
+                {
+                    Enabled = true,
+                    ApiUrl = new Uri("http://localhost")
+                }
             }
         );
 

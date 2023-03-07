@@ -31,7 +31,7 @@ public sealed partial class LibreTranslateProvider : TranslationProviderBase
     )
     {
         _httpClientFactory = httpClientFactory;
-        _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate!;
+        _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
         _log = new Log(logger);
     }
 

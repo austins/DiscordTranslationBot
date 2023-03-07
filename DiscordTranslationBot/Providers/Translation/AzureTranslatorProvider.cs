@@ -36,7 +36,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     )
     {
         _httpClientFactory = httpClientFactory;
-        _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator!;
+        _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
         _log = new Log(logger);
     }
 

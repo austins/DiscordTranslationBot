@@ -3,85 +3,44 @@ using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
-using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Services;
+using FluentValidation;
 
-try
-{
-    var host = Host.CreateDefaultBuilder(args)
-        .ConfigureServices(
-            (builder, services) =>
-            {
-                var translationProvidersOptionsSection = builder.Configuration.GetRequiredSection(
-                    TranslationProvidersOptions.SectionName
-                );
+await Host.CreateDefaultBuilder(args)
+    .ConfigureServices(
+        (builder, services) =>
+        {
+            // Set up configuration.
+            services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
 
-                var translationProvidersOptions =
-                    translationProvidersOptionsSection.Get<TranslationProvidersOptions>();
+            services.AddOptionsWithFluentValidation<DiscordOptions>(
+                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
+            );
 
-                // Initial configuration.
-                services
-                    .Configure<DiscordOptions>(
-                        builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
+            // Set up services.
+            services
+                .AddTranslationProviders(builder.Configuration)
+                .AddMediator()
+                .AddHttpClient()
+                .AddSingleton<ICountryService, CountryService>()
+                .AddSingleton(
+                    new DiscordSocketClient(
+                        new DiscordSocketConfig
+                        {
+                            GatewayIntents =
+                                GatewayIntents.Guilds
+                                | GatewayIntents.GuildMessages
+                                | GatewayIntents.GuildMessageReactions
+                                | GatewayIntents.MessageContent,
+                            MessageCacheSize = 100
+                        }
                     )
-                    .Configure<TranslationProvidersOptions>(translationProvidersOptionsSection)
-                    .AddMediator()
-                    .AddHttpClient()
-                    .AddSingleton<ICountryService, CountryService>();
-
-                // Register translation providers. They are injected in the order added.
-                if (translationProvidersOptions?.AzureTranslator?.ApiUrl != null)
-                {
-                    services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
-                }
-
-                services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
-
-                // Other services.
-                services
-                    .AddSingleton(
-                        new DiscordSocketClient(
-                            new DiscordSocketConfig
-                            {
-                                GatewayIntents =
-                                    GatewayIntents.Guilds
-                                    | GatewayIntents.GuildMessages
-                                    | GatewayIntents.GuildMessageReactions
-                                    | GatewayIntents.MessageContent,
-                                MessageCacheSize = 100
-                            }
-                        )
-                    )
-                    .AddSingleton<DiscordEventListener>()
-                    .AddHostedService<Worker>();
-            }
-        )
-        .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
-        .Build();
-
-    await host.RunAsync();
-}
-catch (Exception ex)
-    when (ex is InvalidOperationException
-        && (
-            ex.Message.Contains(DiscordOptions.SectionName, StringComparison.Ordinal)
-            || ex.Message.Contains(
-                TranslationProvidersOptions.SectionName,
-                StringComparison.Ordinal
-            )
-        )
+                )
+                .AddSingleton<DiscordEventListener>()
+                .AddHostedService<Worker>();
+        }
     )
-{
-    // The app is missing configuration options.
-    Console.WriteLine(
-        $"The {DiscordOptions.SectionName} and {TranslationProvidersOptions.SectionName} options are not configured or set to an invalid format."
-    );
-
-    throw;
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Unexpected error occurred: {ex}");
-    throw;
-}
+    .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
+    .Build()
+    .RunAsync();
