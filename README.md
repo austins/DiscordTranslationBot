@@ -5,8 +5,8 @@ and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
 It supports the following translation providers, all of which are disabled by default, that run in the following order:
 
-1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/)
-2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)
+1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) (has a free tier)
+2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) (free and open-source)
 
 If any provider fails to provide a translation, the bot will use the next provider if any as a fallback. At least one
 provider is required or else the app will exit with an error.
