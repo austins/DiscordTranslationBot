@@ -5,16 +5,13 @@ using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Services;
-using FluentValidation;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureServices(
         (builder, services) =>
         {
             // Set up configuration.
-            services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
-
-            services.AddOptionsWithFluentValidation<DiscordOptions>(
+            services.AddOptionsWithFluentValidation<DiscordOptions, DiscordOptionsValidator>(
                 builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
             );
 

@@ -1,5 +1,6 @@
 ﻿using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
+using FluentValidation;
 
 namespace DiscordTranslationBot.Extensions;
 
@@ -14,11 +15,16 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The services collection.</param>
     /// <param name="configurationSection">The configuration section.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
-    public static void AddOptionsWithFluentValidation<TOptions>(
+    /// <typeparam name="TValidator">The validator for the options.</typeparam>
+    public static void AddOptionsWithFluentValidation<TOptions, TValidator>(
         this IServiceCollection services,
         IConfigurationSection configurationSection
-    ) where TOptions : class
+    )
+        where TOptions : class
+        where TValidator : class, IValidator<TOptions>
     {
+        services.AddTransient<IValidator<TOptions>, TValidator>();
+
         services
             .AddOptions<TOptions>()
             .Bind(configurationSection)
@@ -39,7 +45,11 @@ public static class ServiceCollectionExtensions
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
-        services.AddOptionsWithFluentValidation<TranslationProvidersOptions>(section);
+
+        services.AddOptionsWithFluentValidation<
+            TranslationProvidersOptions,
+            TranslationProvidersOptionsValidator
+        >(section);
 
         // Register translation providers. They are prioritized in the order added.
         var options = section.Get<TranslationProvidersOptions>();
