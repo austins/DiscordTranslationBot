@@ -14,9 +14,14 @@ jobs:
     test:
         #needs: analyze
         uses: ./.github/workflows/test.yml
+    docker:
+        needs: test
+        uses: ./.github/workflows/docker.yml
+        with:
+            push: false
     automerge:
         if: ${{ github.actor == 'dependabot[bot]' }}
-        needs: test
+        needs: docker
         runs-on: ubuntu-latest
         steps:
             -   name: Automerge
