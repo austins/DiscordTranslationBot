@@ -3,18 +3,24 @@
         <UserSecretsId>dotnet-DiscordTranslationBot-92BF073E-600E-4E16-B57C-2B418D8A07E3</UserSecretsId>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Platforms>AnyCPU;x64</Platforms>
+        <ContainerImageTags>latest</ContainerImageTags>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Discord.Net" Version="3.9.0" />
-        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
-        <PackageReference Include="Mediator.Abstractions" Version="2.1.1" />
+        <PackageReference Include="Discord.Net" Version="3.9.0"/>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1"/>
+        <PackageReference Include="Mediator.Abstractions" Version="2.1.1"/>
         <PackageReference Include="Mediator.SourceGenerator" Version="2.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-        <PackageReference Include="Unicode.net" Version="2.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.3.2"/>
+        <PackageReference Include="Unicode.net" Version="2.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContainerEnvironmentVariable Include="DOTNET_EnableDiagnostics" Value="0"/>
     </ItemGroup>
 </Project>
