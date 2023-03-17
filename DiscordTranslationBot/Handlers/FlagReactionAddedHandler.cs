@@ -78,9 +78,9 @@ public sealed partial class FlagReactionAddedHandler
 
         // Remove all user and channel mentions and custom emotes,
         // then strip all markdown to make the translation clean.
-        var sanitizedMessage = Format.StripMarkDown(
-            DiscordSyntaxRegex().Replace(sourceMessage.Content, string.Empty)
-        );
+        var sanitizedMessage = Format
+            .StripMarkDown(DiscordSyntaxRegex().Replace(sourceMessage.Content, string.Empty))
+            .Trim();
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
@@ -233,7 +233,7 @@ public sealed partial class FlagReactionAddedHandler
         );
     }
 
-    [GeneratedRegex("<(?::\\w+:|@!*&*|#)[0-9]+>")]
+    [GeneratedRegex(@"<(?:[^\d>]+|:[A-Za-z0-9]+:)\w+>")]
     private static partial Regex DiscordSyntaxRegex();
 
     private sealed partial class Log
