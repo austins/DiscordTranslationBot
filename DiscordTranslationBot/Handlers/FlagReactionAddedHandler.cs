@@ -233,7 +233,7 @@ public sealed partial class FlagReactionAddedHandler
         );
     }
 
-    [GeneratedRegex(@"<(?:[^\d>]+|:[A-Za-z0-9]+:)\w+>")]
+    [GeneratedRegex(@"<((@!?&?\d+)|(a?:.+?:\d+))>")]
     private static partial Regex DiscordSyntaxRegex();
 
     private sealed partial class Log
