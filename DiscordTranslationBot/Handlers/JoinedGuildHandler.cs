@@ -5,31 +5,34 @@ using Mediator;
 namespace DiscordTranslationBot.Handlers;
 
 /// <summary>
-/// Handler for the Ready Discord event.
+/// Handler for the Joined Guild Discord event.
 /// </summary>
-public sealed class ReadyHandler : INotificationHandler<ReadyNotification>
+public sealed class JoinedGuildHandler : INotificationHandler<JoinedGuildNotification>
 {
     private readonly IMediator _mediator;
 
     /// <summary>
-    /// Instantiates a new instance of the <see cref="ReadyHandler"/> class.
+    /// Instantiates a new instance of the <see cref="JoinedGuildHandler"/> class.
     /// </summary>
     /// <param name="mediator">Mediator to use.</param>
-    public ReadyHandler(IMediator mediator)
+    public JoinedGuildHandler(IMediator mediator)
     {
         _mediator = mediator;
     }
 
     /// <summary>
-    /// Delegates ready events to the correct handler.
+    /// Delegates joined guild events to the correct handler.
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     public async ValueTask Handle(
-        ReadyNotification notification,
+        JoinedGuildNotification notification,
         CancellationToken cancellationToken
     )
     {
-        await _mediator.Send(new RegisterSlashCommands(), cancellationToken);
+        await _mediator.Send(
+            new RegisterSlashCommands { Guild = notification.Guild },
+            cancellationToken
+        );
     }
 }

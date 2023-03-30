@@ -48,6 +48,18 @@ public sealed partial class DiscordEventListener
         _client.Ready += async () =>
             await _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
+        _client.JoinedGuild += async guild =>
+            await _mediator.Publish(
+                new JoinedGuildNotification { Guild = guild },
+                _cancellationToken
+            );
+
+        _client.SlashCommandExecuted += async command =>
+            await _mediator.Publish(
+                new SlashCommandExecutedNotification { Command = command },
+                _cancellationToken
+            );
+
         _client.ReactionAdded += async (message, channel, reaction) =>
             await _mediator.Publish(
                 new ReactionAddedNotification
@@ -56,12 +68,6 @@ public sealed partial class DiscordEventListener
                     Channel = await channel.GetOrDownloadAsync(),
                     Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
                 },
-                _cancellationToken
-            );
-
-        _client.SlashCommandExecuted += async command =>
-            await _mediator.Publish(
-                new SlashCommandExecutedNotification { Command = command },
                 _cancellationToken
             );
 
