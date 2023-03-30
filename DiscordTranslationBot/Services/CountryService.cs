@@ -89,6 +89,8 @@ public sealed partial class CountryService : ICountryService
         SetLangCodes(Emoji.FlagSpain, "es");
         SetLangCodes(Emoji.FlagVietnam, "vi");
         SetLangCodes(Emoji.FlagThailand, "th");
+        SetLangCodes(Emoji.FlagUkraine, "uk");
+        SetLangCodes(Emoji.FlagIndonesia, "id");
     }
 
     /// <summary>

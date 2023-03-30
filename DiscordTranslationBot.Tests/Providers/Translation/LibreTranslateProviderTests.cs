@@ -125,7 +125,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act
-        var result = await Sut.TranslateAsync(country, text, CancellationToken.None);
+        var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -215,7 +215,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -256,7 +256,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -293,7 +293,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<JsonException>();
     }
@@ -322,7 +322,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .ThrowsAsync(new HttpRequestException());
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<HttpRequestException>();
     }

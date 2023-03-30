@@ -8,13 +8,14 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using FluentAssertions;
+using Mediator;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class FlagReactionAddedHandlerTests
+public sealed class ReactionAddedHandlerTests
 {
     private const string Content =
         @"👍 test<:disdainsam:630009232128868353> _test_*test*
@@ -27,16 +28,19 @@ __test__";
 test";
 
     private readonly Mock<ICountryService> _countryService;
+    private readonly Mock<IMediator> _mediator;
     private readonly Mock<IUserMessage> _message;
     private readonly ReactionAddedNotification _notification;
 
-    private readonly FlagReactionAddedHandler _sut;
+    private readonly ReactionAddedHandler _sut;
 
-    private readonly Mock<TranslationProviderBase> _translationProvider;
+    private readonly Mock<ITranslationProvider> _translationProvider;
 
-    public FlagReactionAddedHandlerTests()
+    public ReactionAddedHandlerTests()
     {
-        _translationProvider = new Mock<TranslationProviderBase>(MockBehavior.Strict);
+        _mediator = new Mock<IMediator>(MockBehavior.Strict);
+
+        _translationProvider = new Mock<ITranslationProvider>(MockBehavior.Strict);
         _translationProvider.Setup(x => x.ProviderName).Returns("Test Provider");
 
         var client = new Mock<DiscordSocketClient>(MockBehavior.Strict);
@@ -44,11 +48,12 @@ test";
 
         _countryService = new Mock<ICountryService>(MockBehavior.Strict);
 
-        _sut = new FlagReactionAddedHandler(
+        _sut = new ReactionAddedHandler(
+            _mediator.Object,
             new[] { _translationProvider.Object },
             client.Object,
             _countryService.Object,
-            Mock.Of<ILogger<FlagReactionAddedHandler>>()
+            Mock.Of<ILogger<ReactionAddedHandler>>()
         );
 
         _message = new Mock<IUserMessage>();
@@ -62,8 +67,8 @@ test";
 
         _notification = new ReactionAddedNotification
         {
-            Message = Task.FromResult(_message.Object),
-            Channel = Task.FromResult(channel.Object),
+            Message = _message.Object,
+            Channel = channel.Object,
             Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji") }
         };
     }
@@ -89,7 +94,7 @@ test";
         _translationProvider
             .Setup(
                 x =>
-                    x.TranslateAsync(
+                    x.TranslateByCountryAsync(
                         It.IsAny<Country>(),
                         ExpectedSanitizedMessage,
                         It.IsAny<CancellationToken>()
@@ -120,7 +125,7 @@ test";
 
         _translationProvider.Verify(
             x =>
-                x.TranslateAsync(
+                x.TranslateByCountryAsync(
                     It.IsAny<Country>(),
                     ExpectedSanitizedMessage,
                     It.IsAny<CancellationToken>()
@@ -159,7 +164,7 @@ test";
 
         _translationProvider.Verify(
             x =>
-                x.TranslateAsync(
+                x.TranslateByCountryAsync(
                     It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -197,7 +202,7 @@ test";
 
         _translationProvider.Verify(
             x =>
-                x.TranslateAsync(
+                x.TranslateByCountryAsync(
                     It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -244,7 +249,7 @@ test";
 
         _translationProvider.Verify(
             x =>
-                x.TranslateAsync(
+                x.TranslateByCountryAsync(
                     It.IsAny<Country>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -267,7 +272,7 @@ test";
         _translationProvider
             .Setup(
                 x =>
-                    x.TranslateAsync(
+                    x.TranslateByCountryAsync(
                         It.IsAny<Country>(),
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>()

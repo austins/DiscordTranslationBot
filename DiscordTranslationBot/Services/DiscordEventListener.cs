@@ -1,5 +1,5 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
+using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
 using Mediator;
@@ -39,47 +39,34 @@ public sealed partial class DiscordEventListener
     /// </summary>
     public Task InitializeEventsAsync()
     {
-        _client.Log += LogAsync;
-        _client.ReactionAdded += ReactionAddedAsync;
+        _client.Log += async logMessage =>
+            await _mediator.Send(
+                new LogDiscordMessage { LogMessage = logMessage },
+                _cancellationToken
+            );
 
-        _log.NotificationEventsInitialized();
-        return Task.CompletedTask;
-    }
+        _client.Ready += async () =>
+            await _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
-    /// <summary>
-    /// Log event.
-    /// </summary>
-    /// <param name="logMessage">Discord log message.</param>
-    private Task LogAsync(LogMessage logMessage)
-    {
-        return _mediator
-            .Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken)
-            .AsTask();
-    }
-
-    /// <summary>
-    /// ReactionAdded event.
-    /// </summary>
-    /// <param name="message">Discord user message.</param>
-    /// <param name="channel">Discord message channel.</param>
-    /// <param name="reaction">The reaction.</param>
-    private Task ReactionAddedAsync(
-        Cacheable<IUserMessage, ulong> message,
-        Cacheable<IMessageChannel, ulong> channel,
-        SocketReaction reaction
-    )
-    {
-        return _mediator
-            .Publish(
+        _client.ReactionAdded += async (message, channel, reaction) =>
+            await _mediator.Publish(
                 new ReactionAddedNotification
                 {
-                    Message = message.GetOrDownloadAsync(),
-                    Channel = channel.GetOrDownloadAsync(),
+                    Message = await message.GetOrDownloadAsync(),
+                    Channel = await channel.GetOrDownloadAsync(),
                     Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
                 },
                 _cancellationToken
-            )
-            .AsTask();
+            );
+
+        _client.SlashCommandExecuted += async command =>
+            await _mediator.Publish(
+                new SlashCommandExecutedNotification { Command = command },
+                _cancellationToken
+            );
+
+        _log.EventsInitialized();
+        return Task.CompletedTask;
     }
 
     private sealed partial class Log
@@ -91,7 +78,7 @@ public sealed partial class DiscordEventListener
             _logger = logger;
         }
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Notification events initialized.")]
-        public partial void NotificationEventsInitialized();
+        [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
+        public partial void EventsInitialized();
     }
 }

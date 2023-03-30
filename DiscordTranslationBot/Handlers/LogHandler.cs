@@ -1,5 +1,5 @@
 ﻿using Discord;
-using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Commands;
 using Mediator;
 
 namespace DiscordTranslationBot.Handlers;
@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the Log event of the Discord client.
 /// </summary>
-public sealed partial class LogHandler : INotificationHandler<LogNotification>
+public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
 {
     private readonly ILogger<LogHandler> _logger;
 
@@ -21,14 +21,14 @@ public sealed partial class LogHandler : INotificationHandler<LogNotification>
     }
 
     /// <summary>
-    /// Sends all Discord log messages to the logger.
+    /// Logs Discord log messages to the app's logger.
     /// </summary>
-    /// <param name="notification">The notification.</param>
+    /// <param name="command">The command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public ValueTask Handle(LogNotification notification, CancellationToken cancellationToken)
+    public ValueTask<Unit> Handle(LogDiscordMessage command, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = notification.LogMessage.Severity switch
+        var logLevel = command.LogMessage.Severity switch
         {
             LogSeverity.Debug => LogLevel.Debug,
             LogSeverity.Verbose => LogLevel.Trace,
@@ -41,12 +41,12 @@ public sealed partial class LogHandler : INotificationHandler<LogNotification>
 
         LogDiscordMessage(
             logLevel,
-            notification.LogMessage.Exception,
-            notification.LogMessage.Source,
-            notification.LogMessage.Message
+            command.LogMessage.Exception,
+            command.LogMessage.Source,
+            command.LogMessage.Message
         );
 
-        return ValueTask.CompletedTask;
+        return Unit.ValueTask;
     }
 
     [LoggerMessage(Message = "Discord {source}: {message}")]

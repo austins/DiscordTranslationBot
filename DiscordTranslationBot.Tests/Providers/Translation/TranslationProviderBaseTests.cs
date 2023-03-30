@@ -33,7 +33,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
         const string text = "test";
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<UnsupportedCountryException>();
     }

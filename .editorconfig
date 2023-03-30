@@ -110,3 +110,4 @@ dotnet_diagnostic.SYSLIB1006.severity = none
 dotnet_diagnostic.CA1303.severity = none
 dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.AsyncFixer01.severity = none

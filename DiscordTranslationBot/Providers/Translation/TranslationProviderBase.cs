@@ -6,22 +6,53 @@ using DiscordTranslationBot.Models.Providers.Translation;
 namespace DiscordTranslationBot.Providers.Translation;
 
 /// <summary>
-/// Base class for translation providers.
+/// Interface for <see cref="TranslationProviderBase"/>.
 /// </summary>
-public abstract partial class TranslationProviderBase
+public interface ITranslationProvider
 {
     /// <summary>
-    /// The name of the translation provider.
+    /// Lang codes that can be specified for the translate command choices.
     /// </summary>
-    public abstract string ProviderName { get; }
+    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
 
     /// <summary>
     /// Supported language codes for the provider.
     /// </summary>
-#pragma warning disable CA2227
-    protected ISet<SupportedLanguage> SupportedLanguages { get; set; } =
-        new HashSet<SupportedLanguage>();
-#pragma warning restore CA2227
+    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; }
+
+    /// <summary>
+    /// The name of the translation provider.
+    /// </summary>
+    public string ProviderName { get; }
+
+    /// <summary>
+    /// Translate text.
+    /// </summary>
+    /// <param name="targetLanguage">The supported language to translate to.</param>
+    /// <param name="text">The text to translate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="sourceLanguage">The supported language to translate from.</param>
+    /// <returns>Translated text.</returns>
+    public Task<TranslationResult> TranslateAsync(
+        SupportedLanguage targetLanguage,
+        string text,
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null
+    );
+
+    /// <summary>
+    /// Translate text by country.
+    /// </summary>
+    /// <param name="country">The country containing language codes to translate to.</param>
+    /// <param name="text">The text to translate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Translated text.</returns>
+    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
+    public Task<TranslationResult> TranslateByCountryAsync(
+        Country country,
+        string text,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Initialize the <see cref="SupportedLanguages"/> for the provider.
@@ -30,49 +61,63 @@ public abstract partial class TranslationProviderBase
     /// This is called for each provider in <see cref="Worker.StartAsync"/> when the application starts up.
     /// </remarks>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+    public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+}
 
-    /// <summary>
-    /// Translate text.
-    /// </summary>
-    /// <param name="country">The country containing language codes to translate to.</param>
-    /// <param name="text">The text to translate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Translated text.</returns>
-    public abstract Task<TranslationResult> TranslateAsync(
+/// <summary>
+/// Base class for translation providers.
+/// </summary>
+public abstract partial class TranslationProviderBase : ITranslationProvider
+{
+    /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes"/>
+    public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
+
+    /// <inheritdoc cref="ITranslationProvider.SupportedLanguages"/>
+    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; set; } =
+        new HashSet<SupportedLanguage>();
+
+    /// <inheritdoc cref="ITranslationProvider.ProviderName"/>
+    public abstract string ProviderName { get; }
+
+    /// <inheritdoc cref="ITranslationProvider.TranslateByCountryAsync"/>
+    public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
         CancellationToken cancellationToken
-    );
-
-    /// <summary>
-    /// Gets the lang code that a country supports.
-    /// </summary>
-    /// <param name="country">The country containing language codes it supports.</param>
-    /// <returns>Lang code.</returns>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    protected SupportedLanguage GetSupportedLanguageByCountry(Country country)
+    )
     {
-        return SupportedLanguages.FirstOrDefault(
+        // Gets the lang code that a country supports.
+        var targetLanguage =
+            SupportedLanguages.FirstOrDefault(
                 supportedLang => country.LangCodes.Contains(supportedLang.LangCode)
             )
             ?? throw new UnsupportedCountryException(
                 $"Translation for country {country.Name} isn't supported."
             );
+
+        return TranslateAsync(targetLanguage, text, cancellationToken);
     }
+
+    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync"/>
+    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc cref="ITranslationProvider.TranslateAsync"/>
+    public abstract Task<TranslationResult> TranslateAsync(
+        SupportedLanguage targetLanguage,
+        string text,
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null
+    );
 
 #pragma warning disable CS1591
     protected abstract partial class Log<TTranslationProvider>
         where TTranslationProvider : TranslationProviderBase
     {
-#pragma warning disable CA1051 // ILogger must be a field for LoggerMessage source generation to work.
-        // ReSharper disable once MemberCanBePrivate.Global
-        protected readonly ILogger<TTranslationProvider> Logger;
-#pragma warning restore CA1051
+        private readonly ILogger<TTranslationProvider> _logger;
 
         protected Log(ILogger<TTranslationProvider> logger)
         {
-            Logger = logger;
+            _logger = logger;
         }
 
         [LoggerMessage(

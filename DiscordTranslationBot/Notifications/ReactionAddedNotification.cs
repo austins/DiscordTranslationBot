@@ -12,12 +12,12 @@ public sealed class ReactionAddedNotification : INotification
     /// <summary>
     /// The user message.
     /// </summary>
-    public required Task<IUserMessage> Message { get; init; }
+    public required IUserMessage Message { get; init; }
 
     /// <summary>
     /// The message channel.
     /// </summary>
-    public required Task<IMessageChannel> Channel { get; init; }
+    public required IMessageChannel Channel { get; init; }
 
     /// <summary>
     /// The reaction.
