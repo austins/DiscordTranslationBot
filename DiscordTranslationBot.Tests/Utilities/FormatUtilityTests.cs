@@ -16,6 +16,19 @@ public sealed class FormatUtilityTests
     [InlineData("test <a:test_emote:100000000000000123>", "test")]
     [InlineData("test <> testing", "test < testing")]
     [InlineData("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
+    [InlineData(
+        """
+_markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>
+```json
+{ "test": "test" }
+```
+""",
+        """
+markdown markdown markdown 
+json
+{ "test": "test" }
+"""
+    )]
     public void SanitizeText_Returns_AsExpected(string text, string expected)
     {
         // Act
