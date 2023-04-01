@@ -138,8 +138,8 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
     {
         var guilds =
             command.Guild != null
-                ? new List<SocketGuild> { command.Guild }
-                : _client.Guilds.ToList();
+                ? new List<IGuild> { command.Guild }
+                : _client.Guilds.Cast<IGuild>().ToList();
 
         if (!guilds.Any())
         {

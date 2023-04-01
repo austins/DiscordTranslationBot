@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Mediator;
 
 namespace DiscordTranslationBot.Notifications;
@@ -11,5 +11,5 @@ public sealed class JoinedGuildNotification : INotification
     /// <summary>
     /// The guild that the bot joined.
     /// </summary>
-    public required SocketGuild Guild { get; init; }
+    public required IGuild Guild { get; init; }
 }

@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Mediator;
 
 namespace DiscordTranslationBot.Commands.SlashCommandExecuted;
@@ -12,5 +12,5 @@ public sealed class RegisterSlashCommands : ICommand
     /// If specified, a guild to register the slash commands for,
     /// otherwise all guilds will have the slash commands registered.
     /// </summary>
-    public SocketGuild? Guild { get; init; }
+    public IGuild? Guild { get; init; }
 }
