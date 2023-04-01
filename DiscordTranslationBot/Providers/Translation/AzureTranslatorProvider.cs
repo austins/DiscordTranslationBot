@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Extensions;
-using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
@@ -39,6 +38,33 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
         _log = new Log(logger);
     }
+
+    /// <inheritdoc cref="TranslationProviderBase.TranslateCommandLangCodes"/>
+    public override IReadOnlySet<string> TranslateCommandLangCodes =>
+        new HashSet<string>
+        {
+            "en",
+            "zh-Hans",
+            "zh-Hant",
+            "es",
+            "hi",
+            "ja",
+            "pt-pt",
+            "ru",
+            "vi",
+            "fr",
+            "ar",
+            "fil",
+            "de",
+            "id",
+            "ko",
+            "th",
+            "uk",
+            "nl",
+            "el",
+            "it",
+            "tr"
+        };
 
     /// <inheritdoc cref="TranslationProviderBase.ProviderName"/>
     public override string ProviderName => "Azure Translator";
@@ -94,15 +120,14 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
-        Country country,
+        SupportedLanguage targetLanguage,
         string text,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null
     )
     {
         try
         {
-            var supportedLanguage = GetSupportedLanguageByCountry(country);
-
             if (text.Length >= TextCharacterLimit)
             {
                 _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
@@ -114,17 +139,24 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
             var result = new TranslationResult
             {
-                TargetLanguageCode = supportedLanguage.LangCode,
-                TargetLanguageName = supportedLanguage.Name
+                TargetLanguageCode = targetLanguage.LangCode,
+                TargetLanguageName = targetLanguage.Name
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
+
+            var translateUrl =
+                $"{_azureTranslatorOptions.ApiUrl}translate?api-version=3.0&to={result.TargetLanguageCode}";
+
+            if (sourceLanguage?.LangCode != null)
+            {
+                translateUrl += $"&from={sourceLanguage.LangCode}";
+            }
+
             using var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(
-                    $"{_azureTranslatorOptions.ApiUrl}translate?api-version=3.0&to={result.TargetLanguageCode}"
-                ),
+                RequestUri = new Uri(translateUrl),
                 Content = httpClient.SerializeTranslationRequestContent(
                     new object[] { new { Text = text } }
                 )
@@ -184,7 +216,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
     private sealed partial class Log : Log<AzureTranslatorProvider>
     {
-        public Log(ILogger<AzureTranslatorProvider> logger) : base(logger) { }
+        private readonly ILogger<AzureTranslatorProvider> _logger;
+
+        public Log(ILogger<AzureTranslatorProvider> logger) : base(logger)
+        {
+            _logger = logger;
+        }
 
         [LoggerMessage(
             Level = LogLevel.Error,

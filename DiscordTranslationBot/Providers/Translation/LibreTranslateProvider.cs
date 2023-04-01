@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Extensions;
-using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using Microsoft.Extensions.Options;
@@ -15,7 +14,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LibreTranslateOptions _libreTranslateOptions;
-    private readonly Log _log;
+    private readonly Log<LibreTranslateProvider> _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider"/> class.
@@ -85,18 +84,18 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// <inheritdoc cref="TranslationProviderBase.TranslateAsync"/>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
-        Country country,
+        SupportedLanguage targetLanguage,
         string text,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null
     )
     {
         try
         {
-            var supportedLanguage = GetSupportedLanguageByCountry(country);
             var result = new TranslationResult
             {
-                TargetLanguageCode = supportedLanguage.LangCode,
-                TargetLanguageName = supportedLanguage.Name
+                TargetLanguageCode = targetLanguage.LangCode,
+                TargetLanguageName = targetLanguage.Name
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
@@ -108,8 +107,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                     new
                     {
                         q = text,
-                        source = "auto",
-                        target = supportedLanguage.LangCode,
+                        source = sourceLanguage?.LangCode ?? "auto",
+                        target = targetLanguage.LangCode,
                         format = "text"
                     }
                 )

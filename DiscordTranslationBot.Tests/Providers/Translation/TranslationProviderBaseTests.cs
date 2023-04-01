@@ -22,7 +22,14 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetLangCodeByCountry_Throws_UnsupportedCountryException()
+    public void ProviderName_IsNotEmpty()
+    {
+        // Assert
+        Sut.ProviderName.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    private async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "unsupported_country")
@@ -33,7 +40,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
         const string text = "test";
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<UnsupportedCountryException>();
     }

@@ -56,12 +56,12 @@ public static class ServiceCollectionExtensions
 
         if (options?.AzureTranslator.Enabled == true)
         {
-            services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
+            services.AddSingleton<ITranslationProvider, AzureTranslatorProvider>();
         }
 
         if (options?.LibreTranslate.Enabled == true)
         {
-            services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
+            services.AddSingleton<ITranslationProvider, LibreTranslateProvider>();
         }
 
         return services;

@@ -17,7 +17,7 @@ public sealed partial class Worker : BackgroundService
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly Log _log;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker"/> class.
@@ -29,7 +29,7 @@ public sealed partial class Worker : BackgroundService
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     /// <param name="logger">Logger to use.</param>
     public Worker(
-        IEnumerable<TranslationProviderBase> translationProviders,
+        IEnumerable<ITranslationProvider> translationProviders,
         DiscordSocketClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,

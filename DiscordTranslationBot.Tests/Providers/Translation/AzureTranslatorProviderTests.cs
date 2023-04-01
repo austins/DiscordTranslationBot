@@ -87,7 +87,66 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     }
 
     [Fact]
-    public async Task Translate_Returns_Expected()
+    public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
+    {
+        // Arrange
+        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
+        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+
+        const string text = "test";
+
+        var expected = new TranslationResult
+        {
+            DetectedLanguageCode = null,
+            DetectedLanguageName = null,
+            TargetLanguageCode = "fr",
+            TargetLanguageName = "French",
+            TranslatedText = "translated"
+        };
+
+        var content =
+            $@"[
+    {{
+        ""translations"": [
+            {{""text"": ""{expected.TranslatedText}"", ""to"": ""{expected.TargetLanguageCode}""}}
+        ]
+    }}
+]";
+
+        using var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(content)
+        };
+
+        _httpClient
+            .Setup(
+                x =>
+                    x.SendAsync(
+                        It.Is<HttpRequestMessage>(
+                            x =>
+                                x.RequestUri!.AbsolutePath.EndsWith("translate")
+                                && x.RequestUri.Query.Contains($"&from={sourceLanguage.LangCode}")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(response);
+
+        // Act
+        var result = await Sut.TranslateAsync(
+            targetLanguage,
+            text,
+            CancellationToken.None,
+            sourceLanguage
+        );
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "France")
@@ -135,14 +194,14 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act
-        var result = await Sut.TranslateAsync(country, text, CancellationToken.None);
+        var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
-    public async Task TranslateAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
+    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
         var httpClient = new Mock<HttpClient>(MockBehavior.Strict);
@@ -198,7 +257,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     }
 
     [Fact]
-    public async Task TranslateAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
+    public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "France")
@@ -209,7 +268,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         var text = new string('a', AzureTranslatorProvider.TextCharacterLimit);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<ArgumentException>();
     }
@@ -220,7 +279,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     [InlineData(HttpStatusCode.TooManyRequests)]
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
-    public async Task TranslateAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
+    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
         HttpStatusCode statusCode
     )
     {
@@ -247,13 +306,13 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task TranslateAsync_Throws_InvalidOperationException_WhenNoTranslations()
+    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "France")
@@ -290,13 +349,13 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task TranslateAsync_Throws_JsonException_OnFailureToDeserialize()
+    public async Task TranslateByCountryAsync_Throws_JsonException_OnFailureToDeserialize()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "France")
@@ -327,13 +386,13 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .ReturnsAsync(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<JsonException>();
     }
 
     [Fact]
-    public async Task TranslateAsync_Throws_HttpRequestException_OnFailureToSendRequest()
+    public async Task TranslateByCountryAsync_Throws_HttpRequestException_OnFailureToSendRequest()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString(), "France")
@@ -356,7 +415,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .ThrowsAsync(new HttpRequestException());
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateAsync(country, text, CancellationToken.None))
+        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<HttpRequestException>();
     }
