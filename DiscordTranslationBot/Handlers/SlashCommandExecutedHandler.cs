@@ -145,7 +145,7 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
 
         if (!guilds.Any())
         {
-            throw new InvalidOperationException("No guilds found.");
+            return Unit.Value;
         }
 
         // Translate command.

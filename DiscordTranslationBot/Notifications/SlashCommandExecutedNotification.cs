@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Mediator;
 
 namespace DiscordTranslationBot.Notifications;
@@ -11,5 +11,5 @@ public sealed class SlashCommandExecutedNotification : INotification
     /// <summary>
     /// The slash command.
     /// </summary>
-    public required SocketSlashCommand Command { get; init; }
+    public required ISlashCommandInteraction Command { get; init; }
 }

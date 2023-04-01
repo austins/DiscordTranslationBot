@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
 using Mediator;
 
 namespace DiscordTranslationBot.Commands.SlashCommandExecuted;
@@ -11,5 +11,5 @@ public sealed class ProcessTranslateCommand : ICommand
     /// <summary>
     /// The slash command from the event.
     /// </summary>
-    public required SocketSlashCommand Command { get; init; }
+    public required ISlashCommandInteraction Command { get; init; }
 }
