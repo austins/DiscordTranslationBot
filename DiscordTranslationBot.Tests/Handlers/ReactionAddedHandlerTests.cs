@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using DiscordTranslationBot.Commands.ReactionAdded;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Discord;
@@ -12,6 +13,7 @@ using Mediator;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -27,10 +29,11 @@ __test__";
  test
 test";
 
+    private readonly Mock<IMessageChannel> _channel;
+
     private readonly Mock<ICountryService> _countryService;
     private readonly Mock<IMediator> _mediator;
     private readonly Mock<IUserMessage> _message;
-    private readonly ReactionAddedNotification _notification;
 
     private readonly ReactionAddedHandler _sut;
 
@@ -56,33 +59,129 @@ test";
             Mock.Of<ILogger<ReactionAddedHandler>>()
         );
 
-        _message = new Mock<IUserMessage>();
+        _message = new Mock<IUserMessage>(MockBehavior.Strict);
         _message.Setup(x => x.Id).Returns(1);
         _message.Setup(x => x.Author.Id).Returns(2);
         _message.Setup(x => x.Content).Returns(Content);
 
-        var channel = new Mock<IMessageChannel>();
+        _message
+            .Setup(
+                x =>
+                    x.RemoveReactionAsync(
+                        It.IsAny<IEmote>(),
+                        It.IsAny<ulong>(),
+                        It.IsAny<RequestOptions>()
+                    )
+            )
+            .Returns(Task.CompletedTask);
 
-        _message.Setup(x => x.Channel).Returns(channel.Object);
-
-        _notification = new ReactionAddedNotification
-        {
-            Message = _message.Object,
-            Channel = channel.Object,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji") }
-        };
+        _channel = new Mock<IMessageChannel>(MockBehavior.Strict);
+        _message.Setup(x => x.Channel).Returns(_channel.Object);
     }
 
     [Fact]
-    public async Task Handle_Success()
+    public async Task Handle_ReactionAddedNotification_Success()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var notification = new ReactionAddedNotification
+        {
+            Message = _message.Object,
+            Channel = _channel.Object,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            }
+        };
+
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
         _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
+
+        _mediator
+            .Setup(x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Unit.Value);
+
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        _mediator.Verify(
+            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Handle_ReactionAddedNotification_Returns_IfNotEmoji()
+    {
+        // Arrange
+        var notification = new ReactionAddedNotification
+        {
+            Message = _message.Object,
+            Channel = _channel.Object,
+            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji("not_an_emoji") }
+        };
+
+        Country? country = null;
+
+        // Act
+        var act = async () => await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        await act.Should().NotThrowAsync();
+
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Never);
+
+        _mediator.Verify(
+            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_ReactionAddedNotification_Returns_IfCountryNotFound()
+    {
+        // Arrange
+        var notification = new ReactionAddedNotification
+        {
+            Message = _message.Object,
+            Channel = _channel.Object,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            }
+        };
+
+        Country? country = null;
+        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(false);
+
+        // Act
+        var act = async () => await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        await act.Should().NotThrowAsync();
+
+        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
+
+        _mediator.Verify(
+            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Handle_ProcessFlagEmojiReaction_Success()
+    {
+        // Arrange
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
+        };
 
         var translationResult = new TranslationResult
         {
@@ -113,12 +212,23 @@ test";
             )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(
-            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
-        );
+        _channel
+            .Setup(x => x.EnterTypingState(It.IsAny<RequestOptions>()))
+            .Returns(Mock.Of<IDisposable>());
+
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message.Object,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
 
         // Act
-        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -133,25 +243,6 @@ test";
             Times.Once
         );
 
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_Returns_IfNotEmoji()
-    {
-        // Arrange
-        Country? country = null;
-
-        _notification.Reaction.Emote = new Emoji("not_an_emoji");
-
-        // Act
-        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Never);
-
         _message.Verify(
             x =>
                 x.RemoveReactionAsync(
@@ -161,66 +252,16 @@ test";
                 ),
             Times.Never
         );
-
-        _translationProvider.Verify(
-            x =>
-                x.TranslateByCountryAsync(
-                    It.IsAny<Country>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
     }
 
     [Fact]
-    public async Task Handle_Returns_IfCountryNameNotFound()
+    public async Task Handle_ProcessFlagEmojiReaction_Returns_SanitizesMessageEmpty()
     {
         // Arrange
-        _notification.Reaction.Emote = new Emoji(NeoSmart.Unicode.Emoji.Cactus.ToString());
-
-        Country? country = null;
-        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(false);
-
-        // Act
-        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
-
-        // Assert
-        await act.Should().NotThrowAsync();
-
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
-
-        _message.Verify(
-            x =>
-                x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<ulong>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Never
-        );
-
-        _translationProvider.Verify(
-            x =>
-                x.TranslateByCountryAsync(
-                    It.IsAny<Country>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task Handle_Returns_SanitizesMessageEmpty()
-    {
-        // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
 
         _message.Setup(x => x.Content).Returns(string.Empty);
 
@@ -235,17 +276,22 @@ test";
             )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(
-            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
-        );
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message.Object,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
 
         // Act
-        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
-
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _translationProvider.Verify(
             x =>
@@ -256,18 +302,26 @@ test";
                 ),
             Times.Never
         );
+
+        _message.Verify(
+            x =>
+                x.RemoveReactionAsync(
+                    It.IsAny<IEmote>(),
+                    It.IsAny<ulong>(),
+                    It.IsAny<RequestOptions>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
-    public async Task Handle_NoTranslationResult()
+    public async Task Handle_ProcessFlagEmojiReaction_NoTranslationResult()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
 
         _translationProvider
             .Setup(
@@ -291,17 +345,22 @@ test";
             )
             .Returns(Task.CompletedTask);
 
-        _notification.Reaction.Emote = new Emoji(
-            NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString()
-        );
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message.Object,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
 
         // Act
-        var act = async () => await _sut.Handle(_notification, CancellationToken.None);
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
-
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
 
         _message.Verify(
             x =>
@@ -317,7 +376,17 @@ test";
                     It.IsAny<Embed[]>(),
                     It.IsAny<MessageFlags>()
                 ),
-            Times.Never()
+            Times.Never
+        );
+
+        _message.Verify(
+            x =>
+                x.RemoveReactionAsync(
+                    It.IsAny<IEmote>(),
+                    It.IsAny<ulong>(),
+                    It.IsAny<RequestOptions>()
+                ),
+            Times.Once
         );
     }
 }
