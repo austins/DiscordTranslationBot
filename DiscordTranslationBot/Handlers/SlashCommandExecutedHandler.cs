@@ -60,14 +60,16 @@ public sealed partial class SlashCommandExecutedHandler
         // Get the input values.
         var options = command.Command.Data.Options;
 
-        var from = (string)
-            options.First(o => o.Name == CommandConstants.TranslateCommandFromOptionName).Value;
-
         var to = (string)
             options.First(o => o.Name == CommandConstants.TranslateCommandToOptionName).Value;
 
         var text = (string)
             options.First(o => o.Name == CommandConstants.TranslateCommandTextOptionName).Value;
+
+        var from = (string?)
+            options
+                .FirstOrDefault(o => o.Name == CommandConstants.TranslateCommandFromOptionName)
+                ?.Value;
 
         // Parse the input text.
         var sanitizedText = FormatUtility.SanitizeText(text);
@@ -83,7 +85,7 @@ public sealed partial class SlashCommandExecutedHandler
         try
         {
             var sourceLanguage =
-                from != CommandConstants.TranslateCommandFromOptionAutoValue
+                from != null
                     ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
                     : null;
 
@@ -111,7 +113,7 @@ public sealed partial class SlashCommandExecutedHandler
             }
 
             await command.Command.RespondAsync(
-                $@"Translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                $@"{MentionUtils.MentionUser(command.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
 {Format.Quote(sanitizedText)}
 To {Format.Italics(translationResult.TargetLanguageName)}:
 {Format.Quote(translationResult.TranslatedText)}"
@@ -198,22 +200,9 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         var translateFromOption = new SlashCommandOptionBuilder()
             .WithName(CommandConstants.TranslateCommandFromOptionName)
             .WithDescription("The language to translate from.")
-            .WithType(ApplicationCommandOptionType.String)
-            .WithRequired(true);
+            .WithType(ApplicationCommandOptionType.String);
 
-        // Initialize from option with auto-detect option.
-        translateFromOption.Choices = new List<ApplicationCommandOptionChoiceProperties>
-        {
-            new()
-            {
-                Name = CommandConstants.TranslateCommandFromOptionAutoName,
-                Value = CommandConstants.TranslateCommandFromOptionAutoValue
-            }
-        };
-
-        translateFromOption.Choices.AddRange(
-            langChoices.Take(SlashCommandBuilder.MaxOptionsCount - 1)
-        );
+        translateFromOption.Choices = langChoices;
 
         var translateToOption = new SlashCommandOptionBuilder()
             .WithName(CommandConstants.TranslateCommandToOptionName)
