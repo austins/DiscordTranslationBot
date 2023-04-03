@@ -158,7 +158,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(translateUrl),
                 Content = httpClient.SerializeTranslationRequestContent(
-                    new object[] { new { Text = text } }
+                    new List<ITranslateRequest> { new TranslateRequest { Text = text } }
                 )
             };
 
@@ -175,9 +175,10 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 );
             }
 
-            var content = await response.Content.DeserializeTranslationResponseContentAsync<
-                IList<TranslateResult>
-            >(cancellationToken);
+            var content =
+                await response.Content.DeserializeTranslationResponseContentsAsync<TranslateResult>(
+                    cancellationToken
+                );
 
             var translation = content?.SingleOrDefault();
             if (translation?.Translations.Any() != true)

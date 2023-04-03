@@ -104,12 +104,11 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 Method = HttpMethod.Post,
                 RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
                 Content = httpClient.SerializeTranslationRequestContent(
-                    new
+                    new TranslateRequest
                     {
-                        q = text,
-                        source = sourceLanguage?.LangCode ?? "auto",
-                        target = targetLanguage.LangCode,
-                        format = "text"
+                        Text = text,
+                        SourceLangCode = sourceLanguage?.LangCode ?? "auto",
+                        TargetLangCode = targetLanguage.LangCode
                     }
                 )
             };

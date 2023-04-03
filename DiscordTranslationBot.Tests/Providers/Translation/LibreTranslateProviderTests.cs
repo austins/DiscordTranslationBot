@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
+using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -89,7 +89,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        JsonObject? requestContent = null;
+        TranslateRequest? requestContent = null;
 
         _httpClient
             .SendAsync(
@@ -98,14 +98,12 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             )
             .Returns(x =>
             {
-                var content = x.ArgAt<HttpRequestMessage>(0)
-                    .Content!.ReadFromJsonAsync<JsonObject>(
+                requestContent = x.ArgAt<HttpRequestMessage>(0)
+                    .Content!.ReadFromJsonAsync<TranslateRequest>(
                         cancellationToken: x.ArgAt<CancellationToken>(1)
                     )
                     .GetAwaiter()
                     .GetResult();
-
-                requestContent = content;
 
                 return new HttpResponseMessage
                 {
@@ -129,9 +127,10 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         // Assert
         result.Should().BeEquivalentTo(expected);
 
-        requestContent.Should().NotBeNull();
-        requestContent!.ContainsKey("source").Should().BeTrue();
-        requestContent["source"]!.ToString().Should().Be(sourceLanguage.LangCode);
+        requestContent!.SourceLangCode.Should().Be(sourceLanguage.LangCode);
+        requestContent.TargetLangCode.Should().Be(targetLanguage.LangCode);
+        requestContent.Format.Should().Be("text");
+        requestContent.Text.Should().Be(text);
     }
 
     [Fact]
@@ -154,30 +153,44 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
+        TranslateRequest? requestContent = null;
+
         _httpClient
             .SendAsync(
                 Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(
-                _ =>
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(
-                            $@"{{
+            .Returns(x =>
+            {
+                requestContent = x.ArgAt<HttpRequestMessage>(0)
+                    .Content!.ReadFromJsonAsync<TranslateRequest>(
+                        cancellationToken: x.ArgAt<CancellationToken>(1)
+                    )
+                    .GetAwaiter()
+                    .GetResult();
+
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $@"{{
     ""detectedLanguage"": {{""confidence"": 100, ""language"": ""{expected.DetectedLanguageCode}""}},
     ""translatedText"": ""{expected.TranslatedText}""
 }}"
-                        )
-                    }
-            );
+                    )
+                };
+            });
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
+
+        requestContent!.SourceLangCode.Should().Be("auto");
+        requestContent.TargetLangCode.Should().Be(country.LangCodes.First());
+        requestContent.Format.Should().Be("text");
+        requestContent.Text.Should().Be(text);
     }
 
     [Fact]

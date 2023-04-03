@@ -1,8 +1,10 @@
 ﻿using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
+using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -155,18 +157,27 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
+        IList<TranslateRequest>? requestContent = null;
+
         _httpClient
             .SendAsync(
                 Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
                 Arg.Any<CancellationToken>()
             )
-            .Returns(
-                _ =>
-                    new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(
-                            $@"[
+            .Returns(x =>
+            {
+                requestContent = x.ArgAt<HttpRequestMessage>(0)
+                    .Content!.ReadFromJsonAsync<IList<TranslateRequest>>(
+                        cancellationToken: x.ArgAt<CancellationToken>(1)
+                    )
+                    .GetAwaiter()
+                    .GetResult();
+
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $@"[
     {{
         ""detectedLanguage"": {{""language"": ""{expected.DetectedLanguageCode}"", ""score"": 1.0}},
         ""translations"": [
@@ -174,15 +185,17 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         ]
     }}
 ]"
-                        )
-                    }
-            );
+                    )
+                };
+            });
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
+
+        requestContent![0].Text.Should().Be(text);
     }
 
     [Fact]
