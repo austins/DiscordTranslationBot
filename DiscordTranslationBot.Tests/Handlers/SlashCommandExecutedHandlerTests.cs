@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using DiscordTranslationBot.Commands.SlashCommandExecuted;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Handlers;
@@ -8,7 +7,7 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using Mediator;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
@@ -16,25 +15,25 @@ namespace DiscordTranslationBot.Tests.Handlers;
 public sealed class SlashCommandExecutedHandlerTests
 {
     private const string ProviderName = "Test Provider";
-    private readonly Mock<DiscordSocketClient> _client;
-    private readonly Mock<IMediator> _mediator;
+    private readonly IDiscordClient _client;
+    private readonly IMediator _mediator;
     private readonly SlashCommandExecutedHandler _sut;
-    private readonly Mock<ITranslationProvider> _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public SlashCommandExecutedHandlerTests()
     {
-        _mediator = new Mock<IMediator>(MockBehavior.Strict);
+        _mediator = Substitute.For<IMediator>();
 
-        _translationProvider = new Mock<ITranslationProvider>(MockBehavior.Strict);
-        _translationProvider.Setup(x => x.ProviderName).Returns(ProviderName);
+        _translationProvider = Substitute.For<ITranslationProvider>();
+        _translationProvider.ProviderName.Returns(ProviderName);
 
-        _client = new Mock<DiscordSocketClient>(MockBehavior.Strict);
+        _client = Substitute.For<IDiscordClient>();
 
         _sut = new SlashCommandExecutedHandler(
-            _mediator.Object,
-            new[] { _translationProvider.Object },
-            _client.Object,
-            Mock.Of<ILogger<SlashCommandExecutedHandler>>()
+            _mediator,
+            new[] { _translationProvider },
+            _client,
+            Substitute.For<ILogger<SlashCommandExecutedHandler>>()
         );
     }
 
@@ -42,87 +41,109 @@ public sealed class SlashCommandExecutedHandlerTests
     public async Task Handle_SlashCommandExecutedNotification_Success()
     {
         // Arrange
-        var data = new Mock<IApplicationCommandInteractionData>(MockBehavior.Strict);
-        data.SetupGet(x => x.Name).Returns(CommandConstants.TranslateCommandName);
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+        data.Name.Returns(CommandConstants.TranslateCommandName);
 
-        var slashCommand = new Mock<ISlashCommandInteraction>(MockBehavior.Strict);
-        slashCommand.Setup(x => x.Data).Returns(data.Object);
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedNotification { Command = slashCommand.Object };
-
-        _mediator
-            .Setup(x => x.Send(It.IsAny<ProcessTranslateCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Unit.Value);
+        var notification = new SlashCommandExecutedNotification { Command = slashCommand };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _mediator.Verify(
-            x => x.Send(It.IsAny<ProcessTranslateCommand>(), It.IsAny<CancellationToken>()),
-            Times.Once
-        );
+        await _mediator
+            .Received(1)
+            .Send(Arg.Any<ProcessTranslateCommand>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_RegisterSlashCommands_Returns_IfNoGuildsFound()
     {
         // Arrange
-        var command = new RegisterSlashCommands();
+        _client.GetGuildsAsync().Returns(new List<IGuild>());
 
-        _client.SetupGet(x => x.Guilds).Returns(new List<SocketGuild>());
+        var command = new RegisterSlashCommands();
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        _client.VerifyGet(x => x.Guilds, Times.Once);
-        _translationProvider.VerifyGet(x => x.TranslateCommandLangCodes, Times.Never);
+        await _client.Received(1).GetGuildsAsync(Arg.Any<CacheMode>(), Arg.Any<RequestOptions>());
+        _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_RegisterSlashCommands_Success(bool isSpecificGuild)
+    {
+        // Arrange
+        IReadOnlyList<IGuild> guilds = isSpecificGuild
+            ? new List<IGuild> { Substitute.For<IGuild>() }
+            : new List<IGuild> { Substitute.For<IGuild>(), Substitute.For<IGuild>() };
+
+        _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
+
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage>
+            {
+                new() { LangCode = "en", Name = "English" }
+            }
+        );
+
+        if (!isSpecificGuild)
+        {
+            _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
+        }
+
+        var command = new RegisterSlashCommands { Guild = isSpecificGuild ? guilds[0] : null };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        foreach (var guild in guilds)
+        {
+            await guild
+                .Received(1)
+                .CreateApplicationCommandAsync(
+                    Arg.Any<ApplicationCommandProperties>(),
+                    Arg.Any<RequestOptions>()
+                );
+        }
     }
 
     [Fact]
-    public async Task Handle_RegisterSlashCommands_Success()
+    public async Task Handle_RegisterSlashCommands_WithTranslateCommandLangCodes_Success()
     {
         // Arrange
-        var guild = new Mock<IGuild>(MockBehavior.Strict);
+        var guild = Substitute.For<IGuild>();
 
-        guild
-            .Setup(
-                x =>
-                    x.CreateApplicationCommandAsync(
-                        It.IsAny<ApplicationCommandProperties>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
-            .ReturnsAsync(Mock.Of<IApplicationCommand>());
+        _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string> { "en" });
 
-        _translationProvider
-            .SetupGet(x => x.TranslateCommandLangCodes)
-            .Returns(new HashSet<string>());
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage>
+            {
+                new() { LangCode = "en", Name = "English" }
+            }
+        );
 
-        _translationProvider
-            .SetupGet(x => x.SupportedLanguages)
-            .Returns(
-                new HashSet<SupportedLanguage>
-                {
-                    new() { LangCode = "en", Name = "English" }
-                }
-            );
-
-        var command = new RegisterSlashCommands { Guild = guild.Object };
+        var command = new RegisterSlashCommands { Guild = guild };
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        guild.Verify(
-            x =>
-                x.CreateApplicationCommandAsync(
-                    It.IsAny<ApplicationCommandProperties>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Once
-        );
+        _ = _translationProvider.Received(2).TranslateCommandLangCodes;
+
+        await guild
+            .Received(1)
+            .CreateApplicationCommandAsync(
+                Arg.Any<ApplicationCommandProperties>(),
+                Arg.Any<RequestOptions>()
+            );
     }
 
     [Fact]
@@ -134,67 +155,43 @@ public sealed class SlashCommandExecutedHandlerTests
 
         const string text = "text";
 
-        var data = new Mock<IApplicationCommandInteractionData>(MockBehavior.Strict);
-        data.SetupGet(x => x.Options)
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+
+        var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Value.Returns(targetLanguage.LangCode);
+
+        var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Value.Returns(text);
+
+        var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        fromOption.Name.Returns(CommandConstants.TranslateCommandFromOptionName);
+        fromOption.Value.Returns(sourceLanguage.LangCode);
+
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption }
+        );
+
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
+
+        var user = Substitute.For<IUser>();
+        user.Id.Returns(1UL);
+        slashCommand.User.Returns(user);
+
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage }
+        );
+
+        _translationProvider
+            .TranslateAsync(
+                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
+                text,
+                Arg.Any<CancellationToken>(),
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
+            )
             .Returns(
-                new List<IApplicationCommandInteractionDataOption>
-                {
-                    Mock.Of<IApplicationCommandInteractionDataOption>(
-                        x =>
-                            x.Name == CommandConstants.TranslateCommandToOptionName
-                            && (string)x.Value == targetLanguage.LangCode
-                    ),
-                    Mock.Of<IApplicationCommandInteractionDataOption>(
-                        x =>
-                            x.Name == CommandConstants.TranslateCommandTextOptionName
-                            && (string)x.Value == text
-                    ),
-                    Mock.Of<IApplicationCommandInteractionDataOption>(
-                        x =>
-                            x.Name == CommandConstants.TranslateCommandFromOptionName
-                            && (string)x.Value == sourceLanguage.LangCode
-                    )
-                }
-            );
-
-        var slashCommand = new Mock<ISlashCommandInteraction>(MockBehavior.Strict);
-        slashCommand.Setup(x => x.Data).Returns(data.Object);
-
-        var user = new Mock<IUser>(MockBehavior.Strict);
-        user.SetupGet(x => x.Id).Returns(1);
-        slashCommand.Setup(x => x.User).Returns(user.Object);
-
-        slashCommand
-            .Setup(
-                x =>
-                    x.RespondAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<Embed[]>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<AllowedMentions>(),
-                        It.IsAny<MessageComponent>(),
-                        It.IsAny<Embed>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
-            .Returns(Task.CompletedTask);
-
-        _translationProvider
-            .SetupGet(x => x.SupportedLanguages)
-            .Returns(new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
-
-        _translationProvider
-            .Setup(
-                x =>
-                    x.TranslateAsync(
-                        It.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                        It.Is<string>(x => x == text),
-                        It.IsAny<CancellationToken>(),
-                        It.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-                    )
-            )
-            .ReturnsAsync(
                 new TranslationResult
                 {
                     DetectedLanguageCode = null,
@@ -205,38 +202,145 @@ public sealed class SlashCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateCommand { Command = slashCommand.Object };
+        var command = new ProcessTranslateCommand { Command = slashCommand };
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        _translationProvider.Verify(
-            x =>
-                x.TranslateAsync(
-                    It.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                    It.Is<string>(x => x == text),
-                    It.IsAny<CancellationToken>(),
-                    It.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-                ),
-            Times.Once
+        await _translationProvider
+            .Received(1)
+            .TranslateAsync(
+                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
+                text,
+                Arg.Any<CancellationToken>(),
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
+            );
+
+        await slashCommand
+            .Received(1)
+            .RespondAsync(
+                Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from"))
+            );
+    }
+
+    [Fact]
+    public async Task Handle_ProcessTranslateCommand_Returns_SourceTextIsEmpty()
+    {
+        // Arrange
+        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
+
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+
+        var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Value.Returns(targetLanguage.LangCode);
+
+        var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Value.Returns(string.Empty);
+
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption> { toOption, textOption }
         );
 
-        slashCommand.Verify(
-            x =>
-                x.RespondAsync(
-                    It.Is<string>(
-                        text => text.Contains($"translated text using {ProviderName} from")
-                    ),
-                    It.IsAny<Embed[]>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<AllowedMentions>(),
-                    It.IsAny<MessageComponent>(),
-                    It.IsAny<Embed>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Once
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
+
+        var command = new ProcessTranslateCommand { Command = slashCommand };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await slashCommand.Received(1).RespondAsync("Nothing to translate.", ephemeral: true);
+
+        await _translationProvider
+            .DidNotReceive()
+            .TranslateAsync(
+                Arg.Any<SupportedLanguage>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<SupportedLanguage>()
+            );
+    }
+
+    [Fact]
+    public async Task Handle_ProcessTranslateCommand_Returns_OnFailuretoDetectSourceLanguage()
+    {
+        // Arrange
+        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
+        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+
+        const string text = "text";
+
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+
+        var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Value.Returns(targetLanguage.LangCode);
+
+        var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Value.Returns(text);
+
+        var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        fromOption.Name.Returns(CommandConstants.TranslateCommandFromOptionName);
+        fromOption.Value.Returns(sourceLanguage.LangCode);
+
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption }
         );
+
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
+
+        var user = Substitute.For<IUser>();
+        user.Id.Returns(1UL);
+        slashCommand.User.Returns(user);
+
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage }
+        );
+
+        _translationProvider
+            .TranslateAsync(
+                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
+                text,
+                Arg.Any<CancellationToken>(),
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
+            )
+            .Returns(
+                new TranslationResult
+                {
+                    DetectedLanguageCode = null,
+                    DetectedLanguageName = null,
+                    TargetLanguageCode = targetLanguage.LangCode,
+                    TargetLanguageName = targetLanguage.Name,
+                    TranslatedText = text
+                }
+            );
+
+        var command = new ProcessTranslateCommand { Command = slashCommand };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _translationProvider
+            .Received(1)
+            .TranslateAsync(
+                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
+                text,
+                Arg.Any<CancellationToken>(),
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
+            );
+
+        await slashCommand
+            .Received(1)
+            .RespondAsync(
+                "Couldn't detect the source language to translate from or the result is the same.",
+                ephemeral: true
+            );
     }
 }

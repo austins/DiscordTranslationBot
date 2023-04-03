@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Discord;
 using Discord.Net;
-using Discord.WebSocket;
 using DiscordTranslationBot.Commands.SlashCommandExecuted;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Models.Providers.Translation;
@@ -21,7 +20,7 @@ public sealed partial class SlashCommandExecutedHandler
         ICommandHandler<RegisterSlashCommands>,
         ICommandHandler<ProcessTranslateCommand>
 {
-    private readonly DiscordSocketClient _client;
+    private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMediator _mediator;
     private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
@@ -36,7 +35,7 @@ public sealed partial class SlashCommandExecutedHandler
     public SlashCommandExecutedHandler(
         IMediator mediator,
         IEnumerable<ITranslationProvider> translationProviders,
-        DiscordSocketClient client,
+        IDiscordClient client,
         ILogger<SlashCommandExecutedHandler> logger
     )
     {
@@ -138,10 +137,14 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         CancellationToken cancellationToken
     )
     {
-        var guilds =
+        IReadOnlyList<IGuild> guilds =
             command.Guild != null
                 ? new List<IGuild> { command.Guild }
-                : _client.Guilds.Cast<IGuild>().ToList();
+                : (
+                    await _client.GetGuildsAsync(
+                        options: new RequestOptions { CancelToken = cancellationToken }
+                    )
+                ).ToList();
 
         if (!guilds.Any())
         {

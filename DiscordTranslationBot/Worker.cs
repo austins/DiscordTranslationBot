@@ -30,7 +30,7 @@ public sealed partial class Worker : BackgroundService
     /// <param name="logger">Logger to use.</param>
     public Worker(
         IEnumerable<ITranslationProvider> translationProviders,
-        DiscordSocketClient client,
+        IDiscordClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
@@ -38,7 +38,7 @@ public sealed partial class Worker : BackgroundService
     )
     {
         _translationProviders = translationProviders.ToList();
-        _client = client;
+        _client = (DiscordSocketClient)client;
         _eventListener = eventListener;
         _discordOptions = discordOptions;
         _hostApplicationLifetime = hostApplicationLifetime;

@@ -21,7 +21,7 @@ await Host.CreateDefaultBuilder(args)
                 .AddMediator()
                 .AddHttpClient()
                 .AddSingleton<ICountryService, CountryService>()
-                .AddSingleton(
+                .AddSingleton<IDiscordClient>(
                     new DiscordSocketClient(
                         new DiscordSocketConfig
                         {

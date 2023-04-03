@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using DiscordTranslationBot.Commands.ReactionAdded;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models.Discord;
@@ -16,11 +15,11 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the ReactionAdded event of the Discord client.
 /// </summary>
-public sealed partial class ReactionAddedHandler
+public partial class ReactionAddedHandler
     : INotificationHandler<ReactionAddedNotification>,
         ICommandHandler<ProcessFlagEmojiReaction>
 {
-    private readonly DiscordSocketClient _client;
+    private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;
     private readonly Log _log;
     private readonly IMediator _mediator;
@@ -37,7 +36,7 @@ public sealed partial class ReactionAddedHandler
     public ReactionAddedHandler(
         IMediator mediator,
         IEnumerable<ITranslationProvider> translationProviders,
-        DiscordSocketClient client,
+        IDiscordClient client,
         ICountryService countryService,
         ILogger<ReactionAddedHandler> logger
     )
@@ -208,7 +207,7 @@ public sealed partial class ReactionAddedHandler
     /// <param name="referencedMessageId">The source message ID to reference.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="seconds">How many seconds the message should be shown.</param>
-    private static void SendTempMessage(
+    public virtual void SendTempMessage(
         string text,
         Reaction reaction,
         IMessageChannel channel,

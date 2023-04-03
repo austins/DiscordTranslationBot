@@ -22,9 +22,9 @@ public sealed class TranslationExtensionsTests
         var result = httpClient.SerializeTranslationRequestContent(content);
 
         // Assert
-        var bytes = await result.ReadAsByteArrayAsync(CancellationToken.None);
-        var resultAsString = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-        resultAsString.Should().Be(expected);
+        (await result.ReadAsStringAsync(CancellationToken.None))
+            .Should()
+            .Be(expected);
     }
 
     [Fact]

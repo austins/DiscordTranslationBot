@@ -7,25 +7,36 @@ using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
 using NeoSmart.Unicode;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
 public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 {
-    private readonly Mock<HttpClient> _httpClient;
+    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<AzureTranslatorProvider> _logger;
+    private readonly IOptions<TranslationProvidersOptions> _translationProvidersOptions;
 
     public AzureTranslatorProviderTests()
     {
-        _httpClient = new Mock<HttpClient>(MockBehavior.Strict);
-        _httpClient.As<IDisposable>().Setup(x => x.Dispose());
+        _httpClient = Substitute.For<HttpClient>();
 
-        static HttpResponseMessage GetLanguagesResponseAsync()
-        {
-            const string languagesContent =
-                @"{
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            @"{
   ""translation"": {
     ""en"": {
       ""name"": ""English"",
@@ -38,35 +49,15 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
       ""dir"": ""ltr""
     }
   }
-}";
+}"
+                        )
+                    }
+            );
 
-            var languagesResponse = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(languagesContent)
-            };
+        _httpClientFactory = Substitute.For<IHttpClientFactory>();
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_httpClient);
 
-            return languagesResponse;
-        }
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(GetLanguagesResponseAsync);
-
-        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
-        httpClientFactory
-            .Setup(x => x.CreateClient(It.IsAny<string>()))
-            .Returns(_httpClient.Object);
-
-        var translationProvidersOptions = Options.Create(
+        _translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
                 AzureTranslator = new AzureTranslatorOptions
@@ -79,10 +70,12 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             }
         );
 
+        _logger = Substitute.For<ILogger<AzureTranslatorProvider>>();
+
         Sut = new AzureTranslatorProvider(
-            httpClientFactory.Object,
-            translationProvidersOptions,
-            Mock.Of<ILogger<AzureTranslatorProvider>>()
+            _httpClientFactory,
+            _translationProvidersOptions,
+            _logger
         );
     }
 
@@ -104,34 +97,31 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        var content =
-            $@"[
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(
+                    x =>
+                        x.RequestUri!.AbsolutePath.EndsWith("translate")
+                        && x.RequestUri.Query.Contains($"&from={sourceLanguage.LangCode}")
+                ),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            $@"[
     {{
         ""translations"": [
             {{""text"": ""{expected.TranslatedText}"", ""to"": ""{expected.TargetLanguageCode}""}}
         ]
     }}
-]";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x =>
-                                x.RequestUri!.AbsolutePath.EndsWith("translate")
-                                && x.RequestUri.Query.Contains($"&from={sourceLanguage.LangCode}")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(response);
+]"
+                        )
+                    }
+            );
 
         // Act
         var result = await Sut.TranslateAsync(
@@ -165,33 +155,28 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        var content =
-            $@"[
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            $@"[
     {{
         ""detectedLanguage"": {{""language"": ""{expected.DetectedLanguageCode}"", ""score"": 1.0}},
         ""translations"": [
             {{""text"": ""{expected.TranslatedText}"", ""to"": ""{expected.TargetLanguageCode}""}}
         ]
     }}
-]";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(response);
+]"
+                        )
+                    }
+            );
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
@@ -204,56 +189,32 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
-        var httpClient = new Mock<HttpClient>(MockBehavior.Strict);
-        httpClient.As<IDisposable>().Setup(x => x.Dispose());
-
-        const string languagesContent = "{}";
-        using var languagesResponse = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(languagesContent)
-        };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(languagesResponse);
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("{}")
+                    }
+            );
 
-        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
-        httpClientFactory
-            .Setup(x => x.CreateClient(It.IsAny<string>()))
-            .Returns(_httpClient.Object);
-
-        var translationProvidersOptions = Options.Create(
-            new TranslationProvidersOptions
-            {
-                AzureTranslator = new AzureTranslatorOptions
-                {
-                    Enabled = true,
-                    ApiUrl = new Uri("http://localhost"),
-                    Region = "westus2",
-                    SecretKey = "test"
-                }
-            }
-        );
-
+        // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new AzureTranslatorProvider(
-            httpClientFactory.Object,
-            translationProvidersOptions,
-            Mock.Of<ILogger<AzureTranslatorProvider>>()
+            _httpClientFactory,
+            _translationProvidersOptions,
+            _logger
         );
 
         // Act & Assert
         await sut.Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
-            .ThrowAsync<InvalidOperationException>();
+            .ThrowAsync<InvalidOperationException>()
+            .WithMessage("Languages endpoint returned no language codes.");
     }
 
     [Fact]
@@ -291,19 +252,12 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        using var response = new HttpResponseMessage { StatusCode = statusCode };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(response);
+            .Returns(_ => new HttpResponseMessage { StatusCode = statusCode });
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -322,31 +276,26 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        const string content =
-            @"[
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            @"[
     {
         ""detectedLanguage"": {""language"": ""en"", ""score"": 1.0},
         ""translations"": []
     }
-]";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(response);
+]"
+                        )
+                    }
+            );
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -365,25 +314,19 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        const string content = "invalid_json";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(response);
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("invalid_json")
+                    }
+            );
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -403,14 +346,9 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         const string text = "test";
 
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
             .ThrowsAsync(new HttpRequestException());
 

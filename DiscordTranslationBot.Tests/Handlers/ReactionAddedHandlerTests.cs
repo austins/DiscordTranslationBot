@@ -1,6 +1,6 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using DiscordTranslationBot.Commands.ReactionAdded;
+using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Discord;
@@ -8,10 +8,10 @@ using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using FluentAssertions;
 using Mediator;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 using Emoji = NeoSmart.Unicode.Emoji;
 
@@ -29,54 +29,56 @@ __test__";
  test
 test";
 
-    private readonly Mock<IMessageChannel> _channel;
+    private const ulong BotUserId = 1UL;
+    private const ulong MessageUserId = 2UL;
 
-    private readonly Mock<ICountryService> _countryService;
-    private readonly Mock<IMediator> _mediator;
-    private readonly Mock<IUserMessage> _message;
-
+    private readonly ISelfUser _botUser;
+    private readonly IMessageChannel _channel;
+    private readonly ICountryService _countryService;
+    private readonly IMediator _mediator;
+    private readonly IUserMessage _message;
     private readonly ReactionAddedHandler _sut;
-
-    private readonly Mock<ITranslationProvider> _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public ReactionAddedHandlerTests()
     {
-        _mediator = new Mock<IMediator>(MockBehavior.Strict);
+        _mediator = Substitute.For<IMediator>();
 
-        _translationProvider = new Mock<ITranslationProvider>(MockBehavior.Strict);
-        _translationProvider.Setup(x => x.ProviderName).Returns("Test Provider");
+        _translationProvider = Substitute.For<ITranslationProvider>();
+        _translationProvider.ProviderName.Returns("Test Provider");
 
-        var client = new Mock<DiscordSocketClient>(MockBehavior.Strict);
-        client.Setup(x => x.CurrentUser).Returns((SocketSelfUser)null!);
+        _botUser = Substitute.For<ISelfUser>();
+        _botUser.Id.Returns(BotUserId);
 
-        _countryService = new Mock<ICountryService>(MockBehavior.Strict);
+        var client = Substitute.For<IDiscordClient>();
+        client.CurrentUser.Returns(_botUser);
 
-        _sut = new ReactionAddedHandler(
-            _mediator.Object,
-            new[] { _translationProvider.Object },
-            client.Object,
-            _countryService.Object,
-            Mock.Of<ILogger<ReactionAddedHandler>>()
-        );
+        _countryService = Substitute.For<ICountryService>();
 
-        _message = new Mock<IUserMessage>(MockBehavior.Strict);
-        _message.Setup(x => x.Id).Returns(1);
-        _message.Setup(x => x.Author.Id).Returns(2);
-        _message.Setup(x => x.Content).Returns(Content);
+        _message = Substitute.For<IUserMessage>();
+        _message.Id.Returns(1UL);
+        _message.Author.Id.Returns(MessageUserId);
+        _message.Content.Returns(Content);
 
         _message
-            .Setup(
-                x =>
-                    x.RemoveReactionAsync(
-                        It.IsAny<IEmote>(),
-                        It.IsAny<ulong>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
-        _channel = new Mock<IMessageChannel>(MockBehavior.Strict);
-        _message.Setup(x => x.Channel).Returns(_channel.Object);
+        _channel = Substitute.For<IMessageChannel>();
+        _message.Channel.Returns(_channel);
+
+        _sut = Substitute.ForPartsOf<ReactionAddedHandler>(
+            _mediator,
+            new[] { _translationProvider },
+            client,
+            _countryService,
+            Substitute.For<ILogger<ReactionAddedHandler>>()
+        );
+
+        _sut.WhenForAnyArgs(
+                x => x.SendTempMessage(default!, default!, default!, default, default, default)
+            )
+            .DoNotCallBase();
     }
 
     [Fact]
@@ -85,8 +87,8 @@ test";
         // Arrange
         var notification = new ReactionAddedNotification
         {
-            Message = _message.Object,
-            Channel = _channel.Object,
+            Message = _message,
+            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -94,25 +96,15 @@ test";
             }
         };
 
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
-        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(true);
-
-        _mediator
-            .Setup(x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Unit.Value);
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(true);
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _mediator.Verify(
-            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
-            Times.Once
-        );
+        await _mediator
+            .Received(1)
+            .Send(Arg.Any<ProcessFlagEmojiReaction>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -121,25 +113,20 @@ test";
         // Arrange
         var notification = new ReactionAddedNotification
         {
-            Message = _message.Object,
-            Channel = _channel.Object,
+            Message = _message,
+            Channel = _channel,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji("not_an_emoji") }
         };
 
-        Country? country = null;
-
         // Act
-        var act = async () => await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await act.Should().NotThrowAsync();
+        _countryService.DidNotReceive().TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
 
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Never);
-
-        _mediator.Verify(
-            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ProcessFlagEmojiReaction>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -148,8 +135,8 @@ test";
         // Arrange
         var notification = new ReactionAddedNotification
         {
-            Message = _message.Object,
-            Channel = _channel.Object,
+            Message = _message,
+            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -157,21 +144,56 @@ test";
             }
         };
 
-        Country? country = null;
-        _countryService.Setup(x => x.TryGetCountry(It.IsAny<string>(), out country)).Returns(false);
+        _countryService.TryGetCountry(Arg.Any<string>(), out _).Returns(false);
 
         // Act
-        var act = async () => await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await act.Should().NotThrowAsync();
+        _countryService.Received(1).TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
 
-        _countryService.Verify(x => x.TryGetCountry(It.IsAny<string>(), out country), Times.Once);
+        await _mediator
+            .DidNotReceive()
+            .Send(Arg.Any<ProcessFlagEmojiReaction>(), Arg.Any<CancellationToken>());
+    }
 
-        _mediator.Verify(
-            x => x.Send(It.IsAny<ProcessFlagEmojiReaction>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
+    [Fact]
+    public async Task Handle_ProcessFlagEmojiReaction_Returns_WhenTranslatingBotMessage()
+    {
+        // Arrange
+        _message.Author.Id.Returns(BotUserId);
+
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
+        };
+
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _message
+            .Received(1)
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+
+        await _translationProvider
+            .DidNotReceive()
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -191,34 +213,16 @@ test";
         };
 
         _translationProvider
-            .Setup(
-                x =>
-                    x.TranslateByCountryAsync(
-                        It.IsAny<Country>(),
-                        ExpectedSanitizedMessage,
-                        It.IsAny<CancellationToken>()
-                    )
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(translationResult);
-
-        _message
-            .Setup(
-                x =>
-                    x.RemoveReactionAsync(
-                        It.IsAny<IEmote>(),
-                        It.IsAny<IUser>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
-            .Returns(Task.CompletedTask);
-
-        _channel
-            .Setup(x => x.EnterTypingState(It.IsAny<RequestOptions>()))
-            .Returns(Mock.Of<IDisposable>());
+            .Returns(translationResult);
 
         var command = new ProcessFlagEmojiReaction
         {
-            Message = _message.Object,
+            Message = _message,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -228,30 +232,26 @@ test";
         };
 
         // Act
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().NotThrowAsync();
+        await _translationProvider
+            .Received(1)
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
+            );
 
-        _translationProvider.Verify(
-            x =>
-                x.TranslateByCountryAsync(
-                    It.IsAny<Country>(),
-                    ExpectedSanitizedMessage,
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-
-        _message.Verify(
-            x =>
-                x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<ulong>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Never
-        );
+        _sut.Received(1)
+            .SendTempMessage(
+                Arg.Any<string>(),
+                Arg.Any<Reaction>(),
+                Arg.Any<IMessageChannel>(),
+                Arg.Any<ulong>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<uint>()
+            );
     }
 
     [Fact]
@@ -263,22 +263,11 @@ test";
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _message.Setup(x => x.Content).Returns(string.Empty);
-
-        _message
-            .Setup(
-                x =>
-                    x.RemoveReactionAsync(
-                        It.IsAny<IEmote>(),
-                        It.IsAny<IUser>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
-            .Returns(Task.CompletedTask);
+        _message.Content.Returns(string.Empty);
 
         var command = new ProcessFlagEmojiReaction
         {
-            Message = _message.Object,
+            Message = _message,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -288,30 +277,20 @@ test";
         };
 
         // Act
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().NotThrowAsync();
+        await _translationProvider
+            .DidNotReceive()
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            );
 
-        _translationProvider.Verify(
-            x =>
-                x.TranslateByCountryAsync(
-                    It.IsAny<Country>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-
-        _message.Verify(
-            x =>
-                x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<ulong>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Once
-        );
+        await _message
+            .Received(1)
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
     [Fact]
@@ -324,30 +303,16 @@ test";
         };
 
         _translationProvider
-            .Setup(
-                x =>
-                    x.TranslateByCountryAsync(
-                        It.IsAny<Country>(),
-                        It.IsAny<string>(),
-                        It.IsAny<CancellationToken>()
-                    )
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync((TranslationResult)null!);
-
-        _message
-            .Setup(
-                x =>
-                    x.RemoveReactionAsync(
-                        It.IsAny<IEmote>(),
-                        It.IsAny<IUser>(),
-                        It.IsAny<RequestOptions>()
-                    )
-            )
-            .Returns(Task.CompletedTask);
+            .Returns((TranslationResult)null!);
 
         var command = new ProcessFlagEmojiReaction
         {
-            Message = _message.Object,
+            Message = _message,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -357,36 +322,125 @@ test";
         };
 
         // Act
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await act.Should().NotThrowAsync();
+        _sut.DidNotReceiveWithAnyArgs()
+            .SendTempMessage(default!, default!, default!, default, default);
 
-        _message.Verify(
-            x =>
-                x.Channel.SendMessageAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<Embed>(),
-                    It.IsAny<RequestOptions>(),
-                    It.IsAny<AllowedMentions>(),
-                    It.IsAny<MessageReference>(),
-                    It.IsAny<MessageComponent>(),
-                    It.IsAny<ISticker[]>(),
-                    It.IsAny<Embed[]>(),
-                    It.IsAny<MessageFlags>()
-                ),
-            Times.Never
-        );
+        await _message
+            .Received(1)
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+    }
 
-        _message.Verify(
-            x =>
-                x.RemoveReactionAsync(
-                    It.IsAny<IEmote>(),
-                    It.IsAny<ulong>(),
-                    It.IsAny<RequestOptions>()
-                ),
-            Times.Once
-        );
+    [Fact]
+    public async Task Handle_ProcessFlagEmojiReaction_TempMessageSent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
+    {
+        // Arrange
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
+        };
+
+        const string exMessage = "exception message";
+
+        _translationProvider
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new UnsupportedCountryException(exMessage));
+
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _translationProvider
+            .Received(1)
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
+            );
+
+        _sut.Received(1)
+            .SendTempMessage(
+                exMessage,
+                Arg.Any<Reaction>(),
+                Arg.Any<IMessageChannel>(),
+                Arg.Any<ulong>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<uint>()
+            );
+    }
+
+    [Fact]
+    public async Task Handle_ProcessFlagEmojiReaction_TempMessageSent_OnFailureToDetectSourceLanguage()
+    {
+        // Arrange
+        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        {
+            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
+        };
+
+        var translationResult = new TranslationResult
+        {
+            DetectedLanguageCode = "en",
+            TargetLanguageCode = "fr",
+            TranslatedText = ExpectedSanitizedMessage
+        };
+
+        _translationProvider
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(translationResult);
+
+        var command = new ProcessFlagEmojiReaction
+        {
+            Message = _message,
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
+            Country = country
+        };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        await _translationProvider
+            .Received(1)
+            .TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>()
+            );
+
+        _sut.Received(1)
+            .SendTempMessage(
+                "Couldn't detect the source language to translate from or the result is the same.",
+                Arg.Any<Reaction>(),
+                Arg.Any<IMessageChannel>(),
+                Arg.Any<ulong>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<uint>()
+            );
     }
 }

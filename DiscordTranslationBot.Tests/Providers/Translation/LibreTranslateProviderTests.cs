@@ -9,25 +9,36 @@ using DiscordTranslationBot.Providers.Translation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Moq;
 using NeoSmart.Unicode;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
 public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 {
-    private readonly Mock<HttpClient> _httpClient;
+    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<LibreTranslateProvider> _logger;
+    private readonly IOptions<TranslationProvidersOptions> _translationProvidersOptions;
 
     public LibreTranslateProviderTests()
     {
-        _httpClient = new Mock<HttpClient>(MockBehavior.Strict);
-        _httpClient.As<IDisposable>().Setup(x => x.Dispose());
+        _httpClient = Substitute.For<HttpClient>();
 
-        static HttpResponseMessage GetLanguagesResponseAsync()
-        {
-            const string languagesContent =
-                @"[
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            @"[
   {
     ""code"": ""en"",
     ""name"": ""English""
@@ -36,35 +47,15 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     ""code"": ""fr"",
     ""name"": ""French""
   }
-]";
+]"
+                        )
+                    }
+            );
 
-            var languagesResponse = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(languagesContent)
-            };
+        _httpClientFactory = Substitute.For<IHttpClientFactory>();
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_httpClient);
 
-            return languagesResponse;
-        }
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(GetLanguagesResponseAsync);
-
-        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
-        httpClientFactory
-            .Setup(x => x.CreateClient(It.IsAny<string>()))
-            .Returns(_httpClient.Object);
-
-        var translationProvidersOptions = Options.Create(
+        _translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
                 LibreTranslate = new LibreTranslateOptions
@@ -75,11 +66,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             }
         );
 
-        Sut = new LibreTranslateProvider(
-            httpClientFactory.Object,
-            translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>()
-        );
+        _logger = Substitute.For<ILogger<LibreTranslateProvider>>();
+
+        Sut = new LibreTranslateProvider(_httpClientFactory, _translationProvidersOptions, _logger);
     }
 
     [Fact]
@@ -100,41 +89,34 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        var content =
-            $@"{{
-    ""translatedText"": ""{expected.TranslatedText}""
-}}";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
         JsonObject? requestContent = null;
 
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(x =>
+            {
+                var content = x.ArgAt<HttpRequestMessage>(0)
+                    .Content!.ReadFromJsonAsync<JsonObject>(
+                        cancellationToken: x.ArgAt<CancellationToken>(1)
                     )
-            )
-            .Callback<HttpRequestMessage, CancellationToken>(
-                (httpRequestMessage, cancellationToken) =>
-                {
-                    var content = httpRequestMessage.Content!
-                        .ReadFromJsonAsync<JsonObject>(cancellationToken: cancellationToken)
-                        .GetAwaiter()
-                        .GetResult();
+                    .GetAwaiter()
+                    .GetResult();
 
-                    requestContent = content;
-                }
-            )
-            .ReturnsAsync(response);
+                requestContent = content;
+
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        $@"{{
+    ""translatedText"": ""{expected.TranslatedText}""
+}}"
+                    )
+                };
+            });
 
         // Act
         var result = await Sut.TranslateAsync(
@@ -172,29 +154,24 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        var content =
-            $@"{{
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            $@"{{
     ""detectedLanguage"": {{""confidence"": 100, ""language"": ""{expected.DetectedLanguageCode}""}},
     ""translatedText"": ""{expected.TranslatedText}""
-}}";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(response);
+}}"
+                        )
+                    }
+            );
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
@@ -207,54 +184,32 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
-        var httpClient = new Mock<HttpClient>(MockBehavior.Strict);
-        httpClient.As<IDisposable>().Setup(x => x.Dispose());
-
-        const string languagesContent = "[]";
-        using var languagesResponse = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(languagesContent)
-        };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("languages")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(languagesResponse);
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("[]")
+                    }
+            );
 
-        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
-        httpClientFactory
-            .Setup(x => x.CreateClient(It.IsAny<string>()))
-            .Returns(_httpClient.Object);
-
-        var translationProvidersOptions = Options.Create(
-            new TranslationProvidersOptions
-            {
-                LibreTranslate = new LibreTranslateOptions
-                {
-                    Enabled = true,
-                    ApiUrl = new Uri("http://localhost")
-                }
-            }
-        );
-
+        // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new LibreTranslateProvider(
-            httpClientFactory.Object,
-            translationProvidersOptions,
-            Mock.Of<ILogger<LibreTranslateProvider>>()
+            _httpClientFactory,
+            _translationProvidersOptions,
+            _logger
         );
 
         // Act & Assert
         await sut.Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
-            .ThrowAsync<InvalidOperationException>();
+            .ThrowAsync<InvalidOperationException>()
+            .WithMessage("Languages endpoint returned no language codes.");
     }
 
     [Theory]
@@ -272,19 +227,12 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        using var response = new HttpResponseMessage { StatusCode = statusCode };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(response);
+            .Returns(_ => new HttpResponseMessage { StatusCode = statusCode });
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -303,29 +251,24 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        const string content =
-            @"{
+        _httpClient
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(
+                            @"{
     ""detectedLanguage"": {""confidence"": 0, ""language"": ""de""},
     ""translatedText"": """"
-}";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
-        _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(response);
+}"
+                        )
+                    }
+            );
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -344,25 +287,19 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        const string content = "invalid_json";
-
-        using var response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(content)
-        };
-
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
-            .ReturnsAsync(response);
+            .Returns(
+                _ =>
+                    new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("invalid_json")
+                    }
+            );
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
@@ -382,14 +319,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         const string text = "test";
 
         _httpClient
-            .Setup(
-                x =>
-                    x.SendAsync(
-                        It.Is<HttpRequestMessage>(
-                            x => x.RequestUri!.AbsolutePath.EndsWith("translate")
-                        ),
-                        It.IsAny<CancellationToken>()
-                    )
+            .SendAsync(
+                Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("translate")),
+                Arg.Any<CancellationToken>()
             )
             .ThrowsAsync(new HttpRequestException());
 

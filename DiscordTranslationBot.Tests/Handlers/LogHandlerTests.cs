@@ -1,21 +1,22 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Handlers;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
+using NSubstitute;
 using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class LogHandlerTests
 {
-    private readonly Mock<ILogger<LogHandler>> _logger;
+    private readonly ILogger<LogHandler> _logger;
     private readonly LogHandler _sut;
 
     public LogHandlerTests()
     {
-        _logger = new Mock<ILogger<LogHandler>>(MockBehavior.Strict);
-        _sut = new LogHandler(_logger.Object);
+        _logger = Substitute.For<ILogger<LogHandler>>();
+        _sut = new LogHandler(_logger);
     }
 
     [Theory]
@@ -28,18 +29,7 @@ public sealed class LogHandlerTests
     public async Task Handle_LogDiscordMessage_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
-        _logger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-
-        _logger.Setup(
-            x =>
-                x.Log(
-                    It.IsAny<LogLevel>(),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.IsAny<Exception?>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                )
-        );
+        _logger.IsEnabled(expectedLevel).Returns(true);
 
         var command = new LogDiscordMessage
         {
@@ -57,16 +47,17 @@ public sealed class LogHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        _logger.Verify(
-            x =>
-                x.Log(
-                    It.Is<LogLevel>(logLevel => logLevel == expectedLevel),
-                    It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
-                    It.Is<Exception?>(ex => ex == command.LogMessage.Exception),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                ),
-            Times.Once
-        );
+        var logArgs = _logger
+            .ReceivedCalls()
+            .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
+            .GetArguments();
+
+        logArgs[0].Should().Be(expectedLevel);
+
+        var logMessages = (IReadOnlyList<KeyValuePair<string, object>>)logArgs[2]!;
+        logMessages[0].Value.Should().Be(command.LogMessage.Source);
+        logMessages[1].Value.Should().Be(command.LogMessage.Message);
+
+        logArgs[3].Should().Be(command.LogMessage.Exception);
     }
 }

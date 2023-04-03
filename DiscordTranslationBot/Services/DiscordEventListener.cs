@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
@@ -23,12 +24,12 @@ public sealed partial class DiscordEventListener
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public DiscordEventListener(
-        DiscordSocketClient client,
+        IDiscordClient client,
         IMediator mediator,
         ILogger<DiscordEventListener> logger
     )
     {
-        _client = client;
+        _client = (DiscordSocketClient)client;
         _mediator = mediator;
         _cancellationToken = new CancellationTokenSource().Token;
         _log = new Log(logger);
