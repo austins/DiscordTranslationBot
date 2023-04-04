@@ -42,7 +42,7 @@ public sealed class SlashCommandExecutedHandlerTests
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns(CommandConstants.TranslateCommandName);
+        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -55,7 +55,7 @@ public sealed class SlashCommandExecutedHandlerTests
         // Assert
         await _mediator
             .Received(1)
-            .Send(Arg.Any<ProcessTranslateCommand>(), Arg.Any<CancellationToken>());
+            .Send(Arg.Any<ProcessTranslateSlashCommand>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public sealed class SlashCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateCommand_Success()
+    public async Task Handle_ProcessTranslateSlashCommand_Success()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
@@ -158,15 +158,15 @@ public sealed class SlashCommandExecutedHandlerTests
         var data = Substitute.For<IApplicationCommandInteractionData>();
 
         var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
         toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
         textOption.Value.Returns(text);
 
         var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        fromOption.Name.Returns(CommandConstants.TranslateCommandFromOptionName);
+        fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
         data.Options.Returns(
@@ -202,7 +202,7 @@ public sealed class SlashCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateCommand { Command = slashCommand };
+        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
@@ -220,12 +220,13 @@ public sealed class SlashCommandExecutedHandlerTests
         await slashCommand
             .Received(1)
             .RespondAsync(
-                Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from"))
+                Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
+                options: Arg.Any<RequestOptions>()
             );
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateCommand_Returns_SourceTextIsEmpty()
+    public async Task Handle_ProcessTranslateSlashCommand_Returns_SourceTextIsEmpty()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
@@ -233,11 +234,11 @@ public sealed class SlashCommandExecutedHandlerTests
         var data = Substitute.For<IApplicationCommandInteractionData>();
 
         var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
         toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
         textOption.Value.Returns(string.Empty);
 
         data.Options.Returns(
@@ -247,13 +248,19 @@ public sealed class SlashCommandExecutedHandlerTests
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
 
-        var command = new ProcessTranslateCommand { Command = slashCommand };
+        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await slashCommand.Received(1).RespondAsync("Nothing to translate.", ephemeral: true);
+        await slashCommand
+            .Received(1)
+            .RespondAsync(
+                "Nothing to translate.",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>()
+            );
 
         await _translationProvider
             .DidNotReceive()
@@ -266,7 +273,7 @@ public sealed class SlashCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateCommand_Returns_OnFailuretoDetectSourceLanguage()
+    public async Task Handle_ProcessTranslateSlashCommand_Returns_OnFailuretoDetectSourceLanguage()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
@@ -277,15 +284,15 @@ public sealed class SlashCommandExecutedHandlerTests
         var data = Substitute.For<IApplicationCommandInteractionData>();
 
         var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(CommandConstants.TranslateCommandToOptionName);
+        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
         toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(CommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
         textOption.Value.Returns(text);
 
         var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        fromOption.Name.Returns(CommandConstants.TranslateCommandFromOptionName);
+        fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
         data.Options.Returns(
@@ -321,7 +328,7 @@ public sealed class SlashCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateCommand { Command = slashCommand };
+        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
@@ -340,7 +347,8 @@ public sealed class SlashCommandExecutedHandlerTests
             .Received(1)
             .RespondAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
-                ephemeral: true
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>()
             );
     }
 }

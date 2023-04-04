@@ -55,6 +55,12 @@ public sealed partial class DiscordEventListener
                 _cancellationToken
             );
 
+        _client.MessageCommandExecuted += async command =>
+            await _mediator.Publish(
+                new MessageCommandExecutedNotification { Command = command },
+                _cancellationToken
+            );
+
         _client.SlashCommandExecuted += async command =>
             await _mediator.Publish(
                 new SlashCommandExecutedNotification { Command = command },

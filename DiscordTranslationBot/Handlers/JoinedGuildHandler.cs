@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Commands.SlashCommandExecuted;
+﻿using DiscordTranslationBot.Commands.MessageCommandExecuted;
+using DiscordTranslationBot.Commands.SlashCommandExecuted;
 using DiscordTranslationBot.Notifications;
 using Mediator;
 
@@ -30,6 +31,11 @@ public sealed class JoinedGuildHandler : INotificationHandler<JoinedGuildNotific
         CancellationToken cancellationToken
     )
     {
+        await _mediator.Send(
+            new RegisterMessageCommands { Guild = notification.Guild },
+            cancellationToken
+        );
+
         await _mediator.Send(
             new RegisterSlashCommands { Guild = notification.Guild },
             cancellationToken

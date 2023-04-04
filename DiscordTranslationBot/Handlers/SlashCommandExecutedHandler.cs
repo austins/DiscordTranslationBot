@@ -18,7 +18,7 @@ namespace DiscordTranslationBot.Handlers;
 public sealed partial class SlashCommandExecutedHandler
     : INotificationHandler<SlashCommandExecutedNotification>,
         ICommandHandler<RegisterSlashCommands>,
-        ICommandHandler<ProcessTranslateCommand>
+        ICommandHandler<ProcessTranslateSlashCommand>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -52,7 +52,7 @@ public sealed partial class SlashCommandExecutedHandler
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     public async ValueTask<Unit> Handle(
-        ProcessTranslateCommand command,
+        ProcessTranslateSlashCommand command,
         CancellationToken cancellationToken
     )
     {
@@ -60,14 +60,16 @@ public sealed partial class SlashCommandExecutedHandler
         var options = command.Command.Data.Options;
 
         var to = (string)
-            options.First(o => o.Name == CommandConstants.TranslateCommandToOptionName).Value;
+            options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
 
         var text = (string)
-            options.First(o => o.Name == CommandConstants.TranslateCommandTextOptionName).Value;
+            options
+                .First(o => o.Name == SlashCommandConstants.TranslateCommandTextOptionName)
+                .Value;
 
         var from = (string?)
             options
-                .FirstOrDefault(o => o.Name == CommandConstants.TranslateCommandFromOptionName)
+                .FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)
                 ?.Value;
 
         // Parse the input text.
@@ -75,7 +77,11 @@ public sealed partial class SlashCommandExecutedHandler
         if (string.IsNullOrWhiteSpace(sanitizedText))
         {
             _log.EmptySourceText();
-            await command.Command.RespondAsync("Nothing to translate.", ephemeral: true);
+            await command.Command.RespondAsync(
+                "Nothing to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
             return Unit.Value;
         }
 
@@ -105,7 +111,8 @@ public sealed partial class SlashCommandExecutedHandler
 
                 await command.Command.RespondAsync(
                     "Couldn't detect the source language to translate from or the result is the same.",
-                    ephemeral: true
+                    ephemeral: true,
+                    options: new RequestOptions { CancelToken = cancellationToken }
                 );
 
                 return Unit.Value;
@@ -115,7 +122,8 @@ public sealed partial class SlashCommandExecutedHandler
                 $@"{MentionUtils.MentionUser(command.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
 {Format.Quote(sanitizedText)}
 To {Format.Italics(translationResult.TargetLanguageName)}:
-{Format.Quote(translationResult.TranslatedText)}"
+{Format.Quote(translationResult.TranslatedText)}",
+                options: new RequestOptions { CancelToken = cancellationToken }
             );
         }
         catch (Exception ex)
@@ -201,14 +209,14 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
             .ToList();
 
         var translateFromOption = new SlashCommandOptionBuilder()
-            .WithName(CommandConstants.TranslateCommandFromOptionName)
+            .WithName(SlashCommandConstants.TranslateCommandFromOptionName)
             .WithDescription("The language to translate from.")
             .WithType(ApplicationCommandOptionType.String);
 
         translateFromOption.Choices = langChoices;
 
         var translateToOption = new SlashCommandOptionBuilder()
-            .WithName(CommandConstants.TranslateCommandToOptionName)
+            .WithName(SlashCommandConstants.TranslateCommandToOptionName)
             .WithDescription("The language to translate to.")
             .WithType(ApplicationCommandOptionType.String)
             .WithRequired(true);
@@ -216,30 +224,31 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         translateToOption.Choices = langChoices;
 
         var translateCommand = new SlashCommandBuilder()
-            .WithName(CommandConstants.TranslateCommandName)
+            .WithName(SlashCommandConstants.TranslateCommandName)
             .WithDescription("Translate text from one language to another.")
             .AddOption(translateFromOption)
             .AddOption(translateToOption)
             .AddOption(
                 new SlashCommandOptionBuilder()
-                    .WithName(CommandConstants.TranslateCommandTextOptionName)
+                    .WithName(SlashCommandConstants.TranslateCommandTextOptionName)
                     .WithDescription("The text to be translated.")
                     .WithType(ApplicationCommandOptionType.String)
                     .WithRequired(true)
-            );
+            )
+            .Build();
 
         foreach (var guild in guilds)
         {
             try
             {
                 await guild.CreateApplicationCommandAsync(
-                    translateCommand.Build(),
+                    translateCommand,
                     new RequestOptions { CancelToken = cancellationToken }
                 );
             }
             catch (HttpException exception)
             {
-                _log.FailedToRegisterGuildCommand(
+                _log.FailedToRegisterCommandForGuild(
                     guild.Id,
                     JsonSerializer.Serialize(exception.Errors)
                 );
@@ -259,10 +268,10 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         CancellationToken cancellationToken
     )
     {
-        if (notification.Command.Data.Name == CommandConstants.TranslateCommandName)
+        if (notification.Command.Data.Name == SlashCommandConstants.TranslateCommandName)
         {
             await _mediator.Send(
-                new ProcessTranslateCommand { Command = notification.Command },
+                new ProcessTranslateSlashCommand { Command = notification.Command },
                 cancellationToken
             );
         }
@@ -279,9 +288,9 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "Failed to register guild command for guild ID {guildId} with error(s): {errors}"
+            Message = "Failed to register slash command for guild ID {guildId} with error(s): {errors}"
         )]
-        public partial void FailedToRegisterGuildCommand(ulong guildId, string errors);
+        public partial void FailedToRegisterCommandForGuild(ulong guildId, string errors);
 
         [LoggerMessage(
             Level = LogLevel.Information,

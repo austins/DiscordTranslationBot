@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Commands.SlashCommandExecuted;
+﻿using DiscordTranslationBot.Commands.MessageCommandExecuted;
+using DiscordTranslationBot.Commands.SlashCommandExecuted;
 using DiscordTranslationBot.Notifications;
 using Mediator;
 
@@ -30,6 +31,7 @@ public sealed class ReadyHandler : INotificationHandler<ReadyNotification>
         CancellationToken cancellationToken
     )
     {
+        await _mediator.Send(new RegisterMessageCommands(), cancellationToken);
         await _mediator.Send(new RegisterSlashCommands(), cancellationToken);
     }
 }

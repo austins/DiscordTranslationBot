@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Commands.SlashCommandExecuted;
 /// <summary>
 /// Command to process a translate slash command.
 /// </summary>
-public sealed class ProcessTranslateCommand : ICommand
+public sealed class ProcessTranslateSlashCommand : ICommand
 {
     /// <summary>
     /// The slash command from the event.
