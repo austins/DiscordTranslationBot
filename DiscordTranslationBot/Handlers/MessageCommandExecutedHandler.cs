@@ -6,6 +6,7 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Utilities;
+using Humanizer;
 using Mediator;
 
 namespace DiscordTranslationBot.Handlers;
@@ -135,16 +136,31 @@ public sealed partial class MessageCommandExecutedHandler
                     return Unit.Value;
                 }
 
-                var responseText = !string.IsNullOrWhiteSpace(
-                    translationResult.DetectedLanguageCode
-                )
-                    ? $@"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({translationProvider.ProviderName}):
-{Format.BlockQuote(translationResult.TranslatedText)}"
-                    : $@"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({translationProvider.ProviderName}):
-{Format.BlockQuote(translationResult.TranslatedText)}";
+                var fromHeading =
+                    $"From {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
+
+                if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
+                {
+                    fromHeading +=
+                        $" in {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
+                }
+
+                var toHeading =
+                    $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({translationProvider.ProviderName})";
+
+                var description =
+                    $@"{Format.Bold(fromHeading)}:
+{sanitizedMessage.Truncate(50)}
+
+{Format.Bold(toHeading)}:
+{translationResult.TranslatedText}";
 
                 await command.Command.RespondAsync(
-                    responseText,
+                    embed: new EmbedBuilder()
+                        .WithTitle("Translated Message")
+                        .WithUrl(command.Command.Data.Message.GetJumpUrl())
+                        .WithDescription(description)
+                        .Build(),
                     ephemeral: true,
                     options: new RequestOptions { CancelToken = cancellationToken }
                 );
