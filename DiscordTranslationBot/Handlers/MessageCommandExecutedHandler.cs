@@ -127,7 +127,7 @@ public sealed partial class MessageCommandExecutedHandler
                     _log.FailureToDetectSourceLanguage();
 
                     await command.Command.RespondAsync(
-                        "Couldn't detect the source language to translate from or the result is the same.",
+                        "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                         ephemeral: true,
                         options: new RequestOptions { CancelToken = cancellationToken }
                     );
