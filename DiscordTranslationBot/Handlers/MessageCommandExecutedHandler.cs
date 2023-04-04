@@ -137,12 +137,12 @@ public sealed partial class MessageCommandExecutedHandler
                 }
 
                 var fromHeading =
-                    $"From {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
+                    $"By {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
 
                 if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
                 {
                     fromHeading +=
-                        $" in {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
+                        $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
                 }
 
                 var toHeading =
