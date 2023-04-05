@@ -191,6 +191,64 @@ public sealed class MessageCommandExecutedHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ProcessTranslateMessageCommand_UsesNextTranslationProvider_Success()
+    {
+        // Arrange
+        _message.Content.Returns("text");
+        _messageCommand.UserLocale.Returns("en");
+
+        var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+
+        _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
+
+        _translationProviders[0]
+            .TranslateAsync(
+                Arg.Any<SupportedLanguage>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .ThrowsAsync(new InvalidOperationException("test"));
+
+        _translationProviders[1].SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage> { supportedLanguage }
+        );
+
+        _translationProviders[1]
+            .TranslateAsync(
+                Arg.Any<SupportedLanguage>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(
+                new TranslationResult
+                {
+                    DetectedLanguageCode = "fr",
+                    DetectedLanguageName = "French",
+                    TargetLanguageCode = supportedLanguage.LangCode,
+                    TargetLanguageName = supportedLanguage.Name,
+                    TranslatedText = "translated text"
+                }
+            );
+
+        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        _ = _translationProviders[0].Received(1).SupportedLanguages;
+        _ = _translationProviders[1].Received(1).SupportedLanguages;
+
+        await _messageCommand
+            .Received(1)
+            .RespondAsync(
+                embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>()
+            );
+    }
+
+    [Fact]
     public async Task Handle_ProcessTranslateMessageCommand_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
