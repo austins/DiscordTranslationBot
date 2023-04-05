@@ -3,18 +3,20 @@ using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Commands.MessageCommandExecuted;
 using DiscordTranslationBot.Constants;
+using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
 using Mediator;
+using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Handlers;
 
 /// <summary>
 /// Handles the MessageCommandExecuted event of the Discord client.
 /// </summary>
-public sealed partial class MessageCommandExecutedHandler
+public partial class MessageCommandExecutedHandler
     : INotificationHandler<MessageCommandExecutedNotification>,
         ICommandHandler<RegisterMessageCommands>,
         ICommandHandler<ProcessTranslateMessageCommand>
@@ -67,8 +69,18 @@ public sealed partial class MessageCommandExecutedHandler
             return Unit.Value;
         }
 
+        var sanitizedMessage = FormatUtility.SanitizeText(command.Command.Data.Message.Content);
+
+        if (string.IsNullOrWhiteSpace(sanitizedMessage))
+        {
+            _log.EmptySourceMessage();
+            return Unit.Value;
+        }
+
         var userLocale = command.Command.UserLocale;
 
+        string? providerName = null;
+        TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviders)
         {
             try
@@ -91,85 +103,77 @@ public sealed partial class MessageCommandExecutedHandler
                 if (targetLanguage == null)
                 {
                     _log.UnsupportedLocale(userLocale, translationProvider.ProviderName);
-
-                    // Send message if this is the last available translation provider.
-                    if (translationProvider == _translationProviders[^1])
-                    {
-                        await command.Command.RespondAsync(
-                            $"Your locale {userLocale} isn't supported for translation via this action.",
-                            ephemeral: true,
-                            options: new RequestOptions { CancelToken = cancellationToken }
-                        );
-
-                        return Unit.Value;
-                    }
-
                     continue;
                 }
 
-                var sanitizedMessage = FormatUtility.SanitizeText(
-                    command.Command.Data.Message.Content
-                );
+                providerName = translationProvider.ProviderName;
 
-                if (string.IsNullOrWhiteSpace(sanitizedMessage))
-                {
-                    _log.EmptySourceMessage();
-                    return Unit.Value;
-                }
-
-                var translationResult = await translationProvider.TranslateAsync(
+                translationResult = await translationProvider.TranslateAsync(
                     targetLanguage,
                     sanitizedMessage,
                     cancellationToken
                 );
 
-                if (translationResult.TranslatedText == sanitizedMessage)
-                {
-                    _log.FailureToDetectSourceLanguage();
-
-                    await command.Command.RespondAsync(
-                        "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                        ephemeral: true,
-                        options: new RequestOptions { CancelToken = cancellationToken }
-                    );
-
-                    return Unit.Value;
-                }
-
-                var fromHeading =
-                    $"By {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
-
-                if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
-                {
-                    fromHeading +=
-                        $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
-                }
-
-                var toHeading =
-                    $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({translationProvider.ProviderName})";
-
-                var description =
-                    $@"{Format.Bold(fromHeading)}:
-{sanitizedMessage.Truncate(50)}
-
-{Format.Bold(toHeading)}:
-{translationResult.TranslatedText}";
-
-                await command.Command.RespondAsync(
-                    embed: new EmbedBuilder()
-                        .WithTitle("Translated Message")
-                        .WithUrl(command.Command.Data.Message.GetJumpUrl())
-                        .WithDescription(description)
-                        .Build(),
-                    ephemeral: true,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+                break;
             }
             catch (Exception ex)
             {
                 _log.TranslationFailure(ex, translationProvider.GetType());
             }
         }
+
+        if (translationResult == null)
+        {
+            // Send message if no translation providers support the locale.
+            await command.Command.RespondAsync(
+                $"Your locale {userLocale} isn't supported for translation via this action.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
+
+            return Unit.Value;
+        }
+
+        if (translationResult.TranslatedText == sanitizedMessage)
+        {
+            _log.FailureToDetectSourceLanguage();
+
+            await command.Command.RespondAsync(
+                "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
+
+            return Unit.Value;
+        }
+
+        var fromHeading = $"By {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
+
+        if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
+        {
+            fromHeading +=
+                $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
+        }
+
+        var toHeading =
+            $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
+
+        var description =
+            $@"{Format.Bold(fromHeading)}:
+{sanitizedMessage.Truncate(50)}
+
+{Format.Bold(toHeading)}:
+{translationResult.TranslatedText}";
+
+        await command.Command.RespondAsync(
+            embed: new EmbedBuilder()
+                .WithTitle("Translated Message")
+                .WithUrl(GetJumpUrl(command.Command.Data.Message).AbsoluteUri)
+                .WithDescription(description)
+                .Build(),
+            ephemeral: true,
+            options: new RequestOptions { CancelToken = cancellationToken }
+        );
 
         return Unit.Value;
     }
@@ -240,6 +244,16 @@ public sealed partial class MessageCommandExecutedHandler
                 cancellationToken
             );
         }
+    }
+
+    /// <summary>
+    /// Gets the jump URL for a message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    /// <returns>The jump URL for the message.</returns>
+    public virtual Uri GetJumpUrl(IMessage message)
+    {
+        return new Uri(message.GetJumpUrl(), UriKind.Absolute);
     }
 
     private sealed partial class Log

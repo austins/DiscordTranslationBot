@@ -32,7 +32,6 @@ test";
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
 
-    private readonly ISelfUser _botUser;
     private readonly IMessageChannel _channel;
     private readonly ICountryService _countryService;
     private readonly IMediator _mediator;
@@ -47,11 +46,11 @@ test";
         _translationProvider = Substitute.For<ITranslationProvider>();
         _translationProvider.ProviderName.Returns("Test Provider");
 
-        _botUser = Substitute.For<ISelfUser>();
-        _botUser.Id.Returns(BotUserId);
+        var botUser = Substitute.For<ISelfUser>();
+        botUser.Id.Returns(BotUserId);
 
         var client = Substitute.For<IDiscordClient>();
-        client.CurrentUser.Returns(_botUser);
+        client.CurrentUser.Returns(botUser);
 
         _countryService = Substitute.For<ICountryService>();
 
