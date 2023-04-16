@@ -20,7 +20,7 @@ public sealed partial class Worker : BackgroundService
     private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Worker"/> class.
+    /// Initializes a new instance of the <see cref="Worker" /> class.
     /// </summary>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
@@ -34,8 +34,7 @@ public sealed partial class Worker : BackgroundService
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
-        ILogger<Worker> logger
-    )
+        ILogger<Worker> logger)
     {
         _translationProviders = translationProviders.ToList();
         _client = (DiscordSocketClient)client;
@@ -59,9 +58,7 @@ public sealed partial class Worker : BackgroundService
             return;
         }
 
-        _log.TranslationProvidersEnabled(
-            string.Join(", ", _translationProviders.Select(tp => tp.ProviderName))
-        );
+        _log.TranslationProvidersEnabled(string.Join(", ", _translationProviders.Select(tp => tp.ProviderName)));
 
         // Initialize the translator providers.
         foreach (var translationProvider in _translationProviders)
@@ -115,20 +112,14 @@ public sealed partial class Worker : BackgroundService
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "No translation providers enabled. Please configure and enable at least one translation provider."
-        )]
+            Message =
+                "No translation providers enabled. Please configure and enable at least one translation provider.")]
         public partial void NoTranslationProvidersEnabled();
 
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Translation providers enabled: {providerNames}"
-        )]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Translation providers enabled: {providerNames}")]
         public partial void TranslationProvidersEnabled(string providerNames);
 
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Initializing translation provider: {providerName}"
-        )]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Initializing translation provider: {providerName}")]
         public partial void InitializingTranslationProvider(string providerName);
     }
 }

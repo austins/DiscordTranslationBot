@@ -13,7 +13,7 @@ public sealed class JoinedGuildHandler : INotificationHandler<JoinedGuildNotific
     private readonly IMediator _mediator;
 
     /// <summary>
-    /// Instantiates a new instance of the <see cref="JoinedGuildHandler"/> class.
+    /// Instantiates a new instance of the <see cref="JoinedGuildHandler" /> class.
     /// </summary>
     /// <param name="mediator">Mediator to use.</param>
     public JoinedGuildHandler(IMediator mediator)
@@ -26,19 +26,10 @@ public sealed class JoinedGuildHandler : INotificationHandler<JoinedGuildNotific
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(
-        JoinedGuildNotification notification,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
-        await _mediator.Send(
-            new RegisterMessageCommands { Guild = notification.Guild },
-            cancellationToken
-        );
+        await _mediator.Send(new RegisterMessageCommands { Guild = notification.Guild }, cancellationToken);
 
-        await _mediator.Send(
-            new RegisterSlashCommands { Guild = notification.Guild },
-            cancellationToken
-        );
+        await _mediator.Send(new RegisterSlashCommands { Guild = notification.Guild }, cancellationToken);
     }
 }

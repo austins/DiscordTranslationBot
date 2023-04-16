@@ -12,12 +12,10 @@ await Host.CreateDefaultBuilder(args)
         {
             // Set up configuration.
             services.AddOptionsWithFluentValidation<DiscordOptions, DiscordOptionsValidator>(
-                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
-            );
+                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName));
 
             // Set up services.
-            services
-                .AddTranslationProviders(builder.Configuration)
+            services.AddTranslationProviders(builder.Configuration)
                 .AddMediator()
                 .AddHttpClient()
                 .AddSingleton<ICountryService, CountryService>()
@@ -31,13 +29,10 @@ await Host.CreateDefaultBuilder(args)
                                 | GatewayIntents.GuildMessageReactions
                                 | GatewayIntents.MessageContent,
                             MessageCacheSize = 100
-                        }
-                    )
-                )
+                        }))
                 .AddSingleton<DiscordEventListener>()
                 .AddHostedService<Worker>();
-        }
-    )
+        })
     .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
     .Build()
     .RunAsync();

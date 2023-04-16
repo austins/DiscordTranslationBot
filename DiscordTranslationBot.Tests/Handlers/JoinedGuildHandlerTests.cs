@@ -29,11 +29,7 @@ public sealed class JoinedGuildHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _mediator
-            .Received(1)
-            .Send(
-                Arg.Is<RegisterSlashCommands>(x => x.Guild == notification.Guild),
-                Arg.Any<CancellationToken>()
-            );
+        await _mediator.Received(1)
+            .Send(Arg.Is<RegisterSlashCommands>(x => x.Guild == notification.Guild), Arg.Any<CancellationToken>());
     }
 }

@@ -27,7 +27,7 @@ public partial class MessageCommandExecutedHandler
     private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MessageCommandExecutedHandler"/> class.
+    /// Initializes a new instance of the <see cref="MessageCommandExecutedHandler" /> class.
     /// </summary>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
@@ -37,8 +37,7 @@ public partial class MessageCommandExecutedHandler
         IMediator mediator,
         IEnumerable<ITranslationProvider> translationProviders,
         IDiscordClient client,
-        ILogger<MessageCommandExecutedHandler> logger
-    )
+        ILogger<MessageCommandExecutedHandler> logger)
     {
         _mediator = mediator;
         _translationProviders = translationProviders.ToList();
@@ -51,10 +50,7 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(
-        ProcessTranslateMessageCommand command,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask<Unit> Handle(ProcessTranslateMessageCommand command, CancellationToken cancellationToken)
     {
         if (command.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
@@ -63,8 +59,7 @@ public partial class MessageCommandExecutedHandler
             await command.Command.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -86,8 +81,7 @@ public partial class MessageCommandExecutedHandler
             try
             {
                 var targetLanguage = translationProvider.SupportedLanguages.FirstOrDefault(
-                    l => l.LangCode == userLocale
-                );
+                    l => l.LangCode == userLocale);
 
                 if (targetLanguage == null)
                 {
@@ -95,8 +89,7 @@ public partial class MessageCommandExecutedHandler
                     if (indexOfHyphen > 0)
                     {
                         targetLanguage = translationProvider.SupportedLanguages.FirstOrDefault(
-                            l => l.LangCode == userLocale[..indexOfHyphen]
-                        );
+                            l => l.LangCode == userLocale[..indexOfHyphen]);
                     }
                 }
 
@@ -111,8 +104,7 @@ public partial class MessageCommandExecutedHandler
                 translationResult = await translationProvider.TranslateAsync(
                     targetLanguage,
                     sanitizedMessage,
-                    cancellationToken
-                );
+                    cancellationToken);
 
                 break;
             }
@@ -128,8 +120,7 @@ public partial class MessageCommandExecutedHandler
             await command.Command.RespondAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -141,8 +132,7 @@ public partial class MessageCommandExecutedHandler
             await command.Command.RespondAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -158,22 +148,19 @@ public partial class MessageCommandExecutedHandler
         var toHeading =
             $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
 
-        var description =
-            $@"{Format.Bold(fromHeading)}:
+        var description = $@"{Format.Bold(fromHeading)}:
 {sanitizedMessage.Truncate(50)}
 
 {Format.Bold(toHeading)}:
 {translationResult.TranslatedText}";
 
         await command.Command.RespondAsync(
-            embed: new EmbedBuilder()
-                .WithTitle("Translated Message")
+            embed: new EmbedBuilder().WithTitle("Translated Message")
                 .WithUrl(GetJumpUrl(command.Command.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
             ephemeral: true,
-            options: new RequestOptions { CancelToken = cancellationToken }
-        );
+            options: new RequestOptions { CancelToken = cancellationToken });
 
         return Unit.Value;
     }
@@ -183,19 +170,11 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(
-        RegisterMessageCommands command,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask<Unit> Handle(RegisterMessageCommands command, CancellationToken cancellationToken)
     {
-        IReadOnlyList<IGuild> guilds =
-            command.Guild != null
-                ? new List<IGuild> { command.Guild }
-                : (
-                    await _client.GetGuildsAsync(
-                        options: new RequestOptions { CancelToken = cancellationToken }
-                    )
-                ).ToList();
+        IReadOnlyList<IGuild> guilds = command.Guild != null
+            ? new List<IGuild> { command.Guild }
+            : (await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })).ToList();
 
         if (!guilds.Any())
         {
@@ -212,15 +191,11 @@ public partial class MessageCommandExecutedHandler
             {
                 await guild.CreateApplicationCommandAsync(
                     translateCommand,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
+                    new RequestOptions { CancelToken = cancellationToken });
             }
             catch (HttpException exception)
             {
-                _log.FailedToRegisterCommandForGuild(
-                    guild.Id,
-                    JsonSerializer.Serialize(exception.Errors)
-                );
+                _log.FailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
 
@@ -232,17 +207,13 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(
-        MessageCommandExecutedNotification notification,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
         if (notification.Command.Data.Name == MessageCommandConstants.TranslateCommandName)
         {
             await _mediator.Send(
                 new ProcessTranslateMessageCommand { Command = notification.Command },
-                cancellationToken
-            );
+                cancellationToken);
         }
     }
 
@@ -267,38 +238,27 @@ public partial class MessageCommandExecutedHandler
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "Failed to register message command for guild ID {guildId} with error(s): {errors}"
-        )]
+            Message = "Failed to register message command for guild ID {guildId} with error(s): {errors}")]
         public partial void FailedToRegisterCommandForGuild(ulong guildId, string errors);
 
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Translating this bot's messages isn't allowed."
-        )]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
 
-        [LoggerMessage(
-            Level = LogLevel.Warning,
-            Message = "Unsupported locale {locale} for {providerName}."
-        )]
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Unsupported locale {locale} for {providerName}.")]
         public partial void UnsupportedLocale(string locale, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Nothing to translate. The sanitized source message is empty."
-        )]
+            Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Failed to translate text with {providerType}."
-        )]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
         public partial void TranslationFailure(Exception ex, Type providerType);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
-            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-        )]
+            Message =
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.")]
         public partial void FailureToDetectSourceLanguage();
     }
 }

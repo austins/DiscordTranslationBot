@@ -1,31 +1,31 @@
 name: Build
 
 on:
-    pull_request:
-        branches: [ master ]
-        paths-ignore:
-            - '.github/**'
-            - 'README.md'
-            - 'LICENSE'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'LICENSE'
 
 jobs:
-    #analyze:
-    #uses: ./.github/workflows/analyze.yml
-    test:
-        #needs: analyze
-        uses: ./.github/workflows/test.yml
-    docker:
-        needs: test
-        uses: ./.github/workflows/docker.yml
+  #analyze:
+  #uses: ./.github/workflows/analyze.yml
+  test:
+    #needs: analyze
+    uses: ./.github/workflows/test.yml
+  docker:
+    needs: test
+    uses: ./.github/workflows/docker.yml
+    with:
+      push: false
+  automerge:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Automerge
+        uses: fastify/github-action-merge-dependabot@v3
         with:
-            push: false
-    automerge:
-        if: ${{ github.actor == 'dependabot[bot]' }}
-        needs: docker
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Automerge
-                uses: fastify/github-action-merge-dependabot@v3
-                with:
-                    github-token: ${{ secrets.PAT_REPO }}
-                    target: minor
+          github-token: ${{ secrets.PAT_REPO }}
+          target: minor

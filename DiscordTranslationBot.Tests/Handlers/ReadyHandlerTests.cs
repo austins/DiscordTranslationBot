@@ -28,8 +28,6 @@ public sealed class ReadyHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _mediator
-            .Received(1)
-            .Send(Arg.Any<RegisterSlashCommands>(), Arg.Any<CancellationToken>());
+        await _mediator.Received(1).Send(Arg.Any<RegisterSlashCommands>(), Arg.Any<CancellationToken>());
     }
 }

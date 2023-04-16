@@ -4,7 +4,7 @@ using Discord.WebSocket;
 namespace DiscordTranslationBot.Models.Discord;
 
 /// <summary>
-/// Holds values from <see cref="SocketReaction"/>.
+/// Holds values from <see cref="SocketReaction" />.
 /// </summary>
 /// <remarks>
 /// Helps with mocking reactions in tests.

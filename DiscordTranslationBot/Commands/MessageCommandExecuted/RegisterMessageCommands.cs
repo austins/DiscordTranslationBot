@@ -8,6 +8,6 @@ namespace DiscordTranslationBot.Commands.MessageCommandExecuted;
 /// </summary>
 public sealed class RegisterMessageCommands : ICommand, IRegisterCommands
 {
-    /// <inheritdoc cref="IRegisterCommands.Guild"/>
+    /// <inheritdoc cref="IRegisterCommands.Guild" />
     public IGuild? Guild { get; init; }
 }

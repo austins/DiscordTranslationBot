@@ -25,7 +25,7 @@ public sealed class TranslateRequest : ITranslateRequest
     [JsonPropertyName("format")]
     public string Format { get; init; } = "text";
 
-    /// <inheritdoc cref="ITranslateRequest.Text"/>
+    /// <inheritdoc cref="ITranslateRequest.Text" />
     [JsonPropertyName("q")]
     public required string Text { get; init; }
 }

@@ -12,7 +12,7 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
     private readonly ILogger<LogHandler> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LogHandler"/> class.
+    /// Initializes a new instance of the <see cref="LogHandler" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
     public LogHandler(ILogger<LogHandler> logger)
@@ -43,17 +43,11 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
             logLevel,
             command.LogMessage.Exception,
             command.LogMessage.Source,
-            command.LogMessage.Message
-        );
+            command.LogMessage.Message);
 
         return Unit.ValueTask;
     }
 
     [LoggerMessage(Message = "Discord {source}: {message}")]
-    private partial void LogDiscordMessage(
-        LogLevel level,
-        Exception ex,
-        string source,
-        string message
-    );
+    private partial void LogDiscordMessage(LogLevel level, Exception ex, string source, string message);
 }

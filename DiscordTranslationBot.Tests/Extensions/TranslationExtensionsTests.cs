@@ -23,9 +23,7 @@ public sealed class TranslationExtensionsTests
         var result = httpClient.SerializeTranslationRequestContent(content);
 
         // Assert
-        (await result.ReadAsStringAsync(CancellationToken.None))
-            .Should()
-            .Be(expected);
+        (await result.ReadAsStringAsync(CancellationToken.None)).Should().Be(expected);
     }
 
     [Fact]
@@ -42,9 +40,7 @@ public sealed class TranslationExtensionsTests
         var result = httpClient.SerializeTranslationRequestContent(content);
 
         // Assert
-        (await result.ReadAsStringAsync(CancellationToken.None))
-            .Should()
-            .Be(expected);
+        (await result.ReadAsStringAsync(CancellationToken.None)).Should().Be(expected);
     }
 
     [Fact]
@@ -71,8 +67,7 @@ public sealed class TranslationExtensionsTests
         // Act
         var result =
             await httpResponseMessage.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(
-                CancellationToken.None
-            );
+                CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -105,8 +100,7 @@ public sealed class TranslationExtensionsTests
         // Act
         var result =
             await httpResponseMessage.Content.DeserializeTranslationResponseContentsAsync<TranslateResult>(
-                CancellationToken.None
-            );
+                CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);

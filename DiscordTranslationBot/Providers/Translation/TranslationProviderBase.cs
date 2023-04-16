@@ -6,7 +6,7 @@ using DiscordTranslationBot.Models.Providers.Translation;
 namespace DiscordTranslationBot.Providers.Translation;
 
 /// <summary>
-/// Interface for <see cref="TranslationProviderBase"/>.
+/// Interface for <see cref="TranslationProviderBase" />.
 /// </summary>
 public interface ITranslationProvider
 {
@@ -37,8 +37,7 @@ public interface ITranslationProvider
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    );
+        SupportedLanguage? sourceLanguage = null);
 
     /// <summary>
     /// Translate text by country.
@@ -51,14 +50,13 @@ public interface ITranslationProvider
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
-        CancellationToken cancellationToken
-    );
+        CancellationToken cancellationToken);
 
     /// <summary>
-    /// Initialize the <see cref="SupportedLanguages"/> for the provider.
+    /// Initialize the <see cref="SupportedLanguages" /> for the provider.
     /// </summary>
     /// <remarks>
-    /// This is called for each provider in <see cref="Worker.StartAsync"/> when the application starts up.
+    /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
     /// </remarks>
     /// <param name="cancellationToken">Cancellation token.</param>
     public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
@@ -69,49 +67,41 @@ public interface ITranslationProvider
 /// </summary>
 public abstract partial class TranslationProviderBase : ITranslationProvider
 {
-    /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes"/>
+    /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
 
-    /// <inheritdoc cref="ITranslationProvider.SupportedLanguages"/>
-    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; set; } =
-        new HashSet<SupportedLanguage>();
+    /// <inheritdoc cref="ITranslationProvider.SupportedLanguages" />
+    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; set; } = new HashSet<SupportedLanguage>();
 
-    /// <inheritdoc cref="ITranslationProvider.ProviderName"/>
+    /// <inheritdoc cref="ITranslationProvider.ProviderName" />
     public abstract string ProviderName { get; }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateByCountryAsync"/>
+    /// <inheritdoc cref="ITranslationProvider.TranslateByCountryAsync" />
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
         // Gets the lang code that a country supports.
         var targetLanguage =
-            SupportedLanguages.FirstOrDefault(
-                supportedLang => country.LangCodes.Contains(supportedLang.LangCode)
-            )
-            ?? throw new UnsupportedCountryException(
-                $"Translation for country {country.Name} isn't supported."
-            );
+            SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
+            ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
 
         return TranslateAsync(targetLanguage, text, cancellationToken);
     }
 
-    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync"/>
+    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync"/>
+    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
     public abstract Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    );
+        SupportedLanguage? sourceLanguage = null);
 
 #pragma warning disable CS1591
-    protected abstract partial class Log<TTranslationProvider>
-        where TTranslationProvider : TranslationProviderBase
+    protected abstract partial class Log<TTranslationProvider> where TTranslationProvider : TranslationProviderBase
     {
         private readonly ILogger<TTranslationProvider> _logger;
 
@@ -122,14 +112,10 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}."
-        )]
+            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}.")]
         public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Languages endpoint returned no language codes."
-        )]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
         public partial void NoLanguageCodesReturned();
 
         [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
@@ -138,10 +124,7 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to deserialize the response.")]
         public partial void DeserializationFailure(Exception ex);
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Unable to connect to the {providerName} API URL."
-        )]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Unable to connect to the {providerName} API URL.")]
         public partial void ConnectionFailure(Exception ex, string providerName);
     }
 #pragma warning restore CS1591

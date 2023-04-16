@@ -27,8 +27,7 @@ _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:10000000000
 markdown markdown markdown 
 json
 { "test": "test" }
-"""
-    )]
+""")]
     public void SanitizeText_Returns_AsExpected(string text, string expected)
     {
         // Act

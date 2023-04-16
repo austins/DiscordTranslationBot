@@ -8,6 +8,6 @@ namespace DiscordTranslationBot.Commands.SlashCommandExecuted;
 /// </summary>
 public sealed class RegisterSlashCommands : ICommand, IRegisterCommands
 {
-    /// <inheritdoc cref="IRegisterCommands.Guild"/>
+    /// <inheritdoc cref="IRegisterCommands.Guild" />
     public IGuild? Guild { get; init; }
 }

@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 /// </summary>
 public sealed class TranslateRequest : ITranslateRequest
 {
-    /// <inheritdoc cref="ITranslateRequest.Text"/>
+    /// <inheritdoc cref="ITranslateRequest.Text" />
     [JsonPropertyName("Text")]
     public required string Text { get; init; }
 }

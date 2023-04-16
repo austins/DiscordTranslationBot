@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Configuration.TranslationProviders;
 public sealed class TranslationProvidersOptions
 {
     /// <summary>
-    /// Configuration section name for <see cref="TranslationProvidersOptions"/>.
+    /// Configuration section name for <see cref="TranslationProvidersOptions" />.
     /// </summary>
     public const string SectionName = "TranslationProviders";
 
@@ -24,13 +24,12 @@ public sealed class TranslationProvidersOptions
 }
 
 /// <summary>
-/// Validator for <see cref="TranslationProvidersOptions"/>.
+/// Validator for <see cref="TranslationProvidersOptions" />.
 /// </summary>
-public sealed class TranslationProvidersOptionsValidator
-    : AbstractValidator<TranslationProvidersOptions>
+public sealed class TranslationProvidersOptionsValidator : AbstractValidator<TranslationProvidersOptions>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslationProvidersOptionsValidator"/> class.
+    /// Initializes a new instance of the <see cref="TranslationProvidersOptionsValidator" /> class.
     /// </summary>
     public TranslationProvidersOptionsValidator()
     {
@@ -42,8 +41,7 @@ public sealed class TranslationProvidersOptionsValidator
                 RuleFor(x => x.AzureTranslator.ApiUrl).NotNull();
                 RuleFor(x => x.AzureTranslator.SecretKey).NotEmpty();
                 RuleFor(x => x.AzureTranslator.Region).NotEmpty();
-            }
-        );
+            });
 
         // Validate Libre Translate options.
         When(x => x.LibreTranslate.Enabled, () => RuleFor(x => x.LibreTranslate.ApiUrl).NotNull());

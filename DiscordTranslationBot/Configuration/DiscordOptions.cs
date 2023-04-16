@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Configuration;
 public sealed class DiscordOptions
 {
     /// <summary>
-    /// Configuration section name for <see cref="DiscordOptions"/>.
+    /// Configuration section name for <see cref="DiscordOptions" />.
     /// </summary>
     public const string SectionName = "Discord";
 
@@ -19,12 +19,12 @@ public sealed class DiscordOptions
 }
 
 /// <summary>
-/// Validator for <see cref="DiscordOptions"/>.
+/// Validator for <see cref="DiscordOptions" />.
 /// </summary>
 public sealed class DiscordOptionsValidator : AbstractValidator<DiscordOptions>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DiscordOptionsValidator"/> class.
+    /// Initializes a new instance of the <see cref="DiscordOptionsValidator" /> class.
     /// </summary>
     public DiscordOptionsValidator()
     {

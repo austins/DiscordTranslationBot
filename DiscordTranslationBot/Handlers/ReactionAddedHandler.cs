@@ -16,8 +16,7 @@ namespace DiscordTranslationBot.Handlers;
 /// Handles the ReactionAdded event of the Discord client.
 /// </summary>
 public partial class ReactionAddedHandler
-    : INotificationHandler<ReactionAddedNotification>,
-        ICommandHandler<ProcessFlagEmojiReaction>
+    : INotificationHandler<ReactionAddedNotification>, ICommandHandler<ProcessFlagEmojiReaction>
 {
     private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;
@@ -26,7 +25,7 @@ public partial class ReactionAddedHandler
     private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReactionAddedHandler"/> class.
+    /// Initializes a new instance of the <see cref="ReactionAddedHandler" /> class.
     /// </summary>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
@@ -38,8 +37,7 @@ public partial class ReactionAddedHandler
         IEnumerable<ITranslationProvider> translationProviders,
         IDiscordClient client,
         ICountryService countryService,
-        ILogger<ReactionAddedHandler> logger
-    )
+        ILogger<ReactionAddedHandler> logger)
     {
         _mediator = mediator;
         _translationProviders = translationProviders.ToList();
@@ -53,10 +51,7 @@ public partial class ReactionAddedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async ValueTask<Unit> Handle(
-        ProcessFlagEmojiReaction command,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask<Unit> Handle(ProcessFlagEmojiReaction command, CancellationToken cancellationToken)
     {
         if (command.Message.Author.Id == _client.CurrentUser?.Id)
         {
@@ -65,8 +60,7 @@ public partial class ReactionAddedHandler
             await command.Message.RemoveReactionAsync(
                 command.Reaction.Emote,
                 command.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+                new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -80,8 +74,7 @@ public partial class ReactionAddedHandler
             await command.Message.RemoveReactionAsync(
                 command.Reaction.Emote,
                 command.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+                new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -97,8 +90,7 @@ public partial class ReactionAddedHandler
                 translationResult = await translationProvider.TranslateByCountryAsync(
                     command.Country,
                     sanitizedMessage,
-                    cancellationToken
-                );
+                    cancellationToken);
 
                 break;
             }
@@ -114,8 +106,7 @@ public partial class ReactionAddedHandler
                         command.Reaction,
                         command.Message.Channel,
                         command.Message.Id,
-                        cancellationToken
-                    );
+                        cancellationToken);
 
                     return Unit.Value;
                 }
@@ -131,8 +122,7 @@ public partial class ReactionAddedHandler
             await command.Message.RemoveReactionAsync(
                 command.Reaction.Emote,
                 command.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+                new RequestOptions { CancelToken = cancellationToken });
 
             return Unit.Value;
         }
@@ -146,8 +136,7 @@ public partial class ReactionAddedHandler
                 command.Reaction,
                 command.Message.Channel,
                 command.Message.Id,
-                cancellationToken
-            );
+                cancellationToken);
 
             return Unit.Value;
         }
@@ -165,8 +154,7 @@ public partial class ReactionAddedHandler
             command.Message.Channel,
             command.Message.Id,
             cancellationToken,
-            20
-        );
+            20);
 
         return Unit.Value;
     }
@@ -176,25 +164,17 @@ public partial class ReactionAddedHandler
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async ValueTask Handle(
-        ReactionAddedNotification notification,
-        CancellationToken cancellationToken
-    )
+    public async ValueTask Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (
-            Emoji.IsEmoji(notification.Reaction.Emote.Name)
-            && _countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)
-        )
+        if (Emoji.IsEmoji(notification.Reaction.Emote.Name)
+            && _countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country))
         {
             await _mediator.Send(
                 new ProcessFlagEmojiReaction
                 {
-                    Message = notification.Message,
-                    Reaction = notification.Reaction,
-                    Country = country!
+                    Message = notification.Message, Reaction = notification.Reaction, Country = country!
                 },
-                cancellationToken
-            );
+                cancellationToken);
         }
     }
 
@@ -213,8 +193,7 @@ public partial class ReactionAddedHandler
         IMessageChannel channel,
         ulong referencedMessageId,
         CancellationToken cancellationToken,
-        uint seconds = 10
-    )
+        uint seconds = 10)
     {
         using var typingState = channel.EnterTypingState();
 
@@ -226,8 +205,7 @@ public partial class ReactionAddedHandler
                 var replyMessage = await channel.SendMessageAsync(
                     text,
                     messageReference: new MessageReference(referencedMessageId),
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+                    options: new RequestOptions { CancelToken = cancellationToken });
 
                 // Cleanup.
                 await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
@@ -235,25 +213,20 @@ public partial class ReactionAddedHandler
                 // If the source message still exists, remove the reaction from it.
                 var sourceMessage = await replyMessage.Channel.GetMessageAsync(
                     referencedMessageId,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+                    options: new RequestOptions { CancelToken = cancellationToken });
 
                 if (sourceMessage != null)
                 {
                     await sourceMessage.RemoveReactionAsync(
                         reaction.Emote,
                         reaction.UserId,
-                        new RequestOptions { CancelToken = cancellationToken }
-                    );
+                        new RequestOptions { CancelToken = cancellationToken });
                 }
 
                 // Delete the reply message.
-                await replyMessage.DeleteAsync(
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
+                await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
             },
-            cancellationToken
-        );
+            cancellationToken);
     }
 
     private sealed partial class Log
@@ -265,38 +238,24 @@ public partial class ReactionAddedHandler
             _logger = logger;
         }
 
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Translating this bot's messages isn't allowed."
-        )]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Nothing to translate. The sanitized source message is empty."
-        )]
+            Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
-        [LoggerMessage(
-            Level = LogLevel.Warning,
-            Message = "Unsupported country {countryName} for {providerType}."
-        )]
-        public partial void UnsupportedCountry(
-            Exception ex,
-            string? countryName,
-            Type providerType
-        );
+        [LoggerMessage(Level = LogLevel.Warning, Message = "Unsupported country {countryName} for {providerType}.")]
+        public partial void UnsupportedCountry(Exception ex, string? countryName, Type providerType);
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Failed to translate text with {providerType}."
-        )]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
         public partial void TranslationFailure(Exception ex, Type providerType);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
-            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-        )]
+            Message =
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.")]
         public partial void FailureToDetectSourceLanguage();
     }
 }

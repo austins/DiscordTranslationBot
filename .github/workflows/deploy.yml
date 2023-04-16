@@ -1,31 +1,31 @@
 name: Deploy
 
 on:
-    push:
-        branches: [ master ]
-        paths-ignore:
-            - '.github/**'
-            - 'README.md'
-            - 'LICENSE'
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'LICENSE'
 
 concurrency:
-    group: deploy
-    cancel-in-progress: true
+  group: deploy
+  cancel-in-progress: true
 
 jobs:
-    #analyze:
-    #uses: ./.github/workflows/analyze.yml
-    test:
-        #needs: analyze
-        uses: ./.github/workflows/test.yml
-    docker:
-        needs: test
-        uses: ./.github/workflows/docker.yml
-        with:
-            push: true
-        secrets:
-            DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
-            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-            WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-            WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+  #analyze:
+  #uses: ./.github/workflows/analyze.yml
+  test:
+    #needs: analyze
+    uses: ./.github/workflows/test.yml
+  docker:
+    needs: test
+    uses: ./.github/workflows/docker.yml
+    with:
+      push: true
+    secrets:
+      DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

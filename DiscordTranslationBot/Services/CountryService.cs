@@ -4,7 +4,7 @@ using NeoSmart.Unicode;
 namespace DiscordTranslationBot.Services;
 
 /// <summary>
-/// Interface for <see cref="CountryService"/>.
+/// Interface for <see cref="CountryService" />.
 /// </summary>
 public interface ICountryService
 {
@@ -18,7 +18,7 @@ public interface ICountryService
 }
 
 /// <summary>
-/// Maps all flag emojis to a set of <see cref="Country"/> and assigns language codes to them.
+/// Maps all flag emojis to a set of <see cref="Country" /> and assigns language codes to them.
 /// </summary>
 /// <remarks>
 /// This should be injected as a singleton (prior to the translation providers) as the list of countries
@@ -30,7 +30,7 @@ public sealed partial class CountryService : ICountryService
     private readonly Log _log;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CountryService"/> class.
+    /// Initializes a new instance of the <see cref="CountryService" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
     /// <exception cref="InvalidOperationException">No flag emoji found.</exception>
@@ -41,14 +41,8 @@ public sealed partial class CountryService : ICountryService
         // Get all flag emojis.
         var flagEmoji = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" });
 
-        _countries = flagEmoji
-            .Select(
-                e =>
-                    new Country(
-                        e.ToString(),
-                        e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)
-                    )
-            )
+        _countries = flagEmoji.Select(
+                e => new Country(e.ToString(), e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToHashSet();
 
         if (!_countries.Any())
@@ -60,7 +54,7 @@ public sealed partial class CountryService : ICountryService
         InitializeSupportedLangCodes();
     }
 
-    /// <inheritdoc cref="ICountryService.TryGetCountry"/>
+    /// <inheritdoc cref="ICountryService.TryGetCountry" />
     public bool TryGetCountry(string emojiUnicode, out Country? country)
     {
         country = _countries.SingleOrDefault(c => c.EmojiUnicode == emojiUnicode);
@@ -121,8 +115,7 @@ public sealed partial class CountryService : ICountryService
             _log.CountryNotFound();
 
             throw new InvalidOperationException(
-                "Country language codes couldn't be initialized as country couldn't be found."
-            );
+                "Country language codes couldn't be initialized as country couldn't be found.");
         }
 
         country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
@@ -142,8 +135,7 @@ public sealed partial class CountryService : ICountryService
 
         [LoggerMessage(
             Level = LogLevel.Critical,
-            Message = "Country language codes couldn't be initialized as country couldn't be found."
-        )]
+            Message = "Country language codes couldn't be initialized as country couldn't be found.")]
         public partial void CountryNotFound();
     }
 }

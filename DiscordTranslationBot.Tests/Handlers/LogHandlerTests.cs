@@ -47,8 +47,7 @@ public sealed class LogHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        var logArgs = _logger
-            .ReceivedCalls()
+        var logArgs = _logger.ReceivedCalls()
             .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
             .GetArguments();
 
