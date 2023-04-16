@@ -252,8 +252,10 @@ public sealed class MessageCommandExecutedHandlerTests
         {
             translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
-            translationProvider
-                .TranslateAsync(Arg.Any<SupportedLanguage>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            translationProvider.TranslateAsync(
+                    Arg.Any<SupportedLanguage>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CancellationToken>())
                 .ThrowsAsync(new InvalidOperationException("test"));
         }
 

@@ -178,8 +178,10 @@ test";
             DetectedLanguageCode = "en", TargetLanguageCode = "fr", TranslatedText = "translated_text"
         };
 
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+        _translationProvider.TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
         var command = new ProcessFlagEmojiReaction
@@ -243,8 +245,10 @@ test";
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _translationProvider.TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
         var command = new ProcessFlagEmojiReaction
@@ -275,8 +279,10 @@ test";
 
         const string exMessage = "exception message";
 
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+        _translationProvider.TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>())
             .ThrowsAsync(new UnsupportedCountryException(exMessage));
 
         var command = new ProcessFlagEmojiReaction
@@ -317,8 +323,10 @@ test";
             DetectedLanguageCode = "en", TargetLanguageCode = "fr", TranslatedText = ExpectedSanitizedMessage
         };
 
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+        _translationProvider.TranslateByCountryAsync(
+                Arg.Any<Country>(),
+                ExpectedSanitizedMessage,
+                Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
         var command = new ProcessFlagEmojiReaction

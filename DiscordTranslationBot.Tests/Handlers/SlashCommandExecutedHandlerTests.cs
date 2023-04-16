@@ -162,8 +162,7 @@ public sealed class SlashCommandExecutedHandlerTests
         _translationProvider.SupportedLanguages.Returns(
             new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
 
-        _translationProvider
-            .TranslateAsync(
+        _translationProvider.TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
@@ -270,8 +269,7 @@ public sealed class SlashCommandExecutedHandlerTests
         _translationProvider.SupportedLanguages.Returns(
             new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
 
-        _translationProvider
-            .TranslateAsync(
+        _translationProvider.TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),

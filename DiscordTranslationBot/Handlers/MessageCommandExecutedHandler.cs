@@ -181,8 +181,7 @@ public partial class MessageCommandExecutedHandler
             return Unit.Value;
         }
 
-        var translateCommand = new MessageCommandBuilder()
-            .WithName(MessageCommandConstants.TranslateCommandName)
+        var translateCommand = new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateCommandName)
             .Build();
 
         foreach (var guild in guilds)

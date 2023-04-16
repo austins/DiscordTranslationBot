@@ -146,8 +146,8 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         else
         {
             // Get valid specified lang codes up to the limit.
-            supportedLangChoices = translationProvider.SupportedLanguages
-                .Where(l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
+            supportedLangChoices = translationProvider.SupportedLanguages.Where(
+                    l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
                 .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
 
@@ -164,8 +164,7 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         }
 
         // Convert the list of supported languages to command choices and sort alphabetically.
-        var langChoices = supportedLangChoices
-            .Select(
+        var langChoices = supportedLangChoices.Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
                     Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength), Value = l.LangCode
