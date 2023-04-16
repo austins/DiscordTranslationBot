@@ -53,7 +53,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
-                LibreTranslate = new LibreTranslateOptions { Enabled = true, ApiUrl = new Uri("http://localhost") }
+                LibreTranslate = new LibreTranslateOptions
+                {
+                    Enabled = true,
+                    ApiUrl = new Uri("http://localhost")
+                }
             });
 
         _logger = Substitute.For<ILogger<LibreTranslateProvider>>();
@@ -65,8 +69,16 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "test";
 
@@ -178,7 +190,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 Arg.Is<HttpRequestMessage>(x => x.RequestUri!.AbsolutePath.EndsWith("languages")),
                 Arg.Any<CancellationToken>())
             .Returns(
-                _ => new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent("[]") });
+                _ => new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("[]")
+                });
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new LibreTranslateProvider(_httpClientFactory, _translationProvidersOptions, _logger);
@@ -263,7 +279,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Returns(
                 _ => new HttpResponseMessage
                 {
-                    StatusCode = HttpStatusCode.OK, Content = new StringContent("invalid_json")
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("invalid_json")
                 });
 
         // Act & Assert

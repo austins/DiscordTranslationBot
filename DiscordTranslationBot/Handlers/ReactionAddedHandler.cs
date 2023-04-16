@@ -172,7 +172,9 @@ public partial class ReactionAddedHandler
             await _mediator.Send(
                 new ProcessFlagEmojiReaction
                 {
-                    Message = notification.Message, Reaction = notification.Reaction, Country = country!
+                    Message = notification.Message,
+                    Reaction = notification.Reaction,
+                    Country = country!
                 },
                 cancellationToken);
         }

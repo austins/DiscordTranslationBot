@@ -59,7 +59,11 @@ public sealed partial class DiscordEventListener
             {
                 Message = await message.GetOrDownloadAsync(),
                 Channel = await channel.GetOrDownloadAsync(),
-                Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
+                Reaction = new Reaction
+                {
+                    UserId = reaction.UserId,
+                    Emote = reaction.Emote
+                }
             },
             _cancellationToken);
 

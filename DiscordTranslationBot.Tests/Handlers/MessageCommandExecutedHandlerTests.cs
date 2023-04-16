@@ -31,7 +31,8 @@ public sealed class MessageCommandExecutedHandlerTests
 
         _translationProviders = new List<ITranslationProvider>
         {
-            Substitute.For<ITranslationProvider>(), Substitute.For<ITranslationProvider>()
+            Substitute.For<ITranslationProvider>(),
+            Substitute.For<ITranslationProvider>()
         };
 
         _client = Substitute.For<IDiscordClient>();
@@ -80,7 +81,11 @@ public sealed class MessageCommandExecutedHandlerTests
         // Arrange
         IReadOnlyList<IGuild> guilds = isSpecificGuild
             ? new List<IGuild> { Substitute.For<IGuild>() }
-            : new List<IGuild> { Substitute.For<IGuild>(), Substitute.For<IGuild>() };
+            : new List<IGuild>
+            {
+                Substitute.For<IGuild>(),
+                Substitute.For<IGuild>()
+            };
 
         if (!isSpecificGuild)
         {
@@ -142,7 +147,11 @@ public sealed class MessageCommandExecutedHandlerTests
         _message.Content.Returns("text");
         _messageCommand.UserLocale.Returns("en-US");
 
-        var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var supportedLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
@@ -180,7 +189,11 @@ public sealed class MessageCommandExecutedHandlerTests
         _message.Content.Returns("text");
         _messageCommand.UserLocale.Returns("en");
 
-        var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var supportedLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
 
@@ -246,7 +259,11 @@ public sealed class MessageCommandExecutedHandlerTests
         const string userLocale = "en-US";
         _messageCommand.UserLocale.Returns(userLocale);
 
-        var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var supportedLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         foreach (var translationProvider in _translationProviders)
         {
@@ -283,7 +300,11 @@ public sealed class MessageCommandExecutedHandlerTests
         _message.Content.Returns(text);
         _messageCommand.UserLocale.Returns("en-US");
 
-        var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var supportedLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 

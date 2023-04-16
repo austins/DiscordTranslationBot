@@ -49,7 +49,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         using var httpClient = _httpClientFactory.CreateClient();
         using var request = new HttpRequestMessage
         {
-            Method = HttpMethod.Get, RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages")
+            Method = HttpMethod.Get,
+            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages")
         };
 
         var response = await httpClient.SendAsync(request, cancellationToken);
@@ -70,7 +71,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content.Select(lc => new SupportedLanguage { LangCode = lc.LangCode, Name = lc.Name })
+        SupportedLanguages = content.Select(
+                lc => new SupportedLanguage
+                {
+                    LangCode = lc.LangCode,
+                    Name = lc.Name
+                })
             .ToHashSet();
     }
 
@@ -86,7 +92,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         {
             var result = new TranslationResult
             {
-                TargetLanguageCode = targetLanguage.LangCode, TargetLanguageName = targetLanguage.Name
+                TargetLanguageCode = targetLanguage.LangCode,
+                TargetLanguageName = targetLanguage.Name
             };
 
             using var httpClient = _httpClientFactory.CreateClient();

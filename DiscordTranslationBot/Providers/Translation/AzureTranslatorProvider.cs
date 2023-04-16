@@ -106,8 +106,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content.LangCodes
-            .Select(lc => new SupportedLanguage { LangCode = lc.Key, Name = lc.Value.Name })
+        SupportedLanguages = content.LangCodes.Select(
+                lc => new SupportedLanguage
+                {
+                    LangCode = lc.Key,
+                    Name = lc.Value.Name
+                })
             .ToHashSet();
     }
 
@@ -132,7 +136,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
             var result = new TranslationResult
             {
-                TargetLanguageCode = targetLanguage.LangCode, TargetLanguageName = targetLanguage.Name
+                TargetLanguageCode = targetLanguage.LangCode,
+                TargetLanguageName = targetLanguage.Name
             };
 
             using var httpClient = _httpClientFactory.CreateClient();

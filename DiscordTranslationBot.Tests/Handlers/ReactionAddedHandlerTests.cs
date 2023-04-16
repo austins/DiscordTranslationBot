@@ -82,7 +82,11 @@ test";
         {
             Message = _message,
             Channel = _channel,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) }
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            }
         };
 
         _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(true);
@@ -102,7 +106,11 @@ test";
         {
             Message = _message,
             Channel = _channel,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji("not_an_emoji") }
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji("not_an_emoji")
+            }
         };
 
         // Act
@@ -122,7 +130,11 @@ test";
         {
             Message = _message,
             Channel = _channel,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) }
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            }
         };
 
         _countryService.TryGetCountry(Arg.Any<string>(), out _).Returns(false);
@@ -150,7 +162,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 
@@ -175,7 +191,9 @@ test";
 
         var translationResult = new TranslationResult
         {
-            DetectedLanguageCode = "en", TargetLanguageCode = "fr", TranslatedText = "translated_text"
+            DetectedLanguageCode = "en",
+            TargetLanguageCode = "fr",
+            TranslatedText = "translated_text"
         };
 
         _translationProvider.TranslateByCountryAsync(
@@ -187,7 +205,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 
@@ -222,7 +244,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 
@@ -254,7 +280,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 
@@ -288,7 +318,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 
@@ -320,7 +354,9 @@ test";
 
         var translationResult = new TranslationResult
         {
-            DetectedLanguageCode = "en", TargetLanguageCode = "fr", TranslatedText = ExpectedSanitizedMessage
+            DetectedLanguageCode = "en",
+            TargetLanguageCode = "fr",
+            TranslatedText = ExpectedSanitizedMessage
         };
 
         _translationProvider.TranslateByCountryAsync(
@@ -332,7 +368,11 @@ test";
         var command = new ProcessFlagEmojiReaction
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            },
             Country = country
         };
 

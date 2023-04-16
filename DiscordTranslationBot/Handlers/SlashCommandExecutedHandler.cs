@@ -167,7 +167,8 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         var langChoices = supportedLangChoices.Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
-                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength), Value = l.LangCode
+                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
+                    Value = l.LangCode
                 })
             .OrderBy(c => c.Name)
             .ToList();

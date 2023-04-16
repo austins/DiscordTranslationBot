@@ -79,12 +79,23 @@ public sealed class SlashCommandExecutedHandlerTests
         // Arrange
         IReadOnlyList<IGuild> guilds = isSpecificGuild
             ? new List<IGuild> { Substitute.For<IGuild>() }
-            : new List<IGuild> { Substitute.For<IGuild>(), Substitute.For<IGuild>() };
+            : new List<IGuild>
+            {
+                Substitute.For<IGuild>(),
+                Substitute.For<IGuild>()
+            };
 
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { new() { LangCode = "en", Name = "English" } });
+            new HashSet<SupportedLanguage>
+            {
+                new()
+                {
+                    LangCode = "en",
+                    Name = "English"
+                }
+            });
 
         if (!isSpecificGuild)
         {
@@ -113,7 +124,14 @@ public sealed class SlashCommandExecutedHandlerTests
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string> { "en" });
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { new() { LangCode = "en", Name = "English" } });
+            new HashSet<SupportedLanguage>
+            {
+                new()
+                {
+                    LangCode = "en",
+                    Name = "English"
+                }
+            });
 
         var command = new RegisterSlashCommands { Guild = guild };
 
@@ -131,8 +149,16 @@ public sealed class SlashCommandExecutedHandlerTests
     public async Task Handle_ProcessTranslateSlashCommand_Success()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "text";
 
@@ -150,7 +176,13 @@ public sealed class SlashCommandExecutedHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption });
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption>
+            {
+                toOption,
+                textOption,
+                fromOption
+            });
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -160,7 +192,11 @@ public sealed class SlashCommandExecutedHandlerTests
         slashCommand.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
+            new HashSet<SupportedLanguage>
+            {
+                sourceLanguage,
+                targetLanguage
+            });
 
         _translationProvider.TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
@@ -200,7 +236,11 @@ public sealed class SlashCommandExecutedHandlerTests
     public async Task Handle_ProcessTranslateSlashCommand_Returns_SourceTextIsEmpty()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
 
         var data = Substitute.For<IApplicationCommandInteractionData>();
 
@@ -212,7 +252,12 @@ public sealed class SlashCommandExecutedHandlerTests
         textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
         textOption.Value.Returns(string.Empty);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption });
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption>
+            {
+                toOption,
+                textOption
+            });
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -238,8 +283,16 @@ public sealed class SlashCommandExecutedHandlerTests
     public async Task Handle_ProcessTranslateSlashCommand_Returns_OnFailuretoDetectSourceLanguage()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "text";
 
@@ -257,7 +310,13 @@ public sealed class SlashCommandExecutedHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption });
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption>
+            {
+                toOption,
+                textOption,
+                fromOption
+            });
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -267,7 +326,11 @@ public sealed class SlashCommandExecutedHandlerTests
         slashCommand.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
+            new HashSet<SupportedLanguage>
+            {
+                sourceLanguage,
+                targetLanguage
+            });
 
         _translationProvider.TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
