@@ -8,7 +8,6 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
-using Mediator;
 
 namespace DiscordTranslationBot.Handlers;
 

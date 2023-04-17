@@ -6,13 +6,8 @@ using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NeoSmart.Unicode;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 

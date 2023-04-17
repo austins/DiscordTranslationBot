@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Mediator;
 
 namespace DiscordTranslationBot.Commands.MessageCommandExecuted;
 

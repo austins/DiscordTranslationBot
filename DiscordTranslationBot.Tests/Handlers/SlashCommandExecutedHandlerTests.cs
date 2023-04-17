@@ -5,10 +5,6 @@ using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
-using Mediator;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 

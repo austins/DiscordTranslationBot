@@ -8,11 +8,6 @@ using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using Mediator;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using Xunit;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Tests.Handlers;

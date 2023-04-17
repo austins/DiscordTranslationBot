@@ -1,7 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Discord;
-using Mediator;
 
 namespace DiscordTranslationBot.Commands.ReactionAdded;
 

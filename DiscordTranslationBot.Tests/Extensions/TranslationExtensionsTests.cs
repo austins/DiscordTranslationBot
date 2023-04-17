@@ -2,8 +2,6 @@
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
-using FluentAssertions;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Extensions;
 

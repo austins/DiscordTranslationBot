@@ -1,10 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Handlers;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 

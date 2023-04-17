@@ -1,6 +1,5 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands;
-using Mediator;
 
 namespace DiscordTranslationBot.Handlers;
 

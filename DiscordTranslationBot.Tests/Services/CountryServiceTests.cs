@@ -1,9 +1,5 @@
 ﻿using DiscordTranslationBot.Services;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using NeoSmart.Unicode;
-using NSubstitute;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Services;
 

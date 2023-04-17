@@ -1,6 +1,4 @@
-﻿using Mediator;
-
-namespace DiscordTranslationBot.Notifications;
+﻿namespace DiscordTranslationBot.Notifications;
 
 /// <summary>
 /// Notification for the Discord ready event.

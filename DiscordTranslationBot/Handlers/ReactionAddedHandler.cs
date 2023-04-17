@@ -7,7 +7,6 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
-using Mediator;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;

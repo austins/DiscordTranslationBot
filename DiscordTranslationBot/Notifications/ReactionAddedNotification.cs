@@ -1,6 +1,5 @@
 ﻿using Discord;
 using DiscordTranslationBot.Models.Discord;
-using Mediator;
 
 namespace DiscordTranslationBot.Notifications;
 

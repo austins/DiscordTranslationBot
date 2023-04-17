@@ -1,9 +1,6 @@
 ﻿using DiscordTranslationBot.Commands.SlashCommandExecuted;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Notifications;
-using Mediator;
-using NSubstitute;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 

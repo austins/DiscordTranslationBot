@@ -1,9 +1,7 @@
 ﻿using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Providers.Translation;
-using FluentAssertions;
 using NeoSmart.Unicode;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 

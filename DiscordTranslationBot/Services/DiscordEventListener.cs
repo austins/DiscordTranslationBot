@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
-using Mediator;
 
 namespace DiscordTranslationBot.Services;
 

@@ -1,6 +1,4 @@
 ﻿using DiscordTranslationBot.Utilities;
-using FluentAssertions;
-using Xunit;
 
 namespace DiscordTranslationBot.Tests.Utilities;
 
