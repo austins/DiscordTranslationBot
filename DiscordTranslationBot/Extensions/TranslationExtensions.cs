@@ -23,12 +23,15 @@ public static class TranslationExtensions
     /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
     public static StringContent SerializeTranslationRequestContent<TTranslateRequest>(
         this HttpClient httpClient,
-        TTranslateRequest request) where TTranslateRequest : ITranslateRequest
+        TTranslateRequest request
+    )
+        where TTranslateRequest : ITranslateRequest
     {
         return new StringContent(
             JsonSerializer.Serialize(request, SerializerOptions),
             Encoding.UTF8,
-            "application/json");
+            "application/json"
+        );
     }
 
     /// <summary>
@@ -39,12 +42,15 @@ public static class TranslationExtensions
     /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
     public static StringContent SerializeTranslationRequestContent<TTranslateRequest>(
         this HttpClient httpClient,
-        IList<TTranslateRequest> request) where TTranslateRequest : ITranslateRequest
+        IList<TTranslateRequest> request
+    )
+        where TTranslateRequest : ITranslateRequest
     {
         return new StringContent(
             JsonSerializer.Serialize(request, SerializerOptions),
             Encoding.UTF8,
-            "application/json");
+            "application/json"
+        );
     }
 
     /// <summary>
@@ -56,7 +62,9 @@ public static class TranslationExtensions
     /// <returns>Deserialized response content.</returns>
     public static Task<TTranslateResult?> DeserializeTranslationResponseContentAsync<TTranslateResult>(
         this HttpContent httpContent,
-        CancellationToken cancellationToken) where TTranslateResult : ITranslateResult
+        CancellationToken cancellationToken
+    )
+        where TTranslateResult : ITranslateResult
     {
         return httpContent.ReadFromJsonAsync<TTranslateResult>(SerializerOptions, cancellationToken);
     }
@@ -70,7 +78,9 @@ public static class TranslationExtensions
     /// <returns>Deserialized response content.</returns>
     public static Task<IList<TTranslateResult>?> DeserializeTranslationResponseContentsAsync<TTranslateResult>(
         this HttpContent httpContent,
-        CancellationToken cancellationToken) where TTranslateResult : ITranslateResult
+        CancellationToken cancellationToken
+    )
+        where TTranslateResult : ITranslateResult
     {
         return httpContent.ReadFromJsonAsync<IList<TTranslateResult>>(SerializerOptions, cancellationToken);
     }

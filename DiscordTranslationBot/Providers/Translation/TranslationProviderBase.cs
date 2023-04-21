@@ -37,7 +37,8 @@ public interface ITranslationProvider
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null);
+        SupportedLanguage? sourceLanguage = null
+    );
 
     /// <summary>
     /// Translate text by country.
@@ -50,7 +51,8 @@ public interface ITranslationProvider
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Initialize the <see cref="SupportedLanguages" /> for the provider.
@@ -80,7 +82,8 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         // Gets the lang code that a country supports.
         var targetLanguage =
@@ -98,10 +101,12 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null);
+        SupportedLanguage? sourceLanguage = null
+    );
 
 #pragma warning disable CS1591
-    protected abstract partial class Log<TTranslationProvider> where TTranslationProvider : TranslationProviderBase
+    protected abstract partial class Log<TTranslationProvider>
+        where TTranslationProvider : TranslationProviderBase
     {
         private readonly ILogger<TTranslationProvider> _logger;
 
@@ -112,7 +117,8 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}.")]
+            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}."
+        )]
         public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]

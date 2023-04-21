@@ -29,10 +29,7 @@ public sealed class LogHandlerTests
 
         var command = new LogDiscordMessage
         {
-            LogMessage = new LogMessage(
-                severity,
-                "source",
-                "message",
+            LogMessage = new LogMessage(severity, "source", "message",
 #pragma warning disable CA2201
                 new Exception("test")
 #pragma warning restore CA2201
@@ -43,7 +40,8 @@ public sealed class LogHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        var logArgs = _logger.ReceivedCalls()
+        var logArgs = _logger
+            .ReceivedCalls()
             .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
             .GetArguments();
 

@@ -18,8 +18,10 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TValidator">The validator for the options.</typeparam>
     public static void AddOptionsWithFluentValidation<TOptions, TValidator>(
         this IServiceCollection services,
-        IConfigurationSection configurationSection)
-        where TOptions : class where TValidator : class, IValidator<TOptions>
+        IConfigurationSection configurationSection
+    )
+        where TOptions : class
+        where TValidator : class, IValidator<TOptions>
     {
         services.AddTransient<IValidator<TOptions>, TValidator>();
 
@@ -34,13 +36,15 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     public static IServiceCollection AddTranslationProviders(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
 
         services.AddOptionsWithFluentValidation<TranslationProvidersOptions, TranslationProvidersOptionsValidator>(
-            section);
+            section
+        );
 
         // Register translation providers. They are prioritized in the order added.
         var options = section.Get<TranslationProvidersOptions>();

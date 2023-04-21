@@ -41,7 +41,8 @@ public sealed class TranslationProvidersOptionsValidator : AbstractValidator<Tra
                 RuleFor(x => x.AzureTranslator.ApiUrl).NotNull();
                 RuleFor(x => x.AzureTranslator.SecretKey).NotEmpty();
                 RuleFor(x => x.AzureTranslator.Region).NotEmpty();
-            });
+            }
+        );
 
         // Validate Libre Translate options.
         When(x => x.LibreTranslate.Enabled, () => RuleFor(x => x.LibreTranslate.ApiUrl).NotNull());

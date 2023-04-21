@@ -9,7 +9,6 @@ public sealed class UnsupportedCountryException : Exception
     /// Initializes a new instance of the <see cref="UnsupportedCountryException" /> class.
     /// </summary>
     /// <param name="message">Message for exception.</param>
-    public UnsupportedCountryException(string message) : base(message)
-    {
-    }
+    public UnsupportedCountryException(string message)
+        : base(message) { }
 }

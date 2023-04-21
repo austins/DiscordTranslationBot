@@ -42,7 +42,8 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
             logLevel,
             command.LogMessage.Exception,
             command.LogMessage.Source,
-            command.LogMessage.Message);
+            command.LogMessage.Message
+        );
 
         return Unit.ValueTask;
     }

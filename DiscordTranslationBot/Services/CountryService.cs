@@ -41,8 +41,8 @@ public sealed partial class CountryService : ICountryService
         // Get all flag emojis.
         var flagEmoji = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" });
 
-        _countries = flagEmoji.Select(
-                e => new Country(e.ToString(), e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
+        _countries = flagEmoji
+            .Select(e => new Country(e.ToString(), e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToHashSet();
 
         if (!_countries.Any())
@@ -115,7 +115,8 @@ public sealed partial class CountryService : ICountryService
             _log.CountryNotFound();
 
             throw new InvalidOperationException(
-                "Country language codes couldn't be initialized as country couldn't be found.");
+                "Country language codes couldn't be initialized as country couldn't be found."
+            );
         }
 
         country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
@@ -135,7 +136,8 @@ public sealed partial class CountryService : ICountryService
 
         [LoggerMessage(
             Level = LogLevel.Critical,
-            Message = "Country language codes couldn't be initialized as country couldn't be found.")]
+            Message = "Country language codes couldn't be initialized as country couldn't be found."
+        )]
         public partial void CountryNotFound();
     }
 }

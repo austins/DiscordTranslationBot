@@ -25,7 +25,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     public LibreTranslateProvider(
         IHttpClientFactory httpClientFactory,
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<LibreTranslateProvider> logger)
+        ILogger<LibreTranslateProvider> logger
+    )
     {
         _httpClientFactory = httpClientFactory;
         _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
@@ -59,11 +60,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             _log.ResponseFailure("Languages", response.StatusCode);
 
             throw new InvalidOperationException(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
+            );
         }
 
         var content = JsonSerializer.Deserialize<IList<Language>>(
-            await response.Content.ReadAsStringAsync(cancellationToken));
+            await response.Content.ReadAsStringAsync(cancellationToken)
+        );
 
         if (content?.Any() != true)
         {
@@ -71,12 +74,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content.Select(
-                lc => new SupportedLanguage
-                {
-                    LangCode = lc.LangCode,
-                    Name = lc.Name
-                })
+        SupportedLanguages = content
+            .Select(lc => new SupportedLanguage { LangCode = lc.LangCode, Name = lc.Name })
             .ToHashSet();
     }
 
@@ -86,7 +85,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null)
+        SupportedLanguage? sourceLanguage = null
+    )
     {
         try
         {
@@ -107,7 +107,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                         Text = text,
                         SourceLangCode = sourceLanguage?.LangCode ?? "auto",
                         TargetLangCode = targetLanguage.LangCode
-                    })
+                    }
+                )
             };
 
             var response = await httpClient.SendAsync(request, cancellationToken);
@@ -116,11 +117,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 _log.ResponseFailure("Translate", response.StatusCode);
 
                 throw new InvalidOperationException(
-                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
+                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
+                );
             }
 
-            var content =
-                await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(cancellationToken);
+            var content = await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(
+                cancellationToken
+            );
 
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
@@ -130,8 +133,10 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
             result.DetectedLanguageCode = content.DetectedLanguage?.LanguageCode;
 
-            result.DetectedLanguageName = SupportedLanguages.SingleOrDefault(
-                    sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+            result.DetectedLanguageName = SupportedLanguages
+                .SingleOrDefault(
+                    sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase)
+                )
                 ?.Name;
 
             result.TranslatedText = content.TranslatedText;
@@ -152,8 +157,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
     private sealed class Log : Log<LibreTranslateProvider>
     {
-        public Log(ILogger<LibreTranslateProvider> logger) : base(logger)
-        {
-        }
+        public Log(ILogger<LibreTranslateProvider> logger)
+            : base(logger) { }
     }
 }
