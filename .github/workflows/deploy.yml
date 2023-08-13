@@ -64,10 +64,14 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      #- name: Trigger deployment webhook
-      #  uses: distributhor/workflow-webhook@v2
-      #  env:
-      #    webhook_url: ${{ secrets.WEBHOOK_URL }}
-      #    webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
-      #    webhook_type: "json"
-      #    silent: true
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deployment webhook
+        uses: distributhor/workflow-webhook@v2
+        env:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+          webhook_type: "json"
+          silent: true
