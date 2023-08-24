@@ -58,10 +58,10 @@ public sealed class SlashCommandExecutedHandlerTests
         // Arrange
         _client.GetGuildsAsync().Returns(new List<IGuild>());
 
-        var command = new RegisterSlashCommands();
+        var request = new RegisterSlashCommands();
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _client.Received(1).GetGuildsAsync(Arg.Any<CacheMode>(), Arg.Any<RequestOptions>());
@@ -92,10 +92,10 @@ public sealed class SlashCommandExecutedHandlerTests
             _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
         }
 
-        var command = new RegisterSlashCommands { Guild = isSpecificGuild ? guilds[0] : null };
+        var request = new RegisterSlashCommands { Guild = isSpecificGuild ? guilds[0] : null };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         foreach (var guild in guilds)
@@ -121,10 +121,10 @@ public sealed class SlashCommandExecutedHandlerTests
             }
         );
 
-        var command = new RegisterSlashCommands { Guild = guild };
+        var request = new RegisterSlashCommands { Guild = guild };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProvider.Received(2).TranslateCommandLangCodes;
@@ -188,10 +188,10 @@ public sealed class SlashCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
+        var request = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -232,10 +232,10 @@ public sealed class SlashCommandExecutedHandlerTests
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
 
-        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
+        var request = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await slashCommand
@@ -306,10 +306,10 @@ public sealed class SlashCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateSlashCommand { Command = slashCommand };
+        var request = new ProcessTranslateSlashCommand { Command = slashCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider

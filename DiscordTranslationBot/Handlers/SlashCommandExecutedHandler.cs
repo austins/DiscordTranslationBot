@@ -46,13 +46,13 @@ public sealed partial class SlashCommandExecutedHandler
 
     /// <summary>
     /// </summary>
-    /// <param name="command">The Mediator command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async Task Handle(ProcessTranslateSlashCommand command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessTranslateSlashCommand request, CancellationToken cancellationToken)
     {
         // Get the input values.
-        var options = command.Command.Data.Options;
+        var options = request.Command.Data.Options;
 
         var to = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
 
@@ -66,7 +66,7 @@ public sealed partial class SlashCommandExecutedHandler
         if (string.IsNullOrWhiteSpace(sanitizedText))
         {
             _log.EmptySourceText();
-            await command.Command.RespondAsync(
+            await request.Command.RespondAsync(
                 "Nothing to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -95,7 +95,7 @@ public sealed partial class SlashCommandExecutedHandler
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await command.Command.RespondAsync(
+                await request.Command.RespondAsync(
                     "Couldn't detect the source language to translate from or the result is the same.",
                     ephemeral: true,
                     options: new RequestOptions { CancelToken = cancellationToken }
@@ -104,8 +104,8 @@ public sealed partial class SlashCommandExecutedHandler
                 return;
             }
 
-            await command.Command.RespondAsync(
-                $@"{MentionUtils.MentionUser(command.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+            await request.Command.RespondAsync(
+                $@"{MentionUtils.MentionUser(request.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
 {Format.Quote(sanitizedText)}
 To {Format.Italics(translationResult.TargetLanguageName)}:
 {Format.Quote(translationResult.TranslatedText)}",
@@ -121,14 +121,14 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
     /// <summary>
     /// Registers slash commands for the bot.
     /// </summary>
-    /// <param name="command">The Mediator command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async Task Handle(RegisterSlashCommands command, CancellationToken cancellationToken)
+    public async Task Handle(RegisterSlashCommands request, CancellationToken cancellationToken)
     {
         IReadOnlyList<IGuild> guilds =
-            command.Guild != null
-                ? new List<IGuild> { command.Guild }
+            request.Guild != null
+                ? new List<IGuild> { request.Guild }
                 : (
                     await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })
                 ).ToList();

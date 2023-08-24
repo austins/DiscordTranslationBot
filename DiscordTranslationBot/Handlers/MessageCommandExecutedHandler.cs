@@ -47,15 +47,15 @@ public partial class MessageCommandExecutedHandler
     /// <summary>
     /// Translates the message interacted with to the user's locale.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(ProcessTranslateMessageCommand command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessTranslateMessageCommand request, CancellationToken cancellationToken)
     {
-        if (command.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
+        if (request.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await command.Command.RespondAsync(
+            await request.Command.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -64,7 +64,7 @@ public partial class MessageCommandExecutedHandler
             return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(command.Command.Data.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(request.Command.Data.Message.Content);
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
@@ -72,7 +72,7 @@ public partial class MessageCommandExecutedHandler
             return;
         }
 
-        var userLocale = command.Command.UserLocale;
+        var userLocale = request.Command.UserLocale;
 
         string? providerName = null;
         TranslationResult? translationResult = null;
@@ -120,7 +120,7 @@ public partial class MessageCommandExecutedHandler
         if (translationResult == null)
         {
             // Send message if no translation providers support the locale.
-            await command.Command.RespondAsync(
+            await request.Command.RespondAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -133,7 +133,7 @@ public partial class MessageCommandExecutedHandler
         {
             _log.FailureToDetectSourceLanguage();
 
-            await command.Command.RespondAsync(
+            await request.Command.RespondAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -142,7 +142,7 @@ public partial class MessageCommandExecutedHandler
             return;
         }
 
-        var fromHeading = $"By {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
+        var fromHeading = $"By {MentionUtils.MentionUser(request.Command.Data.Message.Author.Id)}";
 
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
@@ -160,10 +160,10 @@ public partial class MessageCommandExecutedHandler
 {Format.Bold(toHeading)}:
 {translationResult.TranslatedText}";
 
-        await command.Command.RespondAsync(
+        await request.Command.RespondAsync(
             embed: new EmbedBuilder()
                 .WithTitle("Translated Message")
-                .WithUrl(GetJumpUrl(command.Command.Data.Message).AbsoluteUri)
+                .WithUrl(GetJumpUrl(request.Command.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
             ephemeral: true,
@@ -174,13 +174,13 @@ public partial class MessageCommandExecutedHandler
     /// <summary>
     /// Registers the message commands for the guild(s).
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(RegisterMessageCommands command, CancellationToken cancellationToken)
+    public async Task Handle(RegisterMessageCommands request, CancellationToken cancellationToken)
     {
         IReadOnlyList<IGuild> guilds =
-            command.Guild != null
-                ? new List<IGuild> { command.Guild }
+            request.Guild != null
+                ? new List<IGuild> { request.Guild }
                 : (
                     await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })
                 ).ToList();

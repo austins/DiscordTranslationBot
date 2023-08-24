@@ -146,7 +146,7 @@ test";
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -154,7 +154,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -184,7 +184,7 @@ test";
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -192,7 +192,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -221,7 +221,7 @@ test";
 
         _message.Content.Returns(string.Empty);
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -229,7 +229,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -252,7 +252,7 @@ test";
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -260,7 +260,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _sut.DidNotReceiveWithAnyArgs().SendTempMessage(default!, default!, default!, default, default);
@@ -283,7 +283,7 @@ test";
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .ThrowsAsync(new UnsupportedCountryException(exMessage));
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -291,7 +291,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -329,7 +329,7 @@ test";
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var command = new ProcessFlagEmojiReaction
+        var request = new ProcessFlagEmojiReaction
         {
             Message = _message,
             Reaction = new Reaction { UserId = 1UL, Emote = new Discord.Emoji(Emoji.FlagUnitedStates.ToString()) },
@@ -337,7 +337,7 @@ test";
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider

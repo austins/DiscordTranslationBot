@@ -50,32 +50,32 @@ public partial class ReactionAddedHandler
     /// <summary>
     /// Translates any message that got a flag emoji reaction on it.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(ProcessFlagEmojiReaction command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessFlagEmojiReaction request, CancellationToken cancellationToken)
     {
-        if (command.Message.Author.Id == _client.CurrentUser?.Id)
+        if (request.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await command.Message.RemoveReactionAsync(
-                command.Reaction.Emote,
-                command.Reaction.UserId,
+            await request.Message.RemoveReactionAsync(
+                request.Reaction.Emote,
+                request.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
             return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(command.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(request.Message.Content);
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await command.Message.RemoveReactionAsync(
-                command.Reaction.Emote,
-                command.Reaction.UserId,
+            await request.Message.RemoveReactionAsync(
+                request.Reaction.Emote,
+                request.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -91,7 +91,7 @@ public partial class ReactionAddedHandler
                 providerName = translationProvider.ProviderName;
 
                 translationResult = await translationProvider.TranslateByCountryAsync(
-                    command.Country,
+                    request.Country,
                     sanitizedMessage,
                     cancellationToken
                 );
@@ -100,16 +100,16 @@ public partial class ReactionAddedHandler
             }
             catch (UnsupportedCountryException ex)
             {
-                _log.UnsupportedCountry(ex, command.Country.Name, translationProvider.GetType());
+                _log.UnsupportedCountry(ex, request.Country.Name, translationProvider.GetType());
 
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
                     SendTempMessage(
                         ex.Message,
-                        command.Reaction,
-                        command.Message.Channel,
-                        command.Message.Id,
+                        request.Reaction,
+                        request.Message.Channel,
+                        request.Message.Id,
                         cancellationToken
                     );
 
@@ -124,9 +124,9 @@ public partial class ReactionAddedHandler
 
         if (translationResult == null)
         {
-            await command.Message.RemoveReactionAsync(
-                command.Reaction.Emote,
-                command.Reaction.UserId,
+            await request.Message.RemoveReactionAsync(
+                request.Reaction.Emote,
+                request.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -139,9 +139,9 @@ public partial class ReactionAddedHandler
 
             SendTempMessage(
                 "Couldn't detect the source language to translate from or the result is the same.",
-                command.Reaction,
-                command.Message.Channel,
-                command.Message.Id,
+                request.Reaction,
+                request.Message.Channel,
+                request.Message.Id,
                 cancellationToken
             );
 
@@ -157,9 +157,9 @@ public partial class ReactionAddedHandler
 
         SendTempMessage(
             replyText,
-            command.Reaction,
-            command.Message.Channel,
-            command.Message.Id,
+            request.Reaction,
+            request.Message.Channel,
+            request.Message.Id,
             cancellationToken,
             20
         );

@@ -5,7 +5,6 @@ using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
-using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -83,10 +82,10 @@ public sealed class MessageCommandExecutedHandlerTests
             _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
         }
 
-        var command = new RegisterMessageCommands { Guild = isSpecificGuild ? guilds[0] : null };
+        var request = new RegisterMessageCommands { Guild = isSpecificGuild ? guilds[0] : null };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         if (!isSpecificGuild)
@@ -108,10 +107,10 @@ public sealed class MessageCommandExecutedHandlerTests
         // Arrange
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(new List<IGuild>());
 
-        var command = new RegisterMessageCommands();
+        var request = new RegisterMessageCommands();
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -123,10 +122,10 @@ public sealed class MessageCommandExecutedHandlerTests
         // Arrange
         _message.Content.Returns(string.Empty);
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
@@ -156,10 +155,10 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
@@ -203,10 +202,10 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(1).SupportedLanguages;
@@ -227,10 +226,10 @@ public sealed class MessageCommandExecutedHandlerTests
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _messageCommand
@@ -262,10 +261,10 @@ public sealed class MessageCommandExecutedHandlerTests
                 .ThrowsAsync(new InvalidOperationException("test"));
         }
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
@@ -305,10 +304,10 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var command = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;

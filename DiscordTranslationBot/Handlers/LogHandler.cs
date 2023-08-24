@@ -22,12 +22,12 @@ public sealed partial class LogHandler : IRequestHandler<LogDiscordMessage>
     /// <summary>
     /// Logs Discord log messages to the app's logger.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="request">The request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public Task Handle(LogDiscordMessage command, CancellationToken cancellationToken)
+    public Task Handle(LogDiscordMessage request, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = command.LogMessage.Severity switch
+        var logLevel = request.LogMessage.Severity switch
         {
             LogSeverity.Debug => LogLevel.Debug,
             LogSeverity.Verbose => LogLevel.Trace,
@@ -40,9 +40,9 @@ public sealed partial class LogHandler : IRequestHandler<LogDiscordMessage>
 
         LogDiscordMessage(
             logLevel,
-            command.LogMessage.Exception,
-            command.LogMessage.Source,
-            command.LogMessage.Message
+            request.LogMessage.Exception,
+            request.LogMessage.Source,
+            request.LogMessage.Message
         );
 
         return Task.CompletedTask;

@@ -27,7 +27,7 @@ public sealed class LogHandlerTests
         // Arrange
         _logger.IsEnabled(expectedLevel).Returns(true);
 
-        var command = new LogDiscordMessage
+        var request = new LogDiscordMessage
         {
             LogMessage = new LogMessage(severity, "source", "message",
 #pragma warning disable CA2201
@@ -37,7 +37,7 @@ public sealed class LogHandlerTests
         };
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         var logArgs = _logger
@@ -48,9 +48,9 @@ public sealed class LogHandlerTests
         logArgs[0].Should().Be(expectedLevel);
 
         var logMessages = (IReadOnlyList<KeyValuePair<string, object>>)logArgs[2]!;
-        logMessages[0].Value.Should().Be(command.LogMessage.Source);
-        logMessages[1].Value.Should().Be(command.LogMessage.Message);
+        logMessages[0].Value.Should().Be(request.LogMessage.Source);
+        logMessages[1].Value.Should().Be(request.LogMessage.Message);
 
-        logArgs[3].Should().Be(command.LogMessage.Exception);
+        logArgs[3].Should().Be(request.LogMessage.Exception);
     }
 }
