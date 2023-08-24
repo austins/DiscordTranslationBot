@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CA1852 // Class must be sealed.
-global using Mediator;
+global using MediatR;
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
@@ -19,7 +19,11 @@ await Host.CreateDefaultBuilder(args)
             // Set up services.
             services
                 .AddTranslationProviders(builder.Configuration)
-                .AddMediator()
+                .AddMediatR(c =>
+                {
+                    c.Lifetime = ServiceLifetime.Singleton;
+                    c.RegisterServicesFromAssemblyContaining<Program>();
+                })
                 .AddHttpClient()
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(

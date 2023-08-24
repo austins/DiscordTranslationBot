@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Handlers;
 /// <summary>
 /// Handles the Log event of the Discord client.
 /// </summary>
-public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
+public sealed partial class LogHandler : IRequestHandler<LogDiscordMessage>
 {
     private readonly ILogger<LogHandler> _logger;
 
@@ -24,7 +24,7 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public ValueTask<Unit> Handle(LogDiscordMessage command, CancellationToken cancellationToken)
+    public Task Handle(LogDiscordMessage command, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
         var logLevel = command.LogMessage.Severity switch
@@ -45,7 +45,7 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
             command.LogMessage.Message
         );
 
-        return Unit.ValueTask;
+        return Task.CompletedTask;
     }
 
     [LoggerMessage(Message = "Discord {source}: {message}")]

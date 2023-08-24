@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Commands.MessageCommandExecuted;
 /// <summary>
 /// Command to process a translate message command.
 /// </summary>
-public sealed class ProcessTranslateMessageCommand : ICommand
+public sealed class ProcessTranslateMessageCommand : IRequest
 {
     /// <summary>
     /// The message command from the event.

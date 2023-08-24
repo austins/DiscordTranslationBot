@@ -25,7 +25,7 @@ public sealed class JoinedGuildHandler : INotificationHandler<JoinedGuildNotific
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
         await _mediator.Send(new RegisterMessageCommands { Guild = notification.Guild }, cancellationToken);
 

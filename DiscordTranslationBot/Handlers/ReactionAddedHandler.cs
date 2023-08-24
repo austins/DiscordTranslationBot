@@ -16,7 +16,7 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public partial class ReactionAddedHandler
     : INotificationHandler<ReactionAddedNotification>,
-        ICommandHandler<ProcessFlagEmojiReaction>
+        IRequestHandler<ProcessFlagEmojiReaction>
 {
     private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;
@@ -52,7 +52,7 @@ public partial class ReactionAddedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async ValueTask<Unit> Handle(ProcessFlagEmojiReaction command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessFlagEmojiReaction command, CancellationToken cancellationToken)
     {
         if (command.Message.Author.Id == _client.CurrentUser?.Id)
         {
@@ -64,7 +64,7 @@ public partial class ReactionAddedHandler
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         var sanitizedMessage = FormatUtility.SanitizeText(command.Message.Content);
@@ -79,7 +79,7 @@ public partial class ReactionAddedHandler
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         string? providerName = null;
@@ -113,7 +113,7 @@ public partial class ReactionAddedHandler
                         cancellationToken
                     );
 
-                    return Unit.Value;
+                    return;
                 }
             }
             catch (Exception ex)
@@ -130,7 +130,7 @@ public partial class ReactionAddedHandler
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
@@ -145,7 +145,7 @@ public partial class ReactionAddedHandler
                 cancellationToken
             );
 
-            return Unit.Value;
+            return;
         }
 
         // Send the reply message.
@@ -163,8 +163,6 @@ public partial class ReactionAddedHandler
             cancellationToken,
             20
         );
-
-        return Unit.Value;
     }
 
     /// <summary>
@@ -172,7 +170,7 @@ public partial class ReactionAddedHandler
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async ValueTask Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
         if (
             Emoji.IsEmoji(notification.Reaction.Emote.Name)

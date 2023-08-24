@@ -8,7 +8,6 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
-using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -17,8 +16,8 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public partial class MessageCommandExecutedHandler
     : INotificationHandler<MessageCommandExecutedNotification>,
-        ICommandHandler<RegisterMessageCommands>,
-        ICommandHandler<ProcessTranslateMessageCommand>
+        IRequestHandler<RegisterMessageCommands>,
+        IRequestHandler<ProcessTranslateMessageCommand>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -50,7 +49,7 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(ProcessTranslateMessageCommand command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessTranslateMessageCommand command, CancellationToken cancellationToken)
     {
         if (command.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
@@ -62,7 +61,7 @@ public partial class MessageCommandExecutedHandler
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         var sanitizedMessage = FormatUtility.SanitizeText(command.Command.Data.Message.Content);
@@ -70,7 +69,7 @@ public partial class MessageCommandExecutedHandler
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
-            return Unit.Value;
+            return;
         }
 
         var userLocale = command.Command.UserLocale;
@@ -127,7 +126,7 @@ public partial class MessageCommandExecutedHandler
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
@@ -140,7 +139,7 @@ public partial class MessageCommandExecutedHandler
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
-            return Unit.Value;
+            return;
         }
 
         var fromHeading = $"By {MentionUtils.MentionUser(command.Command.Data.Message.Author.Id)}";
@@ -170,8 +169,6 @@ public partial class MessageCommandExecutedHandler
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken }
         );
-
-        return Unit.Value;
     }
 
     /// <summary>
@@ -179,7 +176,7 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(RegisterMessageCommands command, CancellationToken cancellationToken)
+    public async Task Handle(RegisterMessageCommands command, CancellationToken cancellationToken)
     {
         IReadOnlyList<IGuild> guilds =
             command.Guild != null
@@ -190,7 +187,7 @@ public partial class MessageCommandExecutedHandler
 
         if (!guilds.Any())
         {
-            return Unit.Value;
+            return;
         }
 
         var translateCommand = new MessageCommandBuilder()
@@ -211,8 +208,6 @@ public partial class MessageCommandExecutedHandler
                 _log.FailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
-
-        return Unit.Value;
     }
 
     /// <summary>
@@ -220,7 +215,7 @@ public partial class MessageCommandExecutedHandler
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
         if (notification.Command.Data.Name == MessageCommandConstants.TranslateCommandName)
         {

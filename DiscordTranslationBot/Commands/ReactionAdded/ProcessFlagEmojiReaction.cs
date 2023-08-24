@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Commands.ReactionAdded;
 /// <summary>
 /// Command for processing a flag emoji reaction.
 /// </summary>
-public sealed class ProcessFlagEmojiReaction : ICommand
+public sealed class ProcessFlagEmojiReaction : IRequest
 {
     /// <summary>
     /// The user message.

@@ -25,7 +25,7 @@ public sealed class ReadyHandler : INotificationHandler<ReadyNotification>
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(ReadyNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(ReadyNotification notification, CancellationToken cancellationToken)
     {
         await _mediator.Send(new RegisterMessageCommands(), cancellationToken);
         await _mediator.Send(new RegisterSlashCommands(), cancellationToken);

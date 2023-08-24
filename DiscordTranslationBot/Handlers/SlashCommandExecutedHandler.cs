@@ -16,8 +16,8 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public sealed partial class SlashCommandExecutedHandler
     : INotificationHandler<SlashCommandExecutedNotification>,
-        ICommandHandler<RegisterSlashCommands>,
-        ICommandHandler<ProcessTranslateSlashCommand>
+        IRequestHandler<RegisterSlashCommands>,
+        IRequestHandler<ProcessTranslateSlashCommand>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -49,7 +49,7 @@ public sealed partial class SlashCommandExecutedHandler
     /// <param name="command">The Mediator command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async ValueTask<Unit> Handle(ProcessTranslateSlashCommand command, CancellationToken cancellationToken)
+    public async Task Handle(ProcessTranslateSlashCommand command, CancellationToken cancellationToken)
     {
         // Get the input values.
         var options = command.Command.Data.Options;
@@ -71,7 +71,8 @@ public sealed partial class SlashCommandExecutedHandler
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
-            return Unit.Value;
+
+            return;
         }
 
         var translationProvider = _translationProviders[0];
@@ -100,7 +101,7 @@ public sealed partial class SlashCommandExecutedHandler
                     options: new RequestOptions { CancelToken = cancellationToken }
                 );
 
-                return Unit.Value;
+                return;
             }
 
             await command.Command.RespondAsync(
@@ -115,8 +116,6 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
         {
             _log.TranslationFailure(ex, translationProvider.GetType());
         }
-
-        return Unit.Value;
     }
 
     /// <summary>
@@ -125,7 +124,7 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
     /// <param name="command">The Mediator command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    public async ValueTask<Unit> Handle(RegisterSlashCommands command, CancellationToken cancellationToken)
+    public async Task Handle(RegisterSlashCommands command, CancellationToken cancellationToken)
     {
         IReadOnlyList<IGuild> guilds =
             command.Guild != null
@@ -136,7 +135,7 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
 
         if (!guilds.Any())
         {
-            return Unit.Value;
+            return;
         }
 
         // Translate command.
@@ -231,8 +230,6 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
                 _log.FailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
-
-        return Unit.Value;
     }
 
     /// <summary>
@@ -240,7 +237,7 @@ To {Format.Italics(translationResult.TargetLanguageName)}:
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask Handle(SlashCommandExecutedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(SlashCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
         if (notification.Command.Data.Name == SlashCommandConstants.TranslateCommandName)
         {
