@@ -6,6 +6,7 @@ using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Services;
+using MediatR.NotificationPublishers;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureServices(
@@ -22,6 +23,7 @@ await Host.CreateDefaultBuilder(args)
                 .AddMediatR(c =>
                 {
                     c.Lifetime = ServiceLifetime.Singleton;
+                    c.NotificationPublisherType = typeof(TaskWhenAllPublisher);
                     c.RegisterServicesFromAssemblyContaining<Program>();
                 })
                 .AddHttpClient()

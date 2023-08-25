@@ -14,4 +14,8 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0"/>
         <PackageReference Include="Unicode.net" Version="2.0.0"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Requests\"/>
+    </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 ﻿using Discord;
-using DiscordTranslationBot.Commands.ReactionAdded;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
@@ -12,37 +11,31 @@ using Emoji = NeoSmart.Unicode.Emoji;
 namespace DiscordTranslationBot.Handlers;
 
 /// <summary>
-/// Handles the ReactionAdded event of the Discord client.
+/// Handler for flag emoji reactions.
 /// </summary>
-public partial class ReactionAddedHandler
-    : INotificationHandler<ReactionAddedNotification>,
-        IRequestHandler<ProcessFlagEmojiReaction>
+public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IDiscordClient _client;
+    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
     private readonly ICountryService _countryService;
     private readonly Log _log;
-    private readonly IMediator _mediator;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ReactionAddedHandler" /> class.
+    /// Initializes a new instance of the <see cref="FlagEmojiReactionHandler" /> class.
     /// </summary>
-    /// <param name="mediator">Mediator to use.</param>
-    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
+    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="countryService">Country service to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public ReactionAddedHandler(
-        IMediator mediator,
-        IEnumerable<ITranslationProvider> translationProviders,
+    public FlagEmojiReactionHandler(
         IDiscordClient client,
+        IEnumerable<ITranslationProvider> translationProviders,
         ICountryService countryService,
-        ILogger<ReactionAddedHandler> logger
+        ILogger<FlagEmojiReactionHandler> logger
     )
     {
-        _mediator = mediator;
-        _translationProviders = translationProviders.ToList();
         _client = client;
+        _translationProviders = translationProviders.ToList();
         _countryService = countryService;
         _log = new Log(logger);
     }
@@ -50,32 +43,40 @@ public partial class ReactionAddedHandler
     /// <summary>
     /// Translates any message that got a flag emoji reaction on it.
     /// </summary>
-    /// <param name="request">The request.</param>
+    /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(ProcessFlagEmojiReaction request, CancellationToken cancellationToken)
+    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (request.Message.Author.Id == _client.CurrentUser?.Id)
+        if (
+            !Emoji.IsEmoji(notification.Reaction.Emote.Name)
+            || !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)
+        )
+        {
+            return;
+        }
+
+        if (notification.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await request.Message.RemoveReactionAsync(
-                request.Reaction.Emote,
-                request.Reaction.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
             return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(request.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(notification.Message.Content);
 
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await request.Message.RemoveReactionAsync(
-                request.Reaction.Emote,
-                request.Reaction.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -91,7 +92,7 @@ public partial class ReactionAddedHandler
                 providerName = translationProvider.ProviderName;
 
                 translationResult = await translationProvider.TranslateByCountryAsync(
-                    request.Country,
+                    country,
                     sanitizedMessage,
                     cancellationToken
                 );
@@ -100,16 +101,16 @@ public partial class ReactionAddedHandler
             }
             catch (UnsupportedCountryException ex)
             {
-                _log.UnsupportedCountry(ex, request.Country.Name, translationProvider.GetType());
+                _log.UnsupportedCountry(ex, country.Name, translationProvider.GetType());
 
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
                     SendTempMessage(
                         ex.Message,
-                        request.Reaction,
-                        request.Message.Channel,
-                        request.Message.Id,
+                        notification.Reaction,
+                        notification.Message.Channel,
+                        notification.Message.Id,
                         cancellationToken
                     );
 
@@ -124,9 +125,9 @@ public partial class ReactionAddedHandler
 
         if (translationResult == null)
         {
-            await request.Message.RemoveReactionAsync(
-                request.Reaction.Emote,
-                request.Reaction.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
                 new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -139,9 +140,9 @@ public partial class ReactionAddedHandler
 
             SendTempMessage(
                 "Couldn't detect the source language to translate from or the result is the same.",
-                request.Reaction,
-                request.Message.Channel,
-                request.Message.Id,
+                notification.Reaction,
+                notification.Message.Channel,
+                notification.Message.Id,
                 cancellationToken
             );
 
@@ -157,36 +158,12 @@ public partial class ReactionAddedHandler
 
         SendTempMessage(
             replyText,
-            request.Reaction,
-            request.Message.Channel,
-            request.Message.Id,
+            notification.Reaction,
+            notification.Message.Channel,
+            notification.Message.Id,
             cancellationToken,
             20
         );
-    }
-
-    /// <summary>
-    /// Delegates reaction added events to the correct handler.
-    /// </summary>
-    /// <param name="notification">The notification.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
-    {
-        if (
-            Emoji.IsEmoji(notification.Reaction.Emote.Name)
-            && _countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)
-        )
-        {
-            await _mediator.Send(
-                new ProcessFlagEmojiReaction
-                {
-                    Message = notification.Message,
-                    Reaction = notification.Reaction,
-                    Country = country!
-                },
-                cancellationToken
-            );
-        }
     }
 
     /// <summary>
@@ -247,9 +224,9 @@ public partial class ReactionAddedHandler
 
     private sealed partial class Log
     {
-        private readonly ILogger<ReactionAddedHandler> _logger;
+        private readonly ILogger<FlagEmojiReactionHandler> _logger;
 
-        public Log(ILogger<ReactionAddedHandler> logger)
+        public Log(ILogger<FlagEmojiReactionHandler> logger)
         {
             _logger = logger;
         }
