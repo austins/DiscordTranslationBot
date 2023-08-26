@@ -1,18 +1,18 @@
 ﻿using Discord;
-using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Handlers;
+using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class LogHandlerTests
+public sealed class RedirectLogMessageToLoggerHandlerTests
 {
-    private readonly ILogger<LogHandler> _logger;
-    private readonly LogHandler _sut;
+    private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
+    private readonly RedirectLogMessageToLoggerHandler _sut;
 
-    public LogHandlerTests()
+    public RedirectLogMessageToLoggerHandlerTests()
     {
-        _logger = Substitute.For<ILogger<LogHandler>>();
-        _sut = new LogHandler(_logger);
+        _logger = Substitute.For<ILogger<RedirectLogMessageToLoggerHandler>>();
+        _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
     [Theory]
@@ -22,12 +22,12 @@ public sealed class LogHandlerTests
     [InlineData(LogSeverity.Warning, LogLevel.Warning)]
     [InlineData(LogSeverity.Error, LogLevel.Error)]
     [InlineData(LogSeverity.Critical, LogLevel.Critical)]
-    public async Task Handle_LogDiscordMessage_Success(LogSeverity severity, LogLevel expectedLevel)
+    public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
         _logger.IsEnabled(expectedLevel).Returns(true);
 
-        var request = new LogDiscordMessage
+        var request = new LogNotification
         {
             LogMessage = new LogMessage(severity, "source", "message",
 #pragma warning disable CA2201

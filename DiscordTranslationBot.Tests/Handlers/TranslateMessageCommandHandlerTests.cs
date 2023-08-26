@@ -1,5 +1,4 @@
 ﻿using Discord;
-using DiscordTranslationBot.Commands.MessageCommandExecuted;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models.Providers.Translation;
@@ -8,19 +7,18 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class MessageCommandExecutedHandlerTests
+public sealed class TranslateMessageCommandHandlerTests
 {
     private const ulong BotUserId = 1UL;
-    private readonly IDiscordClient _client;
-    private readonly IMediator _mediator;
     private readonly IMessage _message;
-    private readonly IMessageCommandInteraction _messageCommand;
-    private readonly MessageCommandExecutedHandler _sut;
+    private readonly IMessageCommandInteraction _command;
+    private readonly TranslateMessageCommandHandler _sut;
     private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
-    public MessageCommandExecutedHandlerTests()
+    public TranslateMessageCommandHandlerTests()
     {
-        _mediator = Substitute.For<IMediator>();
+        var client = Substitute.For<IDiscordClient>();
+        client.CurrentUser.Id.Returns(BotUserId);
 
         _translationProviders = new List<ITranslationProvider>
         {
@@ -28,14 +26,10 @@ public sealed class MessageCommandExecutedHandlerTests
             Substitute.For<ITranslationProvider>()
         };
 
-        _client = Substitute.For<IDiscordClient>();
-        _client.CurrentUser.Id.Returns(BotUserId);
-
-        _sut = Substitute.ForPartsOf<MessageCommandExecutedHandler>(
-            _mediator,
+        _sut = Substitute.ForPartsOf<TranslateMessageCommandHandler>(
+            client,
             _translationProviders,
-            _client,
-            Substitute.For<ILogger<MessageCommandExecutedHandler>>()
+            Substitute.For<ILogger<TranslateMessageCommandHandler>>()
         );
 
         _message = Substitute.For<IMessage>();
@@ -43,10 +37,11 @@ public sealed class MessageCommandExecutedHandlerTests
         _message.Channel.Returns(Substitute.For<IMessageChannel>());
 
         var data = Substitute.For<IMessageCommandInteractionData>();
+        data.Name.Returns(MessageCommandConstants.TranslateCommandName);
         data.Message.Returns(_message);
 
-        _messageCommand = Substitute.For<IMessageCommandInteraction>();
-        _messageCommand.Data.Returns(data);
+        _command = Substitute.For<IMessageCommandInteraction>();
+        _command.Data.Returns(data);
 
         _sut.Configure().GetJumpUrl(_message).Returns(new Uri("http://localhost/test"));
     }
@@ -55,88 +50,8 @@ public sealed class MessageCommandExecutedHandlerTests
     public async Task Handle_MessageCommandExecutedNotification_Success()
     {
         // Arrange
-        var command = Substitute.For<IMessageCommandInteraction>();
-        command.Data.Name.Returns(MessageCommandConstants.TranslateCommandName);
-
-        var notification = new MessageCommandExecutedNotification { Command = command };
-
-        // Act
-        await _sut.Handle(notification, CancellationToken.None);
-
-        // Assert
-        await _mediator.Received(1).Send(Arg.Any<ProcessTranslateMessageCommand>(), Arg.Any<CancellationToken>());
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Handle_RegisterMessageCommands_Success(bool isSpecificGuild)
-    {
-        // Arrange
-        IReadOnlyList<IGuild> guilds = isSpecificGuild
-            ? new List<IGuild> { Substitute.For<IGuild>() }
-            : new List<IGuild> { Substitute.For<IGuild>(), Substitute.For<IGuild>() };
-
-        if (!isSpecificGuild)
-        {
-            _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
-        }
-
-        var request = new RegisterMessageCommands { Guild = isSpecificGuild ? guilds[0] : null };
-
-        // Act
-        await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        if (!isSpecificGuild)
-        {
-            await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
-        }
-
-        foreach (var guild in guilds)
-        {
-            await guild
-                .Received(1)
-                .CreateApplicationCommandAsync(Arg.Any<ApplicationCommandProperties>(), Arg.Any<RequestOptions>());
-        }
-    }
-
-    [Fact]
-    public async Task Handle_RegisterMessageCommands_NoGuilds_Returns()
-    {
-        // Arrange
-        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(new List<IGuild>());
-
-        var request = new RegisterMessageCommands();
-
-        // Act
-        await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
-    }
-
-    [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_Returns_WhenSanitizedMessageIsEmpty()
-    {
-        // Arrange
-        _message.Content.Returns(string.Empty);
-
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
-
-        // Act
-        await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
-    }
-
-    [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_Success()
-    {
-        // Arrange
         _message.Content.Returns("text");
-        _messageCommand.UserLocale.Returns("en-US");
+        _command.UserLocale.Returns("en-US");
 
         var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
 
@@ -155,15 +70,15 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var notification = new MessageCommandExecutedNotification { Command = _command };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
-        await _messageCommand
+        await _command
             .Received(1)
             .RespondAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
@@ -173,11 +88,46 @@ public sealed class MessageCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_UsesNextTranslationProvider_Success()
+    public async Task Handle_MessageCommandExecutedNotification_NotTranslateCommand_Returns()
+    {
+        // Arrange
+        _command.Data.Name.Returns("not_the_translate_command");
+
+        var notification = new MessageCommandExecutedNotification { Command = _command };
+
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        _ = notification.Command.Data.Received(1).Name;
+        _ = notification.Command.Data.Message.Author.DidNotReceive().Id;
+
+        await notification.Command
+            .DidNotReceive()
+            .RespondAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
+    }
+
+    [Fact]
+    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenSanitizedMessageIsEmpty()
+    {
+        // Arrange
+        _message.Content.Returns(string.Empty);
+
+        var notification = new MessageCommandExecutedNotification { Command = _command };
+
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
+    }
+
+    [Fact]
+    public async Task Handle_MessageCommandExecutedNotification_UsesNextTranslationProvider_Success()
     {
         // Arrange
         _message.Content.Returns("text");
-        _messageCommand.UserLocale.Returns("en");
+        _command.UserLocale.Returns("en");
 
         var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
 
@@ -202,16 +152,16 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var notification = new MessageCommandExecutedNotification { Command = _command };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(1).SupportedLanguages;
         _ = _translationProviders[1].Received(1).SupportedLanguages;
 
-        await _messageCommand
+        await _command
             .Received(1)
             .RespondAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
@@ -221,18 +171,18 @@ public sealed class MessageCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_Returns_WhenTranslatingBotMessage()
+    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var notification = new MessageCommandExecutedNotification { Command = _command };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _messageCommand
+        await _command
             .Received(1)
             .RespondAsync(
                 "Translating this bot's messages isn't allowed.",
@@ -242,13 +192,13 @@ public sealed class MessageCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_Returns_IfNoProviderSupportsLocale()
+    public async Task Handle_MessageCommandExecutedNotification_Returns_IfNoProviderSupportsLocale()
     {
         // Arrange
         _message.Content.Returns("text");
 
         const string userLocale = "en-US";
-        _messageCommand.UserLocale.Returns(userLocale);
+        _command.UserLocale.Returns(userLocale);
 
         var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
 
@@ -261,15 +211,15 @@ public sealed class MessageCommandExecutedHandlerTests
                 .ThrowsAsync(new InvalidOperationException("test"));
         }
 
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var notification = new MessageCommandExecutedNotification { Command = _command };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
-        await _messageCommand
+        await _command
             .Received(1)
             .RespondAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
@@ -279,13 +229,13 @@ public sealed class MessageCommandExecutedHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ProcessTranslateMessageCommand_Returns_WhenTranslatedTextIsSame()
+    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenTranslatedTextIsSame()
     {
         // Arrange
         const string text = "text";
 
         _message.Content.Returns(text);
-        _messageCommand.UserLocale.Returns("en-US");
+        _command.UserLocale.Returns("en-US");
 
         var supportedLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
 
@@ -304,15 +254,15 @@ public sealed class MessageCommandExecutedHandlerTests
                 }
             );
 
-        var request = new ProcessTranslateMessageCommand { Command = _messageCommand };
+        var notification = new MessageCommandExecutedNotification { Command = _command };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
-        await _messageCommand
+        await _command
             .Received(1)
             .RespondAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",

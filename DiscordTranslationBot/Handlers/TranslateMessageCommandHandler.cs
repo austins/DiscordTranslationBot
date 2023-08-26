@@ -20,17 +20,17 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateMessageCommandHandler" /> class.
     /// </summary>
-    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="client">Discord client to use.</param>
+    /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateMessageCommandHandler(
-        IEnumerable<ITranslationProvider> translationProviders,
         IDiscordClient client,
+        IEnumerable<ITranslationProvider> translationProviders,
         ILogger<TranslateMessageCommandHandler> logger
     )
     {
-        _translationProviders = translationProviders.ToList();
         _client = client;
+        _translationProviders = translationProviders.ToList();
         _log = new Log(logger);
     }
 

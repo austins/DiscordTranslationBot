@@ -82,13 +82,13 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         }
 
         using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri(
-                "https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"
-            )
-        };
+        using var request = new HttpRequestMessage();
+
+        request.Method = HttpMethod.Get;
+
+        request.RequestUri = new Uri(
+            "https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"
+        );
 
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -152,14 +152,14 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 translateUrl += $"&from={sourceLanguage.LangCode}";
             }
 
-            using var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(translateUrl),
-                Content = httpClient.SerializeTranslationRequestContent(
-                    new List<ITranslateRequest> { new TranslateRequest { Text = text } }
-                )
-            };
+            using var request = new HttpRequestMessage();
+
+            request.Method = HttpMethod.Post;
+            request.RequestUri = new Uri(translateUrl);
+
+            request.Content = httpClient.SerializeTranslationRequestContent(
+                new List<ITranslateRequest> { new TranslateRequest { Text = text } }
+            );
 
             request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
             request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);

@@ -55,10 +55,8 @@ public sealed class TranslationExtensionsTests
         const string content =
             $@"{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}";
 
-        using var httpResponseMessage = new HttpResponseMessage
-        {
-            Content = new StringContent(content, Encoding.UTF8, "application/json")
-        };
+        using var httpResponseMessage = new HttpResponseMessage();
+        httpResponseMessage.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
         var expected = new TranslateResult
         {
@@ -85,10 +83,8 @@ public sealed class TranslationExtensionsTests
         const string content =
             $@"[{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}]";
 
-        using var httpResponseMessage = new HttpResponseMessage
-        {
-            Content = new StringContent(content, Encoding.UTF8, "application/json")
-        };
+        using var httpResponseMessage = new HttpResponseMessage();
+        httpResponseMessage.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
         var expected = new List<TranslateResult>
         {
