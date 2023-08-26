@@ -1,33 +1,33 @@
 ﻿using Discord;
-using DiscordTranslationBot.Commands;
+using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Handlers;
 
 /// <summary>
-/// Handles the Log event of the Discord client.
+/// Handler for redirecting Discord log messages to the logger.
 /// </summary>
-public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
+public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHandler<LogNotification>
 {
-    private readonly ILogger<LogHandler> _logger;
+    private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LogHandler" /> class.
+    /// Initializes a new instance of the <see cref="RedirectLogMessageToLoggerHandler" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
-    public LogHandler(ILogger<LogHandler> logger)
+    public RedirectLogMessageToLoggerHandler(ILogger<RedirectLogMessageToLoggerHandler> logger)
     {
         _logger = logger;
     }
 
     /// <summary>
-    /// Logs Discord log messages to the app's logger.
+    /// Redirect Discord log messages to the app's logger.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="notification">The request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public ValueTask<Unit> Handle(LogDiscordMessage command, CancellationToken cancellationToken)
+    public Task Handle(LogNotification notification, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = command.LogMessage.Severity switch
+        var logLevel = notification.LogMessage.Severity switch
         {
             LogSeverity.Debug => LogLevel.Debug,
             LogSeverity.Verbose => LogLevel.Trace,
@@ -40,12 +40,12 @@ public sealed partial class LogHandler : ICommandHandler<LogDiscordMessage>
 
         LogDiscordMessage(
             logLevel,
-            command.LogMessage.Exception,
-            command.LogMessage.Source,
-            command.LogMessage.Message
+            notification.LogMessage.Exception,
+            notification.LogMessage.Source,
+            notification.LogMessage.Message
         );
 
-        return Unit.ValueTask;
+        return Task.CompletedTask;
     }
 
     [LoggerMessage(Message = "Discord {source}: {message}")]

@@ -30,7 +30,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
     private async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "unsupported_country")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "unsupported_country")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         };

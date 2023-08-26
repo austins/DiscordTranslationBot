@@ -4,4 +4,4 @@ global using NSubstitute;
 global using NSubstitute.ExceptionExtensions;
 global using NSubstitute.Extensions;
 global using Microsoft.Extensions.Logging;
-global using Mediator;
+global using MediatR;

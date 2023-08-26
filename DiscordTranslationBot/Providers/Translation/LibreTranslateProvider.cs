@@ -48,11 +48,9 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         }
 
         using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages")
-        };
+        using var request = new HttpRequestMessage();
+        request.Method = HttpMethod.Get;
+        request.RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages");
 
         var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
@@ -97,19 +95,19 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
-            using var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
-                Content = httpClient.SerializeTranslationRequestContent(
-                    new TranslateRequest
-                    {
-                        Text = text,
-                        SourceLangCode = sourceLanguage?.LangCode ?? "auto",
-                        TargetLangCode = targetLanguage.LangCode
-                    }
-                )
-            };
+            using var request = new HttpRequestMessage();
+
+            request.Method = HttpMethod.Post;
+            request.RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/translate");
+
+            request.Content = httpClient.SerializeTranslationRequestContent(
+                new TranslateRequest
+                {
+                    Text = text,
+                    SourceLangCode = sourceLanguage?.LangCode ?? "auto",
+                    TargetLangCode = targetLanguage.LangCode
+                }
+            );
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)

@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using DiscordTranslationBot.Models;
 using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Services;
@@ -14,7 +15,7 @@ public interface ICountryService
     /// <param name="emojiUnicode">The unicode string of the flag emoji.</param>
     /// <param name="country">The country found.</param>
     /// <returns>true if country found; false if not.</returns>
-    bool TryGetCountry(string emojiUnicode, out Country? country);
+    bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country);
 }
 
 /// <summary>
@@ -39,10 +40,9 @@ public sealed partial class CountryService : ICountryService
         _log = new Log(logger);
 
         // Get all flag emojis.
-        var flagEmoji = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" });
-
-        _countries = flagEmoji
-            .Select(e => new Country(e.ToString(), e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
+        _countries = Emoji.All
+            .Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
+            .Select(e => new Country(e.ToString()!, e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToHashSet();
 
         if (!_countries.Any())
@@ -55,7 +55,7 @@ public sealed partial class CountryService : ICountryService
     }
 
     /// <inheritdoc cref="ICountryService.TryGetCountry" />
-    public bool TryGetCountry(string emojiUnicode, out Country? country)
+    public bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country)
     {
         country = _countries.SingleOrDefault(c => c.EmojiUnicode == emojiUnicode);
         return country != null;

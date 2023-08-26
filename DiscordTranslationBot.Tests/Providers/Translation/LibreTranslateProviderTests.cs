@@ -121,7 +121,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
@@ -206,7 +206,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     )
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
@@ -230,7 +230,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
@@ -266,7 +266,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_JsonException_OnFailureToDeserialize()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
@@ -297,7 +297,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_HttpRequestException_OnFailureToSendRequest()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString(), "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };

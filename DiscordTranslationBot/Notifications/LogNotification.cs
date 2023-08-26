@@ -1,11 +1,11 @@
 ﻿using Discord;
 
-namespace DiscordTranslationBot.Commands;
+namespace DiscordTranslationBot.Notifications;
 
 /// <summary>
-/// Command to log a Discord log message.
+/// Notification for the Discord log event.
 /// </summary>
-public sealed class LogDiscordMessage : ICommand
+public sealed class LogNotification : INotification
 {
     /// <summary>
     /// The Discord log message.

@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using DiscordTranslationBot.Commands;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Notifications;
 
@@ -36,7 +35,7 @@ public sealed partial class DiscordEventListener
     public Task InitializeEventsAsync()
     {
         _client.Log += async logMessage =>
-            await _mediator.Send(new LogDiscordMessage { LogMessage = logMessage }, _cancellationToken);
+            await _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
 
         _client.Ready += async () => await _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
