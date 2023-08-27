@@ -10,10 +10,10 @@ namespace DiscordTranslationBot.Services;
 /// </summary>
 public sealed partial class DiscordEventListener
 {
-    private readonly CancellationToken _cancellationToken;
     private readonly DiscordSocketClient _client;
-    private readonly Log _log;
     private readonly IMediator _mediator;
+    private readonly CancellationToken _cancellationToken;
+    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DiscordEventListener" /> class.
@@ -34,26 +34,25 @@ public sealed partial class DiscordEventListener
     /// </summary>
     public Task InitializeEventsAsync()
     {
-        _client.Log += async logMessage =>
-            await _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
+        _client.Log += logMessage =>
+            _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
 
-        _client.Ready += async () => await _mediator.Publish(new ReadyNotification(), _cancellationToken);
+        _client.Ready += () => _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
-        _client.JoinedGuild += async guild =>
-            await _mediator.Publish(new JoinedGuildNotification { Guild = guild }, _cancellationToken);
+        _client.JoinedGuild += guild =>
+            _mediator.Publish(new JoinedGuildNotification { Guild = guild }, _cancellationToken);
 
-        _client.MessageCommandExecuted += async command =>
-            await _mediator.Publish(new MessageCommandExecutedNotification { Command = command }, _cancellationToken);
+        _client.MessageCommandExecuted += command =>
+            _mediator.Publish(new MessageCommandExecutedNotification { Command = command }, _cancellationToken);
 
-        _client.SlashCommandExecuted += async command =>
-            await _mediator.Publish(new SlashCommandExecutedNotification { Command = command }, _cancellationToken);
+        _client.SlashCommandExecuted += command =>
+            _mediator.Publish(new SlashCommandExecutedNotification { Command = command }, _cancellationToken);
 
-        _client.ReactionAdded += async (message, channel, reaction) =>
+        _client.ReactionAdded += async (message, _, reaction) =>
             await _mediator.Publish(
                 new ReactionAddedNotification
                 {
                     Message = await message.GetOrDownloadAsync(),
-                    Channel = await channel.GetOrDownloadAsync(),
                     Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
                 },
                 _cancellationToken

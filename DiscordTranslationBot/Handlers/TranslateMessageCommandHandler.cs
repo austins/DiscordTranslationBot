@@ -148,12 +148,13 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         var toHeading =
             $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
 
-        var description =
-            $@"{Format.Bold(fromHeading)}:
-{sanitizedMessage.Truncate(50)}
+        var description = $"""
+             {Format.Bold(fromHeading)}:
+             {sanitizedMessage.Truncate(50)}
 
-{Format.Bold(toHeading)}:
-{translationResult.TranslatedText}";
+             {Format.Bold(toHeading)}:
+             {translationResult.TranslatedText}
+             """;
 
         await notification.Command.RespondAsync(
             embed: new EmbedBuilder()

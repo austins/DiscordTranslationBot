@@ -94,10 +94,12 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             }
 
             await notification.Command.RespondAsync(
-                $@"{MentionUtils.MentionUser(notification.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
-{Format.Quote(sanitizedText)}
-To {Format.Italics(translationResult.TargetLanguageName)}:
-{Format.Quote(translationResult.TranslatedText)}",
+                $"""
+                 {MentionUtils.MentionUser(notification.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {Format.Quote(sanitizedText)}
+                 To {Format.Italics(translationResult.TargetLanguageName)}:
+                 {Format.Quote(translationResult.TranslatedText)}
+                 """,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
         }

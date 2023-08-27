@@ -19,5 +19,5 @@ public sealed class Reaction
     /// <summary>
     /// The emote of the reaction.
     /// </summary>
-    public required IEmote Emote { get; set; }
+    public required IEmote Emote { get; init; }
 }

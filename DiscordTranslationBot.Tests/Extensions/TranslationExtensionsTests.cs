@@ -12,7 +12,7 @@ public sealed class TranslationExtensionsTests
     {
         // Arrange
         const string text = "の";
-        const string expected = $@"{{""Text"":""{text}""}}";
+        const string expected = $$"""{"Text":"{{text}}"}""";
 
         using var httpClient = new HttpClient();
         var content = new TranslateRequest { Text = text };
@@ -31,7 +31,7 @@ public sealed class TranslationExtensionsTests
     {
         // Arrange
         const string text = "の";
-        const string expected = $@"[{{""Text"":""{text}""}}]";
+        const string expected = $$"""[{"Text":"{{text}}"}]""";
 
         using var httpClient = new HttpClient();
         var content = new List<ITranslateRequest> { new TranslateRequest { Text = text } };
@@ -53,7 +53,7 @@ public sealed class TranslationExtensionsTests
         const string translation = "の";
 
         const string content =
-            $@"{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}";
+            $$"""{"detectedLanguage":{"language":"{{detectedLanguageCode}}","score":1.0},"translations":[{"text":"{{translation}}","to":"ja"}]}""";
 
         using var httpResponseMessage = new HttpResponseMessage();
         httpResponseMessage.Content = new StringContent(content, Encoding.UTF8, "application/json");
@@ -81,7 +81,7 @@ public sealed class TranslationExtensionsTests
         const string translation = "の";
 
         const string content =
-            $@"[{{""detectedLanguage"":{{""language"":""{detectedLanguageCode}"",""score"":1.0}},""translations"":[{{""text"":""{translation}"",""to"":""ja""}}]}}]";
+            $$"""[{"detectedLanguage":{"language":"{{detectedLanguageCode}}","score":1.0},"translations":[{"text":"{{translation}}","to":"ja"}]}]""";
 
         using var httpResponseMessage = new HttpResponseMessage();
         httpResponseMessage.Content = new StringContent(content, Encoding.UTF8, "application/json");

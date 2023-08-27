@@ -33,20 +33,22 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                     {
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(
-                            @"{
-  ""translation"": {
-    ""en"": {
-      ""name"": ""English"",
-      ""nativeName"": ""English"",
-      ""dir"": ""ltr""
-    },
-    ""fr"": {
-      ""name"": ""French"",
-      ""nativeName"": ""Français"",
-      ""dir"": ""ltr""
-    }
-  }
-}"
+                            """
+                            {
+                              "translation": {
+                                "en": {
+                                  "name": "English",
+                                  "nativeName": "English",
+                                  "dir": "ltr"
+                                },
+                                "fr": {
+                                  "name": "French",
+                                  "nativeName": "Français",
+                                  "dir": "ltr"
+                                }
+                              }
+                            }
+                            """
                         )
                     }
             );
@@ -105,13 +107,15 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                     {
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(
-                            $@"[
-    {{
-        ""translations"": [
-            {{""text"": ""{expected.TranslatedText}"", ""to"": ""{expected.TargetLanguageCode}""}}
-        ]
-    }}
-]"
+                            $$"""
+                              [
+                                  {
+                                      "translations": [
+                                          {"text": "{{expected.TranslatedText}}", "to": "{{expected.TargetLanguageCode}}"}
+                                      ]
+                                  }
+                              ]
+                              """
                         )
                     }
             );
@@ -163,14 +167,16 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                 {
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(
-                        $@"[
-    {{
-        ""detectedLanguage"": {{""language"": ""{expected.DetectedLanguageCode}"", ""score"": 1.0}},
-        ""translations"": [
-            {{""text"": ""{expected.TranslatedText}"", ""to"": ""{expected.TargetLanguageCode}""}}
-        ]
-    }}
-]"
+                        $$"""
+                          [
+                              {
+                                  "detectedLanguage": {"language": "{{expected.DetectedLanguageCode}}", "score": 1.0},
+                                  "translations": [
+                                      {"text": "{{expected.TranslatedText}}", "to": "{{expected.TargetLanguageCode}}"}
+                                  ]
+                              }
+                          ]
+                          """
                     )
                 };
             });
@@ -277,12 +283,14 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                     {
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(
-                            @"[
-    {
-        ""detectedLanguage"": {""language"": ""en"", ""score"": 1.0},
-        ""translations"": []
-    }
-]"
+                            """
+                            [
+                                {
+                                    "detectedLanguage": {"language": "en", "score": 1.0},
+                                    "translations": []
+                                }
+                            ]
+                            """
                         )
                     }
             );

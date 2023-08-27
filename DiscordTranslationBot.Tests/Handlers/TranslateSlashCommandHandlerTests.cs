@@ -79,7 +79,7 @@ public sealed class TranslateSlashCommandHandlerTests
                 }
             );
 
-        var notification = new SlashCommandExecutedNotification() { Command = command };
+        var notification = new SlashCommandExecutedNotification { Command = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -112,7 +112,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedNotification() { Command = command };
+        var notification = new SlashCommandExecutedNotification { Command = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -148,7 +148,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedNotification() { Command = command };
+        var notification = new SlashCommandExecutedNotification { Command = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -169,7 +169,7 @@ public sealed class TranslateSlashCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SlashCommandExecutedNotification_Returns_OnFailuretoDetectSourceLanguage()
+    public async Task Handle_SlashCommandExecutedNotification_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
@@ -223,7 +223,7 @@ public sealed class TranslateSlashCommandHandlerTests
                 }
             );
 
-        var notification = new SlashCommandExecutedNotification() { Command = command };
+        var notification = new SlashCommandExecutedNotification { Command = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);

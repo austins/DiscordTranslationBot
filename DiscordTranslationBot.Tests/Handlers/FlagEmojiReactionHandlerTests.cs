@@ -12,15 +12,17 @@ namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class FlagEmojiReactionHandlerTests
 {
-    private const string Content =
-        @"👍 test<:disdainsam:630009232128868353> _test_*test*
-> test
-__test__";
+    private const string Content = """
+        👍 test<:disdainsam:630009232128868353> _test_*test*
+        > test
+        __test__
+        """;
 
-    private const string ExpectedSanitizedMessage =
-        @"👍 test testtest
- test
-test";
+    private const string ExpectedSanitizedMessage = """
+        👍 test testtest
+         test
+        test
+        """;
 
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
@@ -74,7 +76,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji") }
         };
 
@@ -92,7 +93,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -145,7 +145,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -195,7 +194,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -244,7 +242,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -287,7 +284,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -330,7 +326,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,
@@ -388,7 +383,6 @@ test";
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = _channel,
             Reaction = new Reaction
             {
                 UserId = 1UL,

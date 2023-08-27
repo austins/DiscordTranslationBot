@@ -23,7 +23,7 @@ public sealed class TranslateRequest : ITranslateRequest
     /// The format.
     /// </summary>
     [JsonPropertyName("format")]
-    public string Format { get; init; } = "text";
+    public string Format { get; private set; } = "text";
 
     /// <inheritdoc cref="ITranslateRequest.Text" />
     [JsonPropertyName("q")]

@@ -33,16 +33,18 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                     {
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(
-                            @"[
-  {
-    ""code"": ""en"",
-    ""name"": ""English""
-  },
-  {
-    ""code"": ""fr"",
-    ""name"": ""French""
-  }
-]"
+                            """
+                            [
+                              {
+                                "code": "en",
+                                "name": "English"
+                              },
+                              {
+                                "code": "fr",
+                                "name": "French"
+                              }
+                            ]
+                            """
                         )
                     }
             );
@@ -98,9 +100,11 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 {
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(
-                        $@"{{
-    ""translatedText"": ""{expected.TranslatedText}""
-}}"
+                        $$"""
+                          {
+                              "translatedText": "{{expected.TranslatedText}}"
+                          }
+                          """
                     )
                 };
             });
@@ -155,10 +159,12 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 {
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(
-                        $@"{{
-    ""detectedLanguage"": {{""confidence"": 100, ""language"": ""{expected.DetectedLanguageCode}""}},
-    ""translatedText"": ""{expected.TranslatedText}""
-}}"
+                        $$"""
+                          {
+                              "detectedLanguage": {"confidence": 100, "language": "{{expected.DetectedLanguageCode}}"},
+                              "translatedText": "{{expected.TranslatedText}}"
+                          }
+                          """
                     )
                 };
             });
@@ -248,10 +254,12 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                     {
                         StatusCode = HttpStatusCode.OK,
                         Content = new StringContent(
-                            @"{
-    ""detectedLanguage"": {""confidence"": 0, ""language"": ""de""},
-    ""translatedText"": """"
-}"
+                            """
+                            {
+                                "detectedLanguage": {"confidence": 0, "language": "de"},
+                                "translatedText": ""
+                            }
+                            """
                         )
                     }
             );

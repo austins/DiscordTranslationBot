@@ -14,11 +14,6 @@ public sealed class ReactionAddedNotification : INotification
     public required IUserMessage Message { get; init; }
 
     /// <summary>
-    /// The message channel.
-    /// </summary>
-    public required IMessageChannel Channel { get; init; }
-
-    /// <summary>
     /// The reaction.
     /// </summary>
     public required Reaction Reaction { get; init; }

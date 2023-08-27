@@ -73,7 +73,8 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
 
     /// <inheritdoc cref="ITranslationProvider.SupportedLanguages" />
-    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; set; } = new HashSet<SupportedLanguage>();
+    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
+        new HashSet<SupportedLanguage>();
 
     /// <inheritdoc cref="ITranslationProvider.ProviderName" />
     public abstract string ProviderName { get; }

@@ -18,11 +18,11 @@ public static class TranslationExtensions
     /// <summary>
     /// Serializes a request body object to be used in a request for a translation.
     /// </summary>
-    /// <param name="httpClient">The HttpClient instance.</param>
+    /// <param name="_">The HttpClient instance.</param>
     /// <param name="request">Translate request to serialize.</param>
     /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
     public static StringContent SerializeTranslationRequestContent<TTranslateRequest>(
-        this HttpClient httpClient,
+        this HttpClient _,
         TTranslateRequest request
     )
         where TTranslateRequest : ITranslateRequest
@@ -37,11 +37,11 @@ public static class TranslationExtensions
     /// <summary>
     /// Serializes a list of request body objects to be used in a request for a translation.
     /// </summary>
-    /// <param name="httpClient">The HttpClient instance.</param>
+    /// <param name="_">The HttpClient instance.</param>
     /// <param name="request">List of translate requests to serialize.</param>
     /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
     public static StringContent SerializeTranslationRequestContent<TTranslateRequest>(
-        this HttpClient httpClient,
+        this HttpClient _,
         IList<TTranslateRequest> request
     )
         where TTranslateRequest : ITranslateRequest

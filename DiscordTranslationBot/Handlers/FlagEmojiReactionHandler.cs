@@ -151,10 +151,14 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
         // Send the reply message.
         var replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode)
-            ? $@"Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
-{Format.BlockQuote(translationResult.TranslatedText)}"
-            : $@"Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
-{Format.BlockQuote(translationResult.TranslatedText)}";
+            ? $"""
+               Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
+               {Format.BlockQuote(translationResult.TranslatedText)}
+               """
+            : $"""
+               Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
+               {Format.BlockQuote(translationResult.TranslatedText)}
+               """;
 
         SendTempMessage(
             replyText,
