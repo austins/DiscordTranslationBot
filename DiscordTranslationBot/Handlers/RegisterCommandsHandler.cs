@@ -44,10 +44,13 @@ public sealed partial class RegisterCommandsHandler
     /// <param name="cancellationToken">The cancellation token.</param>
     public async Task Handle(ReadyNotification notification, CancellationToken cancellationToken)
     {
-        await RegisterCommandsAsync(
-            await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken }),
-            cancellationToken
-        );
+        var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
+        if (!guilds.Any())
+        {
+            return;
+        }
+
+        await RegisterCommandsAsync(guilds, cancellationToken);
     }
 
     /// <summary>
@@ -65,13 +68,8 @@ public sealed partial class RegisterCommandsHandler
     /// </summary>
     /// <param name="guilds">The guilds to register commands for.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task RegisterCommandsAsync(IReadOnlyCollection<IGuild> guilds, CancellationToken cancellationToken)
+    private async Task RegisterCommandsAsync(IEnumerable<IGuild> guilds, CancellationToken cancellationToken)
     {
-        if (!guilds.Any())
-        {
-            return;
-        }
-
         var commandsToRegister = new List<ApplicationCommandProperties>();
         GetMessageCommands(commandsToRegister);
         GetSlashCommands(commandsToRegister);
