@@ -27,7 +27,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
     }
 
     [Fact]
-    private async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
+    public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString()!, "unsupported_country")

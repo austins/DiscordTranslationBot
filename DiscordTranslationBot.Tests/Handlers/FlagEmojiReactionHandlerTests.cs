@@ -27,7 +27,6 @@ public sealed class FlagEmojiReactionHandlerTests
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
 
-    private readonly IMessageChannel _channel;
     private readonly ICountryService _countryService;
     private readonly IUserMessage _message;
     private readonly FlagEmojiReactionHandler _sut;
@@ -55,8 +54,7 @@ public sealed class FlagEmojiReactionHandlerTests
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
-        _channel = Substitute.For<IMessageChannel>();
-        _message.Channel.Returns(_channel);
+        _message.Channel.Returns(Substitute.For<IMessageChannel>());
 
         _sut = Substitute.ForPartsOf<FlagEmojiReactionHandler>(
             client,

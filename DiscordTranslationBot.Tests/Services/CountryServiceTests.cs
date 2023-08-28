@@ -5,12 +5,7 @@ namespace DiscordTranslationBot.Tests.Services;
 
 public sealed class CountryServiceTests
 {
-    private readonly CountryService _sut;
-
-    public CountryServiceTests()
-    {
-        _sut = new CountryService(Substitute.For<ILogger<CountryService>>());
-    }
+    private readonly CountryService _sut = new(Substitute.For<ILogger<CountryService>>());
 
     public static IEnumerable<object[]> TryGetCountryTestData =>
         new[]
