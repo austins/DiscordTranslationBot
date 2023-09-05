@@ -46,11 +46,13 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
             return;
         }
 
+        await notification.Command.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+
         if (notification.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.Command.RespondAsync(
+            await notification.Command.FollowupAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -115,7 +117,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         if (translationResult == null)
         {
             // Send message if no translation providers support the locale.
-            await notification.Command.RespondAsync(
+            await notification.Command.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -128,7 +130,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.FailureToDetectSourceLanguage();
 
-            await notification.Command.RespondAsync(
+            await notification.Command.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
@@ -156,7 +158,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
              {translationResult.TranslatedText}
              """;
 
-        await notification.Command.RespondAsync(
+        await notification.Command.FollowupAsync(
             embed: new EmbedBuilder()
                 .WithTitle("Translated Message")
                 .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)

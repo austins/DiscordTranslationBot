@@ -78,9 +78,11 @@ public sealed class TranslateMessageCommandHandlerTests
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
+        await _command.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
+
         await _command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()
@@ -104,7 +106,7 @@ public sealed class TranslateMessageCommandHandlerTests
 
         await notification.Command
             .DidNotReceive()
-            .RespondAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
+            .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
     [Fact]
@@ -163,7 +165,7 @@ public sealed class TranslateMessageCommandHandlerTests
 
         await _command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()
@@ -184,7 +186,7 @@ public sealed class TranslateMessageCommandHandlerTests
         // Assert
         await _command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()
@@ -221,7 +223,7 @@ public sealed class TranslateMessageCommandHandlerTests
 
         await _command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()
@@ -264,7 +266,7 @@ public sealed class TranslateMessageCommandHandlerTests
 
         await _command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()

@@ -94,9 +94,11 @@ public sealed class TranslateSlashCommandHandlerTests
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
             );
 
+        await command.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
+
         await command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
                 options: Arg.Any<RequestOptions>()
             );
@@ -123,7 +125,7 @@ public sealed class TranslateSlashCommandHandlerTests
 
         await notification.Command
             .DidNotReceive()
-            .RespondAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
+            .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
     [Fact]
@@ -156,7 +158,7 @@ public sealed class TranslateSlashCommandHandlerTests
         // Assert
         await command
             .Received(1)
-            .RespondAsync("Nothing to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
+            .FollowupAsync("Nothing to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProvider
             .DidNotReceive()
@@ -240,7 +242,7 @@ public sealed class TranslateSlashCommandHandlerTests
 
         await command
             .Received(1)
-            .RespondAsync(
+            .FollowupAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>()
