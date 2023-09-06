@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using Microsoft.Extensions.Options;
@@ -48,11 +47,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         }
 
         using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage();
-        request.Method = HttpMethod.Get;
-        request.RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}languages");
 
-        var response = await httpClient.SendAsync(request, cancellationToken);
+        var response = await httpClient.GetAsync(
+            new Uri($"{_libreTranslateOptions.ApiUrl}languages"),
+            cancellationToken
+        );
+
         if (!response.IsSuccessStatusCode)
         {
             _log.ResponseFailure("Languages", response.StatusCode);
@@ -95,12 +95,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             };
 
             using var httpClient = _httpClientFactory.CreateClient();
-            using var request = new HttpRequestMessage();
 
-            request.Method = HttpMethod.Post;
-            request.RequestUri = new Uri($"{_libreTranslateOptions.ApiUrl}/translate");
-
-            request.Content = httpClient.SerializeTranslationRequestContent(
+            using var request = SerializeRequest(
                 new TranslateRequest
                 {
                     Text = text,
@@ -109,7 +105,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 }
             );
 
-            var response = await httpClient.SendAsync(request, cancellationToken);
+            var response = await httpClient.PostAsync(
+                new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
+                request,
+                cancellationToken
+            );
+
             if (!response.IsSuccessStatusCode)
             {
                 _log.ResponseFailure("Translate", response.StatusCode);
@@ -119,10 +120,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 );
             }
 
-            var content = await response.Content.DeserializeTranslationResponseContentAsync<TranslateResult>(
-                cancellationToken
-            );
-
+            var content = await DeserializeResponseAsync<TranslateResult>(response.Content, cancellationToken);
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
                 _log.NoTranslationReturned();

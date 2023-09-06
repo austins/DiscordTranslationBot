@@ -9,5 +9,5 @@ public sealed class TranslateRequest : ITranslateRequest
 {
     /// <inheritdoc cref="ITranslateRequest.Text" />
     [JsonPropertyName("Text")]
-    public required string Text { get; init; }
+    public required string Text { get; set; }
 }

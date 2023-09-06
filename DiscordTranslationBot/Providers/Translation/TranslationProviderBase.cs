@@ -1,4 +1,9 @@
 ﻿using System.Net;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
@@ -24,6 +29,15 @@ public interface ITranslationProvider
     /// The name of the translation provider.
     /// </summary>
     public string ProviderName { get; }
+
+    /// <summary>
+    /// Initialize the <see cref="SupportedLanguages" /> for the provider.
+    /// </summary>
+    /// <remarks>
+    /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
+    /// </remarks>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Translate text.
@@ -53,15 +67,6 @@ public interface ITranslationProvider
         string text,
         CancellationToken cancellationToken
     );
-
-    /// <summary>
-    /// Initialize the <see cref="SupportedLanguages" /> for the provider.
-    /// </summary>
-    /// <remarks>
-    /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
-    /// </remarks>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -69,6 +74,9 @@ public interface ITranslationProvider
 /// </summary>
 public abstract partial class TranslationProviderBase : ITranslationProvider
 {
+    private static readonly JsonSerializerOptions SerializerOptions =
+        new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
+
     /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
 
@@ -78,6 +86,17 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
 
     /// <inheritdoc cref="ITranslationProvider.ProviderName" />
     public abstract string ProviderName { get; }
+
+    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
+    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
+    public abstract Task<TranslationResult> TranslateAsync(
+        SupportedLanguage targetLanguage,
+        string text,
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null
+    );
 
     /// <inheritdoc cref="ITranslationProvider.TranslateByCountryAsync" />
     public Task<TranslationResult> TranslateByCountryAsync(
@@ -94,16 +113,67 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         return TranslateAsync(targetLanguage, text, cancellationToken);
     }
 
-    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
-    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Deserializes response content to a type suitable for processing a translation result.
+    /// </summary>
+    /// <param name="content">The HttpContent instance.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <typeparam name="TTranslateResult">Type to deserialize response content to.</typeparam>
+    /// <returns>Deserialized response content.</returns>
+    public static Task<TTranslateResult?> DeserializeResponseAsync<TTranslateResult>(
+        HttpContent content,
+        CancellationToken cancellationToken
+    )
+        where TTranslateResult : ITranslateResult
+    {
+        return content.ReadFromJsonAsync<TTranslateResult>(SerializerOptions, cancellationToken);
+    }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
-    public abstract Task<TranslationResult> TranslateAsync(
-        SupportedLanguage targetLanguage,
-        string text,
-        CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    );
+    /// <summary>
+    /// Deserializes response content list to a type suitable for processing a translation result.
+    /// </summary>
+    /// <param name="content">The HttpContent instance.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <typeparam name="TTranslateResult">Type to deserialize response content to.</typeparam>
+    /// <returns>Deserialized response content.</returns>
+    public static Task<IList<TTranslateResult>?> DeserializeResponseAsListAsync<TTranslateResult>(
+        HttpContent content,
+        CancellationToken cancellationToken
+    )
+        where TTranslateResult : ITranslateResult
+    {
+        return content.ReadFromJsonAsync<IList<TTranslateResult>>(SerializerOptions, cancellationToken);
+    }
+
+    /// <summary>
+    /// Serializes a request body object to be used in a request for a translation.
+    /// </summary>
+    /// <param name="request">Translate request to serialize.</param>
+    /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
+    public static StringContent SerializeRequest<TTranslateRequest>(TTranslateRequest request)
+        where TTranslateRequest : ITranslateRequest
+    {
+        return new StringContent(
+            JsonSerializer.Serialize(request, SerializerOptions),
+            Encoding.UTF8,
+            "application/json"
+        );
+    }
+
+    /// <summary>
+    /// Serializes a list of request body objects to be used in a request for a translation.
+    /// </summary>
+    /// <param name="request">List of translate requests to serialize.</param>
+    /// <returns>StringContent to set assigned to <see cref="HttpRequestMessage.Content" />.</returns>
+    public static StringContent SerializeRequest<TTranslateRequest>(IList<TTranslateRequest> request)
+        where TTranslateRequest : ITranslateRequest
+    {
+        return new StringContent(
+            JsonSerializer.Serialize(request, SerializerOptions),
+            Encoding.UTF8,
+            "application/json"
+        );
+    }
 
 #pragma warning disable CS1591
     protected abstract partial class Log<TTranslationProvider>

@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
@@ -82,15 +81,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         }
 
         using var httpClient = _httpClientFactory.CreateClient();
-        using var request = new HttpRequestMessage();
 
-        request.Method = HttpMethod.Get;
-
-        request.RequestUri = new Uri(
-            "https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"
+        var response = await httpClient.GetAsync(
+            new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
+            cancellationToken
         );
 
-        var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             _log.ResponseFailure("Languages", response.StatusCode);
@@ -144,6 +140,9 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
             using var httpClient = _httpClientFactory.CreateClient();
 
+            using var request = new HttpRequestMessage();
+            request.Method = HttpMethod.Post;
+
             var translateUrl =
                 $"{_azureTranslatorOptions.ApiUrl}translate?api-version=3.0&to={result.TargetLanguageCode}";
 
@@ -152,17 +151,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 translateUrl += $"&from={sourceLanguage.LangCode}";
             }
 
-            using var request = new HttpRequestMessage();
-
-            request.Method = HttpMethod.Post;
             request.RequestUri = new Uri(translateUrl);
-
-            request.Content = httpClient.SerializeTranslationRequestContent(
-                new List<ITranslateRequest> { new TranslateRequest { Text = text } }
-            );
 
             request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
             request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);
+
+            request.Content = SerializeRequest(new List<ITranslateRequest> { new TranslateRequest { Text = text } });
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -174,10 +168,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 );
             }
 
-            var content = await response.Content.DeserializeTranslationResponseContentsAsync<TranslateResult>(
-                cancellationToken
-            );
-
+            var content = await DeserializeResponseAsListAsync<TranslateResult>(response.Content, cancellationToken);
             var translation = content?.SingleOrDefault();
             if (translation?.Translations.Any() != true)
             {
