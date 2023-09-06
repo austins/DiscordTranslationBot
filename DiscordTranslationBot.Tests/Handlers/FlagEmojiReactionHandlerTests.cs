@@ -34,10 +34,7 @@ public sealed class FlagEmojiReactionHandlerTests
 
     public FlagEmojiReactionHandlerTests()
     {
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
-
-        _translationProvider = Substitute.For<TranslationProviderBase>(httpClientFactory);
+        _translationProvider = Substitute.For<TranslationProviderBase>(Substitute.For<IHttpClientFactory>());
         _translationProvider.ProviderName.Returns("Test Provider");
 
         var botUser = Substitute.For<ISelfUser>();

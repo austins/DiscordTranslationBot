@@ -21,7 +21,6 @@ public sealed class TranslateMessageCommandHandlerTests
         client.CurrentUser.Id.Returns(BotUserId);
 
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
 
         _translationProviders = new List<TranslationProviderBase>
         {

@@ -15,10 +15,7 @@ public sealed class TranslateSlashCommandHandlerTests
 
     public TranslateSlashCommandHandlerTests()
     {
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
-
-        _translationProvider = Substitute.For<TranslationProviderBase>(httpClientFactory);
+        _translationProvider = Substitute.For<TranslationProviderBase>(Substitute.For<IHttpClientFactory>());
         _translationProvider.ProviderName.Returns(ProviderName);
 
         _sut = new TranslateSlashCommandHandler(
