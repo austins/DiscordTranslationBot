@@ -1,14 +1,14 @@
 ﻿using System.Text;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
-using DiscordTranslationBot.Providers.Translation;
 
-namespace DiscordTranslationBot.Tests.Providers.Translation;
+namespace DiscordTranslationBot.Tests.Extensions;
 
-public sealed class TranslationProviderBaseStaticTests
+public sealed class TranslationSerializationExtensionsTests
 {
     [Fact]
-    public async Task DeserializeResponseAsync_Returns_Expected()
+    public async Task ReadAsTranslateResultAsync_Returns_Expected()
     {
         // Arrange
         const string detectedLanguageCode = "en";
@@ -27,17 +27,14 @@ public sealed class TranslationProviderBaseStaticTests
         };
 
         // Act
-        var result = await TranslationProviderBase.DeserializeResponseAsync<TranslateResult>(
-            response.Content,
-            CancellationToken.None
-        );
+        var result = await response.Content.ReadAsTranslateResultAsync<TranslateResult>(CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
-    public async Task DeserializeResponseAsListAsync_Returns_Expected()
+    public async Task ReadAsTranslateResultsAsync_Returns_Expected()
     {
         // Arrange
         const string detectedLanguageCode = "en";
@@ -59,17 +56,14 @@ public sealed class TranslationProviderBaseStaticTests
         };
 
         // Act
-        var result = await TranslationProviderBase.DeserializeResponseAsListAsync<TranslateResult>(
-            response.Content,
-            CancellationToken.None
-        );
+        var result = await response.Content.ReadAsTranslateResultsAsync<TranslateResult>(CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
-    public async Task SerializeRequest_Single_Returns_Expected()
+    public async Task SerializeToRequestContent_Single_Returns_Expected()
     {
         // Arrange
         const string text = "の";
@@ -81,7 +75,7 @@ public sealed class TranslationProviderBaseStaticTests
         request.Text = text;
 
         // Act
-        var result = TranslationProviderBase.SerializeRequest(request);
+        var result = request.SerializeToRequestContent();
 
         // Assert
         (await result.ReadAsStringAsync(CancellationToken.None))
@@ -90,7 +84,7 @@ public sealed class TranslationProviderBaseStaticTests
     }
 
     [Fact]
-    public async Task SerializeRequest_Many_Returns_Expected()
+    public async Task SerializeToRequestContent_Many_Returns_Expected()
     {
         // Arrange
         const string text = "の";
@@ -102,7 +96,7 @@ public sealed class TranslationProviderBaseStaticTests
         request[0].Text = text;
 
         // Act
-        var result = TranslationProviderBase.SerializeRequest(request);
+        var result = request.SerializeToRequestContent();
 
         // Assert
         (await result.ReadAsStringAsync(CancellationToken.None))

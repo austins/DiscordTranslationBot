@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
 using Microsoft.Extensions.Options;
@@ -155,7 +156,10 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
             request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);
 
-            request.Content = SerializeRequest(new List<ITranslateRequest> { new TranslateRequest { Text = text } });
+            request.Content = new List<ITranslateRequest>
+            {
+                new TranslateRequest { Text = text }
+            }.SerializeToRequestContent();
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -167,9 +171,9 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 );
             }
 
-            var content = await DeserializeResponseAsListAsync<TranslateResult>(response.Content, cancellationToken);
+            var content = await response.Content.ReadAsTranslateResultsAsync<TranslateResult>(cancellationToken);
             var translation = content?.SingleOrDefault();
-            if (translation?.Translations.Any() != true)
+            if (translation?.Translations?.Any() != true)
             {
                 _log.NoTranslationReturned();
                 throw new InvalidOperationException("No translation returned.");

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
@@ -75,7 +76,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         MockHttpMessageHandler
             .When(HttpMethod.Post, "*/translate")
-            .WithContent(await TranslationProviderBase.SerializeRequest(request).ReadAsStringAsync())
+            .WithContent(await request.SerializeToRequestContent().ReadAsStringAsync())
             .Respond(
                 "application/json",
                 $$"""
@@ -122,7 +123,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         MockHttpMessageHandler
             .When(HttpMethod.Post, "*/translate")
-            .WithContent(await TranslationProviderBase.SerializeRequest(request).ReadAsStringAsync())
+            .WithContent(await request.SerializeToRequestContent().ReadAsStringAsync())
             .Respond(
                 "application/json",
                 $$"""

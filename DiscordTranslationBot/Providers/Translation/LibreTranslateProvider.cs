@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
 using Microsoft.Extensions.Options;
@@ -95,14 +96,12 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
             var httpClient = CreateHttpClient();
 
-            using var request = SerializeRequest(
-                new TranslateRequest
-                {
-                    Text = text,
-                    SourceLangCode = sourceLanguage?.LangCode ?? "auto",
-                    TargetLangCode = targetLanguage.LangCode
-                }
-            );
+            using var request = new TranslateRequest
+            {
+                Text = text,
+                SourceLangCode = sourceLanguage?.LangCode ?? "auto",
+                TargetLangCode = targetLanguage.LangCode
+            }.SerializeToRequestContent();
 
             var response = await httpClient.PostAsync(
                 new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
@@ -119,7 +118,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 );
             }
 
-            var content = await DeserializeResponseAsync<TranslateResult>(response.Content, cancellationToken);
+            var content = await response.Content.ReadAsTranslateResultAsync<TranslateResult>(cancellationToken);
             if (string.IsNullOrWhiteSpace(content?.TranslatedText))
             {
                 _log.NoTranslationReturned();
