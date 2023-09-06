@@ -11,7 +11,6 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 public sealed class LibreTranslateProvider : TranslationProviderBase
 {
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly LibreTranslateOptions _libreTranslateOptions;
     private readonly Log<LibreTranslateProvider> _log;
 
@@ -26,8 +25,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
         ILogger<LibreTranslateProvider> logger
     )
+        : base(httpClientFactory)
     {
-        _httpClientFactory = httpClientFactory;
         _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
         _log = new Log(logger);
     }
@@ -46,7 +45,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             return;
         }
 
-        using var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = CreateHttpClient();
 
         var response = await httpClient.GetAsync(
             new Uri($"{_libreTranslateOptions.ApiUrl}languages"),
@@ -94,7 +93,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 TargetLanguageName = targetLanguage.Name
             };
 
-            using var httpClient = _httpClientFactory.CreateClient();
+            var httpClient = CreateHttpClient();
 
             using var request = SerializeRequest(
                 new TranslateRequest

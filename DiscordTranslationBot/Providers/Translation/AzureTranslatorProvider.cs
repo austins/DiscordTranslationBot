@@ -18,7 +18,6 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     public const int TextCharacterLimit = 10000;
 
     private readonly AzureTranslatorOptions _azureTranslatorOptions;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly Log _log;
 
     /// <summary>
@@ -32,8 +31,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
         ILogger<AzureTranslatorProvider> logger
     )
+        : base(httpClientFactory)
     {
-        _httpClientFactory = httpClientFactory;
         _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
         _log = new Log(logger);
     }
@@ -80,7 +79,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             return;
         }
 
-        using var httpClient = _httpClientFactory.CreateClient();
+        var httpClient = CreateHttpClient();
 
         var response = await httpClient.GetAsync(
             new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
@@ -138,7 +137,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 TargetLanguageName = targetLanguage.Name
             };
 
-            using var httpClient = _httpClientFactory.CreateClient();
+            var httpClient = CreateHttpClient();
 
             using var request = new HttpRequestMessage();
             request.Method = HttpMethod.Post;

@@ -16,7 +16,9 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        HttpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient(MockHttpMessageHandler));
+        HttpClientFactory
+            .CreateClient(Arg.Is<string>(x => x == TranslationProviderBase.ClientName))
+            .Returns(_ => new HttpClient(MockHttpMessageHandler));
 
         await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
     }

@@ -26,7 +26,6 @@ await Host.CreateDefaultBuilder(args)
                     c.NotificationPublisherType = typeof(TaskWhenAllPublisher);
                     c.RegisterServicesFromAssemblyContaining<Program>();
                 })
-                .AddHttpClient()
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
                     new DiscordSocketClient(
@@ -37,7 +36,8 @@ await Host.CreateDefaultBuilder(args)
                                 | GatewayIntents.GuildMessages
                                 | GatewayIntents.GuildMessageReactions
                                 | GatewayIntents.MessageContent,
-                            MessageCacheSize = 100
+                            MessageCacheSize = 100,
+                            UseInteractionSnowflakeDate = false
                         }
                     )
                 )

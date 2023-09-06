@@ -74,8 +74,24 @@ public interface ITranslationProvider
 /// </summary>
 public abstract partial class TranslationProviderBase : ITranslationProvider
 {
+    /// <summary>
+    /// Name of the translation provider HTTP client.
+    /// </summary>
+    public const string ClientName = "TranslationProvider";
+
+    private readonly IHttpClientFactory _httpClientFactory;
+
     private static readonly JsonSerializerOptions SerializerOptions =
         new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TranslationProviderBase" /> class.
+    /// </summary>
+    /// <param name="httpClientFactory">HTTP client factory to use.</param>
+    protected TranslationProviderBase(IHttpClientFactory httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
@@ -86,6 +102,15 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
 
     /// <inheritdoc cref="ITranslationProvider.ProviderName" />
     public abstract string ProviderName { get; }
+
+    /// <summary>
+    /// Creates a named HTTP client instance for the translation provider.
+    /// </summary>
+    /// <returns>An HttpClient instance.</returns>
+    public HttpClient CreateHttpClient()
+    {
+        return _httpClientFactory.CreateClient(ClientName);
+    }
 
     /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
