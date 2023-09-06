@@ -8,5 +8,5 @@ public interface ITranslateRequest
     /// <summary>
     /// The text to translate.
     /// </summary>
-    public string Text { get; init; }
+    public string Text { get; set; }
 }

@@ -2,15 +2,24 @@
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Providers.Translation;
 using NeoSmart.Unicode;
+using RichardSzalay.MockHttp;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
 public abstract class TranslationProviderBaseTests : IAsyncLifetime
 {
+    protected MockHttpMessageHandler MockHttpMessageHandler { get; } = new();
+
+    protected IHttpClientFactory HttpClientFactory { get; } = Substitute.For<IHttpClientFactory>();
+
     protected TranslationProviderBase Sut { get; init; } = null!;
 
     public async Task InitializeAsync()
     {
+        HttpClientFactory
+            .CreateClient(Arg.Is<string>(x => x == TranslationProviderBase.ClientName))
+            .Returns(_ => new HttpClient(MockHttpMessageHandler));
+
         await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
     }
 

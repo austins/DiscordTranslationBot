@@ -1,6 +1,8 @@
 ﻿using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using FluentValidation;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
 
 namespace DiscordTranslationBot.Extensions;
 
@@ -58,6 +60,13 @@ public static class ServiceCollectionExtensions
         {
             services.AddSingleton<ITranslationProvider, LibreTranslateProvider>();
         }
+
+        // Configure named HttpClient for translation providers.
+        services
+            .AddHttpClient(TranslationProviderBase.ClientName)
+            .AddTransientHttpErrorPolicy(
+                b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2))
+            );
 
         return services;
     }
