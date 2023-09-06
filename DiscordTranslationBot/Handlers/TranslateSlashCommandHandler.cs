@@ -40,17 +40,10 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             return;
         }
 
-        await notification.Command.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
-
         // Get the input values.
         var options = notification.Command.Data.Options;
 
-        var to = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
-
         var text = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandTextOptionName).Value;
-
-        var from = (string?)
-            options.FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)?.Value;
 
         // Parse the input text.
         var sanitizedText = FormatUtility.SanitizeText(text);
@@ -58,14 +51,23 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
         {
             _log.EmptySourceText();
 
-            await notification.Command.FollowupAsync(
-                "Nothing to translate.",
+            await notification.Command.RespondAsync(
+                "No text to translate.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
             return;
         }
 
+        await notification.Command.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
+
+        var to = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
+
+        var from = (string?)
+            options.FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)?.Value;
+
+        // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
         var translationProvider = _translationProviders[0];
 
         try

@@ -120,6 +120,12 @@ public sealed class TranslateMessageCommandHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
+        await _command.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
+
+        await _command
+            .Received(1)
+            .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
+
         _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
     }
 
@@ -182,9 +188,15 @@ public sealed class TranslateMessageCommandHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
+        await _command.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
+
         await _command
             .Received(1)
-            .FollowupAsync("Translating this bot's messages isn't allowed.", options: Arg.Any<RequestOptions>());
+            .RespondAsync(
+                "Translating this bot's messages isn't allowed.",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>()
+            );
     }
 
     [Fact]

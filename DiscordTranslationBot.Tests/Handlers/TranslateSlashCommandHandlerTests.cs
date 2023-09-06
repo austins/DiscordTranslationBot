@@ -132,20 +132,14 @@ public sealed class TranslateSlashCommandHandlerTests
     public async Task Handle_SlashCommandExecutedNotification_Returns_SourceTextIsEmpty()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-
         var data = Substitute.For<IApplicationCommandInteractionData>();
         data.Name.Returns(SlashCommandConstants.TranslateCommandName);
-
-        var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
-        toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
         textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
         textOption.Value.Returns(string.Empty);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption });
+        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { textOption });
 
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
@@ -156,7 +150,11 @@ public sealed class TranslateSlashCommandHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await command.Received(1).FollowupAsync("Nothing to translate.", options: Arg.Any<RequestOptions>());
+        await command.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
+
+        await command
+            .Received(1)
+            .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProvider
             .DidNotReceive()

@@ -116,6 +116,7 @@ public sealed partial class RegisterCommandsHandler
     private void GetSlashCommands(ICollection<ApplicationCommandProperties> commandsToRegister)
     {
         // Translate command.
+        // Only the first translation provider is supported as the slash command options can only be registered with one provider's supported languages.
         var translationProvider = _translationProviders[0];
 
         // Gather list of language choices for the command's options.

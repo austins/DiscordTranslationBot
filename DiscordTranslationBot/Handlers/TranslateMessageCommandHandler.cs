@@ -46,14 +46,13 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
             return;
         }
 
-        await notification.Command.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
-
         if (notification.Command.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.Command.FollowupAsync(
+            await notification.Command.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -61,12 +60,20 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         }
 
         var sanitizedMessage = FormatUtility.SanitizeText(notification.Command.Data.Message.Content);
-
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
+
+            await notification.Command.RespondAsync(
+                "No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
+
             return;
         }
+
+        await notification.Command.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
         var userLocale = notification.Command.UserLocale;
 
@@ -137,7 +144,6 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         }
 
         var fromHeading = $"By {MentionUtils.MentionUser(notification.Command.Data.Message.Author.Id)}";
-
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
             fromHeading +=
