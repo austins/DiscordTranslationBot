@@ -15,7 +15,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateMessageCommandHandler" /> class.
@@ -25,7 +25,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
     /// <param name="logger">Logger to use.</param>
     public TranslateMessageCommandHandler(
         IDiscordClient client,
-        IEnumerable<ITranslationProvider> translationProviders,
+        IEnumerable<TranslationProviderBase> translationProviders,
         ILogger<TranslateMessageCommandHandler> logger
     )
     {

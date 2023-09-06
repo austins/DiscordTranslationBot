@@ -12,7 +12,7 @@ namespace DiscordTranslationBot.Handlers;
 public sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateSlashCommandHandler" /> class.
@@ -20,7 +20,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
     /// <param name="translationProviders">Translation providers.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateSlashCommandHandler(
-        IEnumerable<ITranslationProvider> translationProviders,
+        IEnumerable<TranslationProviderBase> translationProviders,
         ILogger<TranslateSlashCommandHandler> logger
     )
     {

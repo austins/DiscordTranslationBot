@@ -53,12 +53,12 @@ public static class ServiceCollectionExtensions
 
         if (options?.AzureTranslator.Enabled == true)
         {
-            services.AddSingleton<ITranslationProvider, AzureTranslatorProvider>();
+            services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
         }
 
         if (options?.LibreTranslate.Enabled == true)
         {
-            services.AddSingleton<ITranslationProvider, LibreTranslateProvider>();
+            services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
         }
 
         // Configure named HttpClient for translation providers.

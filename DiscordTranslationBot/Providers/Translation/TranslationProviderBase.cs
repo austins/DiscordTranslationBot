@@ -6,68 +6,9 @@ using DiscordTranslationBot.Models.Providers.Translation;
 namespace DiscordTranslationBot.Providers.Translation;
 
 /// <summary>
-/// Interface for <see cref="TranslationProviderBase" />.
-/// </summary>
-public interface ITranslationProvider
-{
-    /// <summary>
-    /// Lang codes that can be specified for the translate command choices.
-    /// </summary>
-    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
-
-    /// <summary>
-    /// Supported language codes for the provider.
-    /// </summary>
-    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; }
-
-    /// <summary>
-    /// The name of the translation provider.
-    /// </summary>
-    public string ProviderName { get; }
-
-    /// <summary>
-    /// Initialize the <see cref="SupportedLanguages" /> for the provider.
-    /// </summary>
-    /// <remarks>
-    /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
-    /// </remarks>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Translate text.
-    /// </summary>
-    /// <param name="targetLanguage">The supported language to translate to.</param>
-    /// <param name="text">The text to translate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="sourceLanguage">The supported language to translate from.</param>
-    /// <returns>Translated text.</returns>
-    public Task<TranslationResult> TranslateAsync(
-        SupportedLanguage targetLanguage,
-        string text,
-        CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    );
-
-    /// <summary>
-    /// Translate text by country.
-    /// </summary>
-    /// <param name="country">The country containing language codes to translate to.</param>
-    /// <param name="text">The text to translate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Translated text.</returns>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
-    public Task<TranslationResult> TranslateByCountryAsync(
-        Country country,
-        string text,
-        CancellationToken cancellationToken
-    );
-}
-
-/// <summary>
 /// Base class for translation providers.
 /// </summary>
-public abstract partial class TranslationProviderBase : ITranslationProvider
+public abstract partial class TranslationProviderBase
 {
     /// <summary>
     /// Name of the translation provider HTTP client.
@@ -85,14 +26,20 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         _httpClientFactory = httpClientFactory;
     }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
+    /// <summary>
+    /// Lang codes that can be specified for the translate command choices.
+    /// </summary>
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
 
-    /// <inheritdoc cref="ITranslationProvider.SupportedLanguages" />
-    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
+    /// <summary>
+    /// Supported language codes for the provider.
+    /// </summary>
+    public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
         new HashSet<SupportedLanguage>();
 
-    /// <inheritdoc cref="ITranslationProvider.ProviderName" />
+    /// <summary>
+    /// The name of the translation provider.
+    /// </summary>
     public abstract string ProviderName { get; }
 
     /// <summary>
@@ -104,10 +51,23 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         return _httpClientFactory.CreateClient(ClientName);
     }
 
-    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
+    /// <summary>
+    /// Initialize the <see cref="SupportedLanguages" /> for the provider.
+    /// </summary>
+    /// <remarks>
+    /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
+    /// </remarks>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
+    /// <summary>
+    /// Translate text.
+    /// </summary>
+    /// <param name="targetLanguage">The supported language to translate to.</param>
+    /// <param name="text">The text to translate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="sourceLanguage">The supported language to translate from.</param>
+    /// <returns>Translated text.</returns>
     public abstract Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
@@ -115,8 +75,15 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
         SupportedLanguage? sourceLanguage = null
     );
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateByCountryAsync" />
-    public Task<TranslationResult> TranslateByCountryAsync(
+    /// <summary>
+    /// Translate text by country.
+    /// </summary>
+    /// <param name="country">The country containing language codes to translate to.</param>
+    /// <param name="text">The text to translate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Translated text.</returns>
+    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
+    public virtual Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
         CancellationToken cancellationToken

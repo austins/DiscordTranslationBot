@@ -20,6 +20,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
             .CreateClient(Arg.Is<string>(x => x == TranslationProviderBase.ClientName))
             .Returns(_ => new HttpClient(MockHttpMessageHandler));
 
+        ArgumentNullException.ThrowIfNull(Sut);
         await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
     }
 

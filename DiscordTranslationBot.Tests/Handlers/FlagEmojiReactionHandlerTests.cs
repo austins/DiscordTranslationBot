@@ -30,11 +30,14 @@ public sealed class FlagEmojiReactionHandlerTests
     private readonly ICountryService _countryService;
     private readonly IUserMessage _message;
     private readonly FlagEmojiReactionHandler _sut;
-    private readonly ITranslationProvider _translationProvider;
+    private readonly TranslationProviderBase _translationProvider;
 
     public FlagEmojiReactionHandlerTests()
     {
-        _translationProvider = Substitute.For<ITranslationProvider>();
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
+
+        _translationProvider = Substitute.For<TranslationProviderBase>(httpClientFactory);
         _translationProvider.ProviderName.Returns("Test Provider");
 
         var botUser = Substitute.For<ISelfUser>();

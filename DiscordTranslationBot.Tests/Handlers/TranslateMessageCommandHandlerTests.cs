@@ -13,17 +13,20 @@ public sealed class TranslateMessageCommandHandlerTests
     private readonly IMessage _message;
     private readonly IMessageCommandInteraction _command;
     private readonly TranslateMessageCommandHandler _sut;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     public TranslateMessageCommandHandlerTests()
     {
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
 
-        _translationProviders = new List<ITranslationProvider>
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
+
+        _translationProviders = new List<TranslationProviderBase>
         {
-            Substitute.For<ITranslationProvider>(),
-            Substitute.For<ITranslationProvider>()
+            Substitute.For<TranslationProviderBase>(httpClientFactory),
+            Substitute.For<TranslationProviderBase>(httpClientFactory)
         };
 
         _sut = Substitute.ForPartsOf<TranslateMessageCommandHandler>(

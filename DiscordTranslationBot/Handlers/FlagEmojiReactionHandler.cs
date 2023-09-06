@@ -16,7 +16,7 @@ namespace DiscordTranslationBot.Handlers;
 public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IDiscordClient _client;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
     private readonly ICountryService _countryService;
     private readonly Log _log;
 
@@ -29,7 +29,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="logger">Logger to use.</param>
     public FlagEmojiReactionHandler(
         IDiscordClient client,
-        IEnumerable<ITranslationProvider> translationProviders,
+        IEnumerable<TranslationProviderBase> translationProviders,
         ICountryService countryService,
         ILogger<FlagEmojiReactionHandler> logger
     )

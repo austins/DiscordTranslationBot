@@ -17,7 +17,7 @@ public sealed partial class RegisterCommandsHandler
         INotificationHandler<JoinedGuildNotification>
 {
     private readonly IDiscordClient _client;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
     private readonly ILogger<RegisterCommandsHandler> _logger;
 
     /// <summary>
@@ -28,7 +28,7 @@ public sealed partial class RegisterCommandsHandler
     /// <param name="logger">Logger to use.</param>
     public RegisterCommandsHandler(
         IDiscordClient client,
-        IEnumerable<ITranslationProvider> translationProviders,
+        IEnumerable<TranslationProviderBase> translationProviders,
         ILogger<RegisterCommandsHandler> logger
     )
     {

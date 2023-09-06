@@ -11,11 +11,14 @@ public sealed class TranslateSlashCommandHandlerTests
 {
     private const string ProviderName = "Test Provider";
     private readonly TranslateSlashCommandHandler _sut;
-    private readonly ITranslationProvider _translationProvider;
+    private readonly TranslationProviderBase _translationProvider;
 
     public TranslateSlashCommandHandlerTests()
     {
-        _translationProvider = Substitute.For<ITranslationProvider>();
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
+
+        _translationProvider = Substitute.For<TranslationProviderBase>(httpClientFactory);
         _translationProvider.ProviderName.Returns(ProviderName);
 
         _sut = new TranslateSlashCommandHandler(

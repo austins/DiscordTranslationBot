@@ -10,14 +10,17 @@ public sealed class RegisterCommandsHandlerTests
 {
     private const string ProviderName = "Test Provider";
     private readonly IDiscordClient _client;
-    private readonly ITranslationProvider _translationProvider;
+    private readonly TranslationProviderBase _translationProvider;
     private readonly RegisterCommandsHandler _sut;
 
     public RegisterCommandsHandlerTests()
     {
         _client = Substitute.For<IDiscordClient>();
 
-        _translationProvider = Substitute.For<ITranslationProvider>();
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_ => new HttpClient());
+
+        _translationProvider = Substitute.For<TranslationProviderBase>(httpClientFactory);
         _translationProvider.ProviderName.Returns(ProviderName);
 
         _sut = new RegisterCommandsHandler(
