@@ -40,7 +40,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             return;
         }
 
-        await notification.Command.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        await notification.Command.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
 
         // Get the input values.
         var options = notification.Command.Data.Options;
@@ -60,7 +60,6 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
             await notification.Command.FollowupAsync(
                 "Nothing to translate.",
-                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -89,7 +88,6 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
                 await notification.Command.FollowupAsync(
                     "Couldn't detect the source language to translate from or the result is the same.",
-                    ephemeral: true,
                     options: new RequestOptions { CancelToken = cancellationToken }
                 );
 

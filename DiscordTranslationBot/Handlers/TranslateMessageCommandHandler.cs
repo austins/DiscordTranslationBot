@@ -54,7 +54,6 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
 
             await notification.Command.FollowupAsync(
                 "Translating this bot's messages isn't allowed.",
-                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -119,7 +118,6 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
             // Send message if no translation providers support the locale.
             await notification.Command.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
-                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -132,7 +130,6 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
 
             await notification.Command.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
@@ -164,7 +161,6 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
                 .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
-            ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken }
         );
     }

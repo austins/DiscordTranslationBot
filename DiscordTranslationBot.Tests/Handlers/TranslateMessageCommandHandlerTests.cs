@@ -84,7 +84,6 @@ public sealed class TranslateMessageCommandHandlerTests
             .Received(1)
             .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
-                ephemeral: true,
                 options: Arg.Any<RequestOptions>()
             );
     }
@@ -167,7 +166,6 @@ public sealed class TranslateMessageCommandHandlerTests
             .Received(1)
             .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
-                ephemeral: true,
                 options: Arg.Any<RequestOptions>()
             );
     }
@@ -186,11 +184,7 @@ public sealed class TranslateMessageCommandHandlerTests
         // Assert
         await _command
             .Received(1)
-            .FollowupAsync(
-                "Translating this bot's messages isn't allowed.",
-                ephemeral: true,
-                options: Arg.Any<RequestOptions>()
-            );
+            .FollowupAsync("Translating this bot's messages isn't allowed.", options: Arg.Any<RequestOptions>());
     }
 
     [Fact]
@@ -225,7 +219,6 @@ public sealed class TranslateMessageCommandHandlerTests
             .Received(1)
             .FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
-                ephemeral: true,
                 options: Arg.Any<RequestOptions>()
             );
     }
@@ -268,7 +261,6 @@ public sealed class TranslateMessageCommandHandlerTests
             .Received(1)
             .FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                ephemeral: true,
                 options: Arg.Any<RequestOptions>()
             );
     }
