@@ -1,15 +1,12 @@
-﻿namespace DiscordTranslationBot.Configuration.TranslationProviders;
+﻿using FluentValidation;
+
+namespace DiscordTranslationBot.Configuration.TranslationProviders;
 
 /// <summary>
 /// Options for the Azure Translator provider.
 /// </summary>
 public sealed class AzureTranslatorOptions : TranslationProviderOptionsBase
 {
-    /// <summary>
-    /// The API URL for Azure Translator.
-    /// </summary>
-    public Uri? ApiUrl { get; init; }
-
     /// <summary>
     /// The secret key for the Azure Translator API.
     /// </summary>
@@ -19,4 +16,27 @@ public sealed class AzureTranslatorOptions : TranslationProviderOptionsBase
     /// The region for the Azure Translator API.
     /// </summary>
     public string? Region { get; init; }
+}
+
+/// <summary>
+/// Validator for <see cref="AzureTranslatorOptions" />.
+/// </summary>
+public sealed class AzureTranslatorOptionsValidator : AbstractValidator<AzureTranslatorOptions>
+{
+    /// <summary>
+    /// Initializes validation rules.
+    /// </summary>
+    public AzureTranslatorOptionsValidator()
+    {
+        Include(new TranslationProviderOptionsBaseValidator());
+
+        When(
+            x => x.Enabled,
+            () =>
+            {
+                RuleFor(x => x.SecretKey).NotEmpty();
+                RuleFor(x => x.Region).NotEmpty();
+            }
+        );
+    }
 }

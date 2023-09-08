@@ -26,7 +26,6 @@ public static class ServiceCollectionExtensions
         where TValidator : class, IValidator<TOptions>
     {
         services.AddTransient<IValidator<TOptions>, TValidator>();
-
         services.AddOptions<TOptions>().Bind(configurationSection).ValidateWithFluentValidation().ValidateOnStart();
     }
 

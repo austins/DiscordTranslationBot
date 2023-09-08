@@ -1,12 +1,22 @@
-﻿namespace DiscordTranslationBot.Configuration.TranslationProviders;
+﻿using FluentValidation;
+
+namespace DiscordTranslationBot.Configuration.TranslationProviders;
 
 /// <summary>
 /// Options for the LibreTranslate provider.
 /// </summary>
-public sealed class LibreTranslateOptions : TranslationProviderOptionsBase
+public sealed class LibreTranslateOptions : TranslationProviderOptionsBase { }
+
+/// <summary>
+/// Validator for <see cref="LibreTranslateOptions" />.
+/// </summary>
+public sealed class LibreTranslateOptionsValidator : AbstractValidator<LibreTranslateOptions>
 {
     /// <summary>
-    /// The API URL for LibreTranslate.
+    /// Initializes validation rules.
     /// </summary>
-    public Uri? ApiUrl { get; init; }
+    public LibreTranslateOptionsValidator()
+    {
+        Include(new TranslationProviderOptionsBaseValidator());
+    }
 }

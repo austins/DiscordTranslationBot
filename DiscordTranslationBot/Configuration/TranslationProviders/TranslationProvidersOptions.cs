@@ -29,22 +29,11 @@ public sealed class TranslationProvidersOptions
 public sealed class TranslationProvidersOptionsValidator : AbstractValidator<TranslationProvidersOptions>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslationProvidersOptionsValidator" /> class.
+    /// Initializes validation rules.
     /// </summary>
     public TranslationProvidersOptionsValidator()
     {
-        // Validate Azure Translator options.
-        When(
-            x => x.AzureTranslator.Enabled,
-            () =>
-            {
-                RuleFor(x => x.AzureTranslator.ApiUrl).NotNull();
-                RuleFor(x => x.AzureTranslator.SecretKey).NotEmpty();
-                RuleFor(x => x.AzureTranslator.Region).NotEmpty();
-            }
-        );
-
-        // Validate Libre Translate options.
-        When(x => x.LibreTranslate.Enabled, () => RuleFor(x => x.LibreTranslate.ApiUrl).NotNull());
+        RuleFor(x => x.AzureTranslator).SetValidator(new AzureTranslatorOptionsValidator());
+        RuleFor(x => x.LibreTranslate).SetValidator(new LibreTranslateOptionsValidator());
     }
 }
