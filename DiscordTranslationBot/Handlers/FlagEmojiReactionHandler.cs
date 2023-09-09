@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using AsyncAwaitBestPractices;
+using Discord;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
@@ -188,42 +189,39 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         uint seconds = 10
     )
     {
-        using var typingState = channel.EnterTypingState();
+        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, referencedMessageId, text));
+        return;
 
-        // Wrapped in Task.Run to not block the handler as the cleanup has a delay of over 3 seconds.
-        _ = Task.Run(
-            async () =>
+        async Task HandleSendTempMessage()
+        {
+            // Send reply message.
+            var replyMessage = await channel.SendMessageAsync(
+                text,
+                messageReference: new MessageReference(referencedMessageId),
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
+
+            // Cleanup.
+            await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
+
+            // If the source message still exists, remove the reaction from it.
+            var sourceMessage = await replyMessage.Channel.GetMessageAsync(
+                referencedMessageId,
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
+
+            if (sourceMessage != null)
             {
-                // Send reply message.
-                var replyMessage = await channel.SendMessageAsync(
-                    text,
-                    messageReference: new MessageReference(referencedMessageId),
-                    options: new RequestOptions { CancelToken = cancellationToken }
+                await sourceMessage.RemoveReactionAsync(
+                    reaction.Emote,
+                    reaction.UserId,
+                    new RequestOptions { CancelToken = cancellationToken }
                 );
+            }
 
-                // Cleanup.
-                await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
-
-                // If the source message still exists, remove the reaction from it.
-                var sourceMessage = await replyMessage.Channel.GetMessageAsync(
-                    referencedMessageId,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
-
-                if (sourceMessage != null)
-                {
-                    await sourceMessage.RemoveReactionAsync(
-                        reaction.Emote,
-                        reaction.UserId,
-                        new RequestOptions { CancelToken = cancellationToken }
-                    );
-                }
-
-                // Delete the reply message.
-                await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-            },
-            cancellationToken
-        );
+            // Delete the reply message.
+            await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+        }
     }
 
     private sealed partial class Log
@@ -255,5 +253,11 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
         )]
         public partial void FailureToDetectSourceLanguage();
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}"
+        )]
+        public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
     }
 }
