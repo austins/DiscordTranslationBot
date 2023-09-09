@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="watch" type="RunDotNetWatch" factoryName="RunDotNetWatch">
+    <option name="exePath" value="$PROJECT_DIR$/DiscordTranslationBot/bin/Debug/net7.0/DiscordTranslationBot.exe" />
+    <option name="programParameters" value="" />
+    <option name="projectFilePath" value="$PROJECT_DIR$/DiscordTranslationBot/DiscordTranslationBot.csproj" />
+    <option name="projectTfm" value="net7.0" />
+    <option name="restartOnRudeEditEditor" value="true" />
+    <option name="suppressBrowserLaunch" value="true" />
+    <option name="suppressBrowserRefresh" value="true" />
+    <option name="suppressHotReload" value="true" />
+    <option name="workingDirectory" value="$PROJECT_DIR$/DiscordTranslationBot" />
+    <method v="2" />
+  </configuration>
+</component>
