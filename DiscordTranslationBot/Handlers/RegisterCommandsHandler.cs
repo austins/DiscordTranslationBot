@@ -58,9 +58,9 @@ public sealed partial class RegisterCommandsHandler
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
+    public Task Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
-        await RegisterCommandsAsync(new[] { notification.Guild }, cancellationToken);
+        return RegisterCommandsAsync(new[] { notification.Guild }, cancellationToken);
     }
 
     /// <summary>
