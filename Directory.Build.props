@@ -6,6 +6,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <!-- Disable CSharpier check for Release due to issue with "The file did not end with a single newline." since CSharpier 0.26.1. -->
+        <CSharpier_Check>false</CSharpier_Check>
     </PropertyGroup>
 
     <ItemGroup>
