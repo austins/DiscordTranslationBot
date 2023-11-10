@@ -50,11 +50,13 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.Command.RespondAsync(
-                "Translating this bot's messages isn't allowed.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Command
+                .RespondAsync(
+                    "Translating this bot's messages isn't allowed.",
+                    ephemeral: true,
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -64,11 +66,13 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.EmptySourceMessage();
 
-            await notification.Command.RespondAsync(
-                "No text to translate.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Command
+                .RespondAsync(
+                    "No text to translate.",
+                    ephemeral: true,
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -83,18 +87,18 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             try
             {
-                var targetLanguage = translationProvider.SupportedLanguages.FirstOrDefault(
-                    l => l.LangCode == userLocale
-                );
+                var targetLanguage = translationProvider
+                    .SupportedLanguages
+                    .FirstOrDefault(l => l.LangCode == userLocale);
 
                 if (targetLanguage == null)
                 {
                     var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
                     if (indexOfHyphen > 0)
                     {
-                        targetLanguage = translationProvider.SupportedLanguages.FirstOrDefault(
-                            l => l.LangCode == userLocale[..indexOfHyphen]
-                        );
+                        targetLanguage = translationProvider
+                            .SupportedLanguages
+                            .FirstOrDefault(l => l.LangCode == userLocale[..indexOfHyphen]);
                     }
                 }
 
@@ -123,10 +127,12 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         if (translationResult == null)
         {
             // Send message if no translation providers support the locale.
-            await notification.Command.FollowupAsync(
-                $"Your locale {userLocale} isn't supported for translation via this action.",
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Command
+                .FollowupAsync(
+                    $"Your locale {userLocale} isn't supported for translation via this action.",
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -135,10 +141,12 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.FailureToDetectSourceLanguage();
 
-            await notification.Command.FollowupAsync(
-                "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Command
+                .FollowupAsync(
+                    "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -161,14 +169,16 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
              {translationResult.TranslatedText}
              """;
 
-        await notification.Command.FollowupAsync(
-            embed: new EmbedBuilder()
-                .WithTitle("Translated Message")
-                .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)
-                .WithDescription(description)
-                .Build(),
-            options: new RequestOptions { CancelToken = cancellationToken }
-        );
+        await notification
+            .Command
+            .FollowupAsync(
+                embed: new EmbedBuilder()
+                    .WithTitle("Translated Message")
+                    .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)
+                    .WithDescription(description)
+                    .Build(),
+                options: new RequestOptions { CancelToken = cancellationToken }
+            );
     }
 
     /// <summary>

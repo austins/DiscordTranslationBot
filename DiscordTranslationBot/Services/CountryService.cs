@@ -40,7 +40,8 @@ public sealed partial class CountryService : ICountryService
         _log = new Log(logger);
 
         // Get all flag emojis.
-        _countries = Emoji.All
+        _countries = Emoji
+            .All
             .Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
             .Select(e => new Country(e.ToString()!, e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToHashSet();

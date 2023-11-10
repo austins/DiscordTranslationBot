@@ -57,9 +57,9 @@ public sealed class TranslateSlashCommandHandlerTests
         user.Id.Returns(1UL);
         command.User.Returns(user);
 
-        _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage }
-        );
+        _translationProvider
+            .SupportedLanguages
+            .Returns(new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
 
         _translationProvider
             .TranslateAsync(
@@ -123,7 +123,8 @@ public sealed class TranslateSlashCommandHandlerTests
         _ = notification.Command.Data.Received(1).Name;
         _ = notification.Command.Data.DidNotReceive().Options;
 
-        await notification.Command
+        await notification
+            .Command
             .DidNotReceive()
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
@@ -199,9 +200,9 @@ public sealed class TranslateSlashCommandHandlerTests
         user.Id.Returns(1UL);
         command.User.Returns(user);
 
-        _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage }
-        );
+        _translationProvider
+            .SupportedLanguages
+            .Returns(new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
 
         _translationProvider
             .TranslateAsync(

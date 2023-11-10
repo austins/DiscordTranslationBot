@@ -60,11 +60,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.Message.RemoveReactionAsync(
-                notification.Reaction.Emote,
-                notification.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Message
+                .RemoveReactionAsync(
+                    notification.Reaction.Emote,
+                    notification.Reaction.UserId,
+                    new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -75,11 +77,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.EmptySourceMessage();
 
-            await notification.Message.RemoveReactionAsync(
-                notification.Reaction.Emote,
-                notification.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Message
+                .RemoveReactionAsync(
+                    notification.Reaction.Emote,
+                    notification.Reaction.UserId,
+                    new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -126,11 +130,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
         if (translationResult == null)
         {
-            await notification.Message.RemoveReactionAsync(
-                notification.Reaction.Emote,
-                notification.Reaction.UserId,
-                new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Message
+                .RemoveReactionAsync(
+                    notification.Reaction.Emote,
+                    notification.Reaction.UserId,
+                    new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -205,10 +211,9 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
 
             // If the source message still exists, remove the reaction from it.
-            var sourceMessage = await replyMessage.Channel.GetMessageAsync(
-                referencedMessageId,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            var sourceMessage = await replyMessage
+                .Channel
+                .GetMessageAsync(referencedMessageId, options: new RequestOptions { CancelToken = cancellationToken });
 
             if (sourceMessage != null)
             {

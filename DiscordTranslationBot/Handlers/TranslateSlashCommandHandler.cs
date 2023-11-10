@@ -51,11 +51,13 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
         {
             _log.EmptySourceText();
 
-            await notification.Command.RespondAsync(
-                "No text to translate.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+            await notification
+                .Command
+                .RespondAsync(
+                    "No text to translate.",
+                    ephemeral: true,
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             return;
         }
@@ -88,23 +90,27 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await notification.Command.FollowupAsync(
-                    "Couldn't detect the source language to translate from or the result is the same.",
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+                await notification
+                    .Command
+                    .FollowupAsync(
+                        "Couldn't detect the source language to translate from or the result is the same.",
+                        options: new RequestOptions { CancelToken = cancellationToken }
+                    );
 
                 return;
             }
 
-            await notification.Command.FollowupAsync(
-                $"""
+            await notification
+                .Command
+                .FollowupAsync(
+                    $"""
                  {MentionUtils.MentionUser(notification.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
                  """,
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
         }
         catch (Exception ex)
         {

@@ -36,12 +36,14 @@ public sealed class RegisterCommandsHandlerTests
 
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
 
-        _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
-            {
-                new() { LangCode = "en", Name = "English" }
-            }
-        );
+        _translationProvider
+            .SupportedLanguages
+            .Returns(
+                new HashSet<SupportedLanguage>
+                {
+                    new() { LangCode = "en", Name = "English" }
+                }
+            );
 
         var notification = new ReadyNotification();
 
@@ -82,12 +84,14 @@ public sealed class RegisterCommandsHandlerTests
         // Arrange
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
 
-        _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
-            {
-                new() { LangCode = "en", Name = "English" }
-            }
-        );
+        _translationProvider
+            .SupportedLanguages
+            .Returns(
+                new HashSet<SupportedLanguage>
+                {
+                    new() { LangCode = "en", Name = "English" }
+                }
+            );
 
         var guild = Substitute.For<IGuild>();
         var notification = new JoinedGuildNotification { Guild = guild };

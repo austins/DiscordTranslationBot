@@ -105,7 +105,8 @@ public sealed class TranslateMessageCommandHandlerTests
         _ = notification.Command.Data.Received(1).Name;
         _ = notification.Command.Data.Message.Author.DidNotReceive().Id;
 
-        await notification.Command
+        await notification
+            .Command
             .DidNotReceive()
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }

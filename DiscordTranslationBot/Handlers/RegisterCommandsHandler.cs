@@ -124,14 +124,16 @@ public sealed partial class RegisterCommandsHandler
         if (translationProvider.TranslateCommandLangCodes == null)
         {
             // If no lang codes are specified, take the first up to the max options limit.
-            supportedLangChoices = translationProvider.SupportedLanguages
+            supportedLangChoices = translationProvider
+                .SupportedLanguages
                 .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
         }
         else
         {
             // Get valid specified lang codes up to the limit.
-            supportedLangChoices = translationProvider.SupportedLanguages
+            supportedLangChoices = translationProvider
+                .SupportedLanguages
                 .Where(l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
                 .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
@@ -144,7 +146,8 @@ public sealed partial class RegisterCommandsHandler
             )
             {
                 supportedLangChoices.AddRange(
-                    translationProvider.SupportedLanguages
+                    translationProvider
+                        .SupportedLanguages
                         .Where(l => !supportedLangChoices.Contains(l))
                         .Take(SlashCommandBuilder.MaxOptionsCount - supportedLangChoices.Count)
                         .ToList()

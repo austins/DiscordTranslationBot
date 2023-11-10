@@ -17,13 +17,15 @@ public static class OptionsBuilderExtensions
     public static OptionsBuilder<TOptions> ValidateWithFluentValidation<TOptions>(this OptionsBuilder<TOptions> builder)
         where TOptions : class
     {
-        builder.Services.AddSingleton<IValidateOptions<TOptions>>(
-            sp =>
-                new FluidValidationOptionsValidator<TOptions>(
-                    sp.GetRequiredService<IValidator<TOptions>>(),
-                    builder.Name
-                )
-        );
+        builder
+            .Services
+            .AddSingleton<IValidateOptions<TOptions>>(
+                sp =>
+                    new FluidValidationOptionsValidator<TOptions>(
+                        sp.GetRequiredService<IValidator<TOptions>>(),
+                        builder.Name
+                    )
+            );
 
         return builder;
     }
@@ -76,10 +78,12 @@ public sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptions
         }
 
         // Format errors on validation failure.
-        var errors = validationResult.Errors.Select(
-            e =>
-                $"Options validation failed for '{options.GetType().Name}.{e.PropertyName}' with error: {e.ErrorMessage}"
-        );
+        var errors = validationResult
+            .Errors
+            .Select(
+                e =>
+                    $"Options validation failed for '{options.GetType().Name}.{e.PropertyName}' with error: {e.ErrorMessage}"
+            );
 
         return ValidateOptionsResult.Fail(errors);
     }
