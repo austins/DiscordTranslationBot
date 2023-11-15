@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using Discord;
-using Discord.WebSocket;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Discord;
 using FluentValidation;
@@ -8,11 +7,19 @@ using Quartz;
 
 namespace DiscordTranslationBot.Jobs;
 
+/// <summary>
+/// Job that deletes a temporary reply message and clears the associated reaction when a user reacts to a message with a flag emoji.
+/// </summary>
 public sealed class DeleteTempReplyForFlagEmojiReactionJob : IJob
 {
     private readonly IDiscordClient _client;
     private readonly IValidator<DeleteTempReplyForFlagEmojiReactionJob> _validator;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DeleteTempReplyForFlagEmojiReactionJob"/> class.
+    /// </summary>
+    /// <param name="client">Discord client to use.</param>
+    /// <param name="validator">Validator to use.</param>
     public DeleteTempReplyForFlagEmojiReactionJob(
         IDiscordClient client,
         IValidator<DeleteTempReplyForFlagEmojiReactionJob> validator
@@ -22,18 +29,40 @@ public sealed class DeleteTempReplyForFlagEmojiReactionJob : IJob
         _validator = validator;
     }
 
-    public string GuildId { get; set; }
+    /// <summary>
+    /// The Guild ID.
+    /// </summary>
+    public string GuildId { get; set; } = null!;
 
-    public string ChannelId { get; set; }
+    /// <summary>
+    /// The channel ID.
+    /// </summary>
+    public string ChannelId { get; set; } = null!;
 
-    public string ReplyMessageId { get; set; }
+    /// <summary>
+    /// The reply message ID.
+    /// </summary>
+    public string ReplyMessageId { get; set; } = null!;
 
-    public string ReactionEmoteName { get; set; }
+    /// <summary>
+    /// The reaction emoji.
+    /// </summary>
+    public string ReactionEmoteName { get; set; } = null!;
 
-    public string ReactionUserId { get; set; }
+    /// <summary>
+    /// The user ID of the user who made the reaction.
+    /// </summary>
+    public string ReactionUserId { get; set; } = null!;
 
-    public string SourceMessageId { get; set; }
+    /// <summary>
+    /// The source message ID.
+    /// </summary>
+    public string SourceMessageId { get; set; } = null!;
 
+    /// <summary>
+    /// Handles the job.
+    /// </summary>
+    /// <param name="context">The job execution context.</param>
     public async Task Execute(IJobExecutionContext context)
     {
         await _validator.ValidateAndThrowAsync(this, context.CancellationToken);
@@ -70,6 +99,13 @@ public sealed class DeleteTempReplyForFlagEmojiReactionJob : IJob
         );
     }
 
+    /// <summary>
+    /// Creates a job detail to be used by the scheduler.
+    /// </summary>
+    /// <param name="reply">The reply message.</param>
+    /// <param name="reaction">The reaction.</param>
+    /// <param name="sourceMessage">The source message.</param>
+    /// <returns>A job detail.</returns>
     public static IJobDetail Create(IMessage reply, Reaction reaction, IMessage sourceMessage)
     {
         return JobBuilder
@@ -87,9 +123,15 @@ public sealed class DeleteTempReplyForFlagEmojiReactionJob : IJob
     }
 }
 
+/// <summary>
+/// Validator for <see cref="DeleteTempReplyForFlagEmojiReactionJob"/>.
+/// </summary>
 public sealed class DeleteTempReplyForFlagEmojiReactionJobValidator
     : AbstractValidator<DeleteTempReplyForFlagEmojiReactionJob>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DeleteTempReplyForFlagEmojiReactionJobValidator"/> class.
+    /// </summary>
     public DeleteTempReplyForFlagEmojiReactionJobValidator()
     {
         RuleFor(x => x.GuildId).PositiveUInt64();

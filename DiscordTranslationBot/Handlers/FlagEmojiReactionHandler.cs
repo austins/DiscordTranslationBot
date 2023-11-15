@@ -29,7 +29,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="countryService">Country service to use.</param>
-    /// <param name="scheduler">Scheduler to use.</param>
+    /// <param name="schedulerFactory">Scheduler factory to use.</param>
     /// <param name="logger">Logger to use.</param>
     public FlagEmojiReactionHandler(
         IDiscordClient client,

@@ -87,12 +87,12 @@ public sealed class DeleteTempReplyForFlagEmojiReactionJobTests
     public async Task Execute_InvalidData_Throws()
     {
         // Arrange
-        _sut.GuildId = null;
-        _sut.ChannelId = null;
-        _sut.ReplyMessageId = null;
+        _sut.GuildId = null!;
+        _sut.ChannelId = "abc";
+        _sut.ReplyMessageId = null!;
         _sut.ReactionEmoteName = "Not an emoji.";
-        _sut.ReactionUserId = null;
-        _sut.SourceMessageId = "5abc";
+        _sut.ReactionUserId = null!;
+        _sut.SourceMessageId = "5xyz";
 
         // Act & Assert
         await _sut.Invoking(x => x.Execute(_context)).Should().ThrowAsync<ValidationException>();
