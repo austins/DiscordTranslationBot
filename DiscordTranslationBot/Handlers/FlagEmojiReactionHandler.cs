@@ -111,7 +111,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
-                    SendTempReply(
+                    await SendTempReplyAsync(
                         ex.Message,
                         notification.Reaction,
                         notification.Message,
@@ -144,7 +144,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.FailureToDetectSourceLanguage();
 
-            SendTempReply(
+            await SendTempReplyAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 notification.Reaction,
                 notification.Message,
@@ -165,13 +165,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                {Format.BlockQuote(translationResult.TranslatedText)}
                """;
 
-        SendTempReply(
-            replyText,
-            notification.Reaction,
-            notification.Message,
-            cancellationToken,
-            20
-        );
+        await SendTempReplyAsync(replyText, notification.Reaction, notification.Message, cancellationToken, 20);
     }
 
     /// <summary>
@@ -182,7 +176,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="message">The referenced message to reply to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="deletionDelayInSeconds">How many seconds the message should be shown.</param>
-    public virtual void SendTempReply(
+    public virtual async Task SendTempReplyAsync(
         string text,
         Reaction reaction,
         IUserMessage message,
@@ -190,18 +184,20 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         uint deletionDelayInSeconds = 10
     )
     {
-        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, message.Id, text));
-        return;
-
-        async Task HandleSendTempMessage()
-        {
-            // Send reply message.
-            var reply = await message.Channel.SendMessageAsync(
+        // Send reply message.
+        var reply = await message
+            .Channel
+            .SendMessageAsync(
                 text,
                 messageReference: new MessageReference(message.Id),
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
+        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, message.Id, text));
+        return;
+
+        async Task HandleSendTempMessage()
+        {
             // Cleanup.
             await Task.Delay(TimeSpan.FromSeconds(deletionDelayInSeconds), cancellationToken);
 
