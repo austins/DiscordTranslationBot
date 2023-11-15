@@ -111,11 +111,10 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
-                    SendTempMessage(
+                    SendTempReply(
                         ex.Message,
                         notification.Reaction,
-                        notification.Message.Channel,
-                        notification.Message.Id,
+                        notification.Message,
                         cancellationToken
                     );
 
@@ -145,11 +144,10 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.FailureToDetectSourceLanguage();
 
-            SendTempMessage(
+            SendTempReply(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 notification.Reaction,
-                notification.Message.Channel,
-                notification.Message.Id,
+                notification.Message,
                 cancellationToken
             );
 
@@ -167,53 +165,50 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                {Format.BlockQuote(translationResult.TranslatedText)}
                """;
 
-        SendTempMessage(
+        SendTempReply(
             replyText,
             notification.Reaction,
-            notification.Message.Channel,
-            notification.Message.Id,
+            notification.Message,
             cancellationToken,
             20
         );
     }
 
     /// <summary>
-    /// Sends a message and then clears the reaction and message after a certain time.
+    /// Sends a reply and then clears the reaction and reply after a certain time.
     /// </summary>
     /// <param name="text">Text to send in message.</param>
     /// <param name="reaction">The reaction.</param>
-    /// <param name="channel">The channel to post the message in.</param>
-    /// <param name="referencedMessageId">The source message ID to reference.</param>
+    /// <param name="message">The referenced message to reply to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="seconds">How many seconds the message should be shown.</param>
-    public virtual void SendTempMessage(
+    /// <param name="deletionDelayInSeconds">How many seconds the message should be shown.</param>
+    public virtual void SendTempReply(
         string text,
         Reaction reaction,
-        IMessageChannel channel,
-        ulong referencedMessageId,
+        IUserMessage message,
         CancellationToken cancellationToken,
-        uint seconds = 10
+        uint deletionDelayInSeconds = 10
     )
     {
-        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, referencedMessageId, text));
+        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, message.Id, text));
         return;
 
         async Task HandleSendTempMessage()
         {
             // Send reply message.
-            var replyMessage = await channel.SendMessageAsync(
+            var reply = await message.Channel.SendMessageAsync(
                 text,
-                messageReference: new MessageReference(referencedMessageId),
+                messageReference: new MessageReference(message.Id),
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
             // Cleanup.
-            await Task.Delay(TimeSpan.FromSeconds(seconds), cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(deletionDelayInSeconds), cancellationToken);
 
             // If the source message still exists, remove the reaction from it.
-            var sourceMessage = await replyMessage
+            var sourceMessage = await reply
                 .Channel
-                .GetMessageAsync(referencedMessageId, options: new RequestOptions { CancelToken = cancellationToken });
+                .GetMessageAsync(message.Id, options: new RequestOptions { CancelToken = cancellationToken });
 
             if (sourceMessage != null)
             {
@@ -225,7 +220,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             }
 
             // Delete the reply message.
-            await replyMessage.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+            await reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
         }
     }
 

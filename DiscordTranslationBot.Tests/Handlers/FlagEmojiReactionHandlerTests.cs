@@ -63,7 +63,7 @@ public sealed class FlagEmojiReactionHandlerTests
             Substitute.For<ILogger<FlagEmojiReactionHandler>>()
         );
 
-        _sut.WhenForAnyArgs(x => x.SendTempMessage(default!, default!, default!, default, default, default))
+        _sut.WhenForAnyArgs(x => x.SendTempReply(default!, default!, default!, default, default))
             .DoNotCallBase();
     }
 
@@ -111,11 +111,10 @@ public sealed class FlagEmojiReactionHandlerTests
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
         _sut.DidNotReceive()
-            .SendTempMessage(
+            .SendTempReply(
                 Arg.Any<string>(),
                 Arg.Any<Reaction>(),
-                Arg.Any<IMessageChannel>(),
-                Arg.Any<ulong>(),
+                Arg.Any<IUserMessage>(),
                 Arg.Any<CancellationToken>(),
                 Arg.Any<uint>()
             );
@@ -208,11 +207,10 @@ public sealed class FlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
         _sut.Received(1)
-            .SendTempMessage(
+            .SendTempReply(
                 Arg.Any<string>(),
                 Arg.Any<Reaction>(),
-                Arg.Any<IMessageChannel>(),
-                Arg.Any<ulong>(),
+                Arg.Any<IUserMessage>(),
                 Arg.Any<CancellationToken>(),
                 Arg.Any<uint>()
             );
@@ -293,7 +291,7 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _sut.DidNotReceiveWithAnyArgs().SendTempMessage(default!, default!, default!, default, default);
+        _sut.DidNotReceiveWithAnyArgs().SendTempReply(default!, default!, default!, default, default);
 
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
@@ -340,11 +338,10 @@ public sealed class FlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
         _sut.Received(1)
-            .SendTempMessage(
+            .SendTempReply(
                 exMessage,
                 Arg.Any<Reaction>(),
-                Arg.Any<IMessageChannel>(),
-                Arg.Any<ulong>(),
+                Arg.Any<IUserMessage>(),
                 Arg.Any<CancellationToken>(),
                 Arg.Any<uint>()
             );
@@ -397,11 +394,10 @@ public sealed class FlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
         _sut.Received(1)
-            .SendTempMessage(
+            .SendTempReply(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 Arg.Any<Reaction>(),
-                Arg.Any<IMessageChannel>(),
-                Arg.Any<ulong>(),
+                Arg.Any<IUserMessage>(),
                 Arg.Any<CancellationToken>(),
                 Arg.Any<uint>()
             );
