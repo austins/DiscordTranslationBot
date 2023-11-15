@@ -17,8 +17,8 @@ public sealed partial class RegisterCommandsHandler
         INotificationHandler<JoinedGuildNotification>
 {
     private readonly IDiscordClient _client;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
     private readonly ILogger<RegisterCommandsHandler> _logger;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="RegisterCommandsHandler" /> class.
@@ -38,22 +38,6 @@ public sealed partial class RegisterCommandsHandler
     }
 
     /// <summary>
-    /// Registers commands for all guilds the bot is in.
-    /// </summary>
-    /// <param name="notification">The notification.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(ReadyNotification notification, CancellationToken cancellationToken)
-    {
-        var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
-        if (!guilds.Any())
-        {
-            return;
-        }
-
-        await RegisterCommandsAsync(guilds, cancellationToken);
-    }
-
-    /// <summary>
     /// Registers commands for the guild that the bot joined.
     /// </summary>
     /// <param name="notification">The notification.</param>
@@ -61,6 +45,22 @@ public sealed partial class RegisterCommandsHandler
     public Task Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
         return RegisterCommandsAsync(new[] { notification.Guild }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Registers commands for all guilds the bot is in.
+    /// </summary>
+    /// <param name="notification">The notification.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    public async Task Handle(ReadyNotification notification, CancellationToken cancellationToken)
+    {
+        var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
+        if (guilds.Count == 0)
+        {
+            return;
+        }
+
+        await RegisterCommandsAsync(guilds, cancellationToken);
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public sealed partial class RegisterCommandsHandler
         GetMessageCommands(commandsToRegister);
         GetSlashCommands(commandsToRegister);
 
-        if (!commandsToRegister.Any())
+        if (commandsToRegister.Count == 0)
         {
             return;
         }
@@ -102,7 +102,7 @@ public sealed partial class RegisterCommandsHandler
     /// Gets message commands to register.
     /// </summary>
     /// <param name="commandsToRegister">Commands to register.</param>
-    private static void GetMessageCommands(ICollection<ApplicationCommandProperties> commandsToRegister)
+    private static void GetMessageCommands(List<ApplicationCommandProperties> commandsToRegister)
     {
         commandsToRegister.Add(
             new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateCommandName).Build()
@@ -113,7 +113,7 @@ public sealed partial class RegisterCommandsHandler
     /// Gets slash commands to register.
     /// </summary>
     /// <param name="commandsToRegister">Commands to register.</param>
-    private void GetSlashCommands(ICollection<ApplicationCommandProperties> commandsToRegister)
+    private void GetSlashCommands(List<ApplicationCommandProperties> commandsToRegister)
     {
         // Translate command.
         // Only the first translation provider is supported as the slash command options can only be registered with one provider's supported languages.

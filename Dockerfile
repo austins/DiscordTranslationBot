@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
 WORKDIR /app
 
 ARG PROJECT_NAME=DiscordTranslationBot
@@ -12,7 +12,7 @@ RUN dotnet restore $PROJECT_NAME
 RUN dotnet publish $PROJECT_NAME -c Release -o ./publish
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/runtime:7.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
 
 # Install cultures
 RUN apk add --no-cache icu-libs
