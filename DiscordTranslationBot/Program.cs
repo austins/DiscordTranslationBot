@@ -6,12 +6,17 @@ using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Services;
+using FluentValidation;
 using MediatR.NotificationPublishers;
+using Quartz;
 
 await Host.CreateDefaultBuilder(args)
+    .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
     .ConfigureServices(
         (builder, services) =>
         {
+            services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
+
             // Set up configuration.
             services.AddOptionsWithFluentValidation<DiscordOptions, DiscordOptionsValidator>(
                 builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
@@ -42,9 +47,10 @@ await Host.CreateDefaultBuilder(args)
                     )
                 )
                 .AddSingleton<DiscordEventListener>()
+                .AddQuartz()
+                .AddQuartzHostedService()
                 .AddHostedService<Worker>();
         }
     )
-    .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
     .Build()
     .RunAsync();

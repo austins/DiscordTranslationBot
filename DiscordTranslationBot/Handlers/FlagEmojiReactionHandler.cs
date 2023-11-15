@@ -1,12 +1,13 @@
-﻿using AsyncAwaitBestPractices;
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Jobs;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
+using Quartz;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
@@ -17,9 +18,10 @@ namespace DiscordTranslationBot.Handlers;
 public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IDiscordClient _client;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
     private readonly ICountryService _countryService;
     private readonly Log _log;
+    private readonly ISchedulerFactory _schedulerFactory;
+    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FlagEmojiReactionHandler" /> class.
@@ -27,17 +29,20 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="countryService">Country service to use.</param>
+    /// <param name="scheduler">Scheduler to use.</param>
     /// <param name="logger">Logger to use.</param>
     public FlagEmojiReactionHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
         ICountryService countryService,
+        ISchedulerFactory schedulerFactory,
         ILogger<FlagEmojiReactionHandler> logger
     )
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
         _countryService = countryService;
+        _schedulerFactory = schedulerFactory;
         _log = new Log(logger);
     }
 
@@ -173,51 +178,39 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// </summary>
     /// <param name="text">Text to send in message.</param>
     /// <param name="reaction">The reaction.</param>
-    /// <param name="message">The referenced message to reply to.</param>
+    /// <param name="sourceMessage">The source message to reply to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="deletionDelayInSeconds">How many seconds the message should be shown.</param>
-    public virtual async Task SendTempReplyAsync(
+    private async Task SendTempReplyAsync(
         string text,
         Reaction reaction,
-        IUserMessage message,
+        IMessage sourceMessage,
         CancellationToken cancellationToken,
-        uint deletionDelayInSeconds = 10
+        int deletionDelayInSeconds = 10
     )
     {
+        using var _ = sourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
+
         // Send reply message.
-        var reply = await message
+        var reply = await sourceMessage
             .Channel
             .SendMessageAsync(
                 text,
-                messageReference: new MessageReference(message.Id),
+                messageReference: new MessageReference(sourceMessage.Id),
                 options: new RequestOptions { CancelToken = cancellationToken }
             );
 
-        HandleSendTempMessage().SafeFireAndForget(ex => _log.FailedToSendTempMessage(ex, message.Id, text));
-        return;
+        // Schedule deletion of the reply message.
+        var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
 
-        async Task HandleSendTempMessage()
-        {
-            // Cleanup.
-            await Task.Delay(TimeSpan.FromSeconds(deletionDelayInSeconds), cancellationToken);
-
-            // If the source message still exists, remove the reaction from it.
-            var sourceMessage = await reply
-                .Channel
-                .GetMessageAsync(message.Id, options: new RequestOptions { CancelToken = cancellationToken });
-
-            if (sourceMessage != null)
-            {
-                await sourceMessage.RemoveReactionAsync(
-                    reaction.Emote,
-                    reaction.UserId,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
-            }
-
-            // Delete the reply message.
-            await reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-        }
+        await scheduler.ScheduleJob(
+            DeleteTempReplyForFlagEmojiReactionJob.Create(reply, reaction, sourceMessage),
+            TriggerBuilder
+                .Create()
+                .StartAt(DateBuilder.FutureDate(deletionDelayInSeconds, IntervalUnit.Second))
+                .Build(),
+            cancellationToken
+        );
     }
 
     private sealed partial class Log

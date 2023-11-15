@@ -1,6 +1,7 @@
 ﻿using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
 using FluentValidation;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 
@@ -25,7 +26,7 @@ public static class ServiceCollectionExtensions
         where TOptions : class
         where TValidator : class, IValidator<TOptions>
     {
-        services.AddTransient<IValidator<TOptions>, TValidator>();
+        services.TryAddSingleton<IValidator<TOptions>, TValidator>();
         services.AddOptions<TOptions>().Bind(configurationSection).ValidateWithFluentValidation().ValidateOnStart();
     }
 

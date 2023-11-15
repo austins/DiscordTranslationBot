@@ -1,12 +1,14 @@
 ﻿using Discord;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Handlers;
+using DiscordTranslationBot.Jobs;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
+using Quartz;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -31,6 +33,7 @@ public sealed class FlagEmojiReactionHandlerTests
     private readonly IUserMessage _message;
     private readonly FlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
+    private readonly IScheduler _scheduler;
 
     public FlagEmojiReactionHandlerTests()
     {
@@ -54,16 +57,26 @@ public sealed class FlagEmojiReactionHandlerTests
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
-        _message.Channel.Returns(Substitute.For<IMessageChannel>());
+        var guild = Substitute.For<IGuild>();
+        guild.Id.Returns((ulong)1);
 
-        _sut = Substitute.ForPartsOf<FlagEmojiReactionHandler>(
+        var channel = Substitute.For<IMessageChannel, IGuildChannel>();
+        channel.EnterTypingState().ReturnsForAnyArgs(Substitute.For<IDisposable>());
+        _message.Channel.Returns(channel);
+        ((IGuildChannel)channel).Guild.Returns(guild);
+
+        _scheduler = Substitute.For<IScheduler>();
+
+        var schedulerFactory = Substitute.For<ISchedulerFactory>();
+        schedulerFactory.GetScheduler().Returns(_scheduler);
+
+        _sut = Substitute.For<FlagEmojiReactionHandler>(
             client,
             new[] { _translationProvider },
             _countryService,
+            schedulerFactory,
             Substitute.For<ILogger<FlagEmojiReactionHandler>>()
         );
-
-        _sut.WhenForAnyArgs(x => x.SendTempReplyAsync(default!, default!, default!, default, default)).DoNotCallBase();
     }
 
     [Fact]
@@ -109,13 +122,12 @@ public sealed class FlagEmojiReactionHandlerTests
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _sut.DidNotReceive()
-            .SendTempReplyAsync(
-                Arg.Any<string>(),
-                Arg.Any<Reaction>(),
-                Arg.Any<IUserMessage>(),
-                Arg.Any<CancellationToken>(),
-                Arg.Any<uint>()
+        await _scheduler
+            .DidNotReceive()
+            .ScheduleJob(
+                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
             );
     }
 
@@ -205,13 +217,12 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _sut.Received(1)
-            .SendTempReplyAsync(
-                Arg.Any<string>(),
-                Arg.Any<Reaction>(),
-                Arg.Any<IUserMessage>(),
-                Arg.Any<CancellationToken>(),
-                Arg.Any<uint>()
+        await _scheduler
+            .Received(1)
+            .ScheduleJob(
+                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
             );
     }
 
@@ -290,13 +301,19 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _sut.DidNotReceiveWithAnyArgs().SendTempReplyAsync(default!, default!, default!, default, default);
+        await _scheduler
+            .DidNotReceive()
+            .ScheduleJob(
+                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
+            );
 
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
     [Fact]
-    public async Task Handle_ReactionAddedNotification_TempMessageSent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
+    public async Task Handle_ReactionAddedNotification_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
@@ -336,18 +353,17 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _sut.Received(1)
-            .SendTempReplyAsync(
-                exMessage,
-                Arg.Any<Reaction>(),
-                Arg.Any<IUserMessage>(),
-                Arg.Any<CancellationToken>(),
-                Arg.Any<uint>()
+        await _scheduler
+            .Received(1)
+            .ScheduleJob(
+                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
             );
     }
 
     [Fact]
-    public async Task Handle_ReactionAddedNotification_TempMessageSent_OnFailureToDetectSourceLanguage()
+    public async Task Handle_ReactionAddedNotification_TempReplySent_OnFailureToDetectSourceLanguage()
     {
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
@@ -392,13 +408,12 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _sut.Received(1)
-            .SendTempReplyAsync(
-                "Couldn't detect the source language to translate from or the result is the same.",
-                Arg.Any<Reaction>(),
-                Arg.Any<IUserMessage>(),
-                Arg.Any<CancellationToken>(),
-                Arg.Any<uint>()
+        await _scheduler
+            .Received(1)
+            .ScheduleJob(
+                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
+                Arg.Any<ITrigger>(),
+                Arg.Any<CancellationToken>()
             );
     }
 }
