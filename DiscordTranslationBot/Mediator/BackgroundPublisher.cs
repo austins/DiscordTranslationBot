@@ -2,30 +2,29 @@
 
 namespace DiscordTranslationBot.Mediator;
 
-public sealed partial class BackgroundPublisher : ValidateMediatorCallsBase, INotificationPublisher
+public sealed partial class BackgroundPublisher : INotificationPublisher
 {
     private readonly Log _log;
 
-    public BackgroundPublisher(IServiceProvider serviceProvider, ILogger<BackgroundPublisher> logger)
-        : base(serviceProvider)
+    public BackgroundPublisher(ILogger<BackgroundPublisher> logger)
     {
         _log = new Log(logger);
     }
 
-    public async Task Publish(
+    public Task Publish(
         IEnumerable<NotificationHandlerExecutor> handlerExecutors,
         INotification notification,
         CancellationToken cancellationToken
     )
     {
-        await ValidateOrThrowAsync(notification, cancellationToken);
-
         foreach (var handler in handlerExecutors)
         {
             handler
                 .HandlerCallback(notification, cancellationToken)
                 .SafeFireAndForget(ex => _log.FailureInNotificationHandler(ex));
         }
+
+        return Task.CompletedTask;
     }
 
     private sealed partial class Log
