@@ -5,10 +5,9 @@ using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Extensions;
+using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Services;
 using FluentValidation;
-using MediatR.NotificationPublishers;
-using Quartz;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
@@ -28,8 +27,9 @@ await Host.CreateDefaultBuilder(args)
                 .AddMediatR(c =>
                 {
                     c.Lifetime = ServiceLifetime.Singleton;
-                    c.NotificationPublisherType = typeof(TaskWhenAllPublisher);
+                    c.NotificationPublisherType = typeof(BackgroundPublisher);
                     c.RegisterServicesFromAssemblyContaining<Program>();
+                    c.AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
                 })
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
@@ -47,8 +47,6 @@ await Host.CreateDefaultBuilder(args)
                     )
                 )
                 .AddSingleton<DiscordEventListener>()
-                .AddQuartz()
-                .AddQuartzHostedService()
                 .AddHostedService<Worker>();
         }
     )

@@ -10,10 +10,10 @@ namespace DiscordTranslationBot.Services;
 /// </summary>
 public sealed partial class DiscordEventListener
 {
-    private readonly DiscordSocketClient _client;
-    private readonly IMediator _mediator;
     private readonly CancellationToken _cancellationToken;
+    private readonly DiscordSocketClient _client;
     private readonly Log _log;
+    private readonly IMediator _mediator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DiscordEventListener" /> class.
@@ -34,13 +34,13 @@ public sealed partial class DiscordEventListener
     /// </summary>
     public Task InitializeEventsAsync()
     {
-        _client.Log += logMessage =>
-            _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
-
         _client.Ready += () => _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
         _client.JoinedGuild += guild =>
             _mediator.Publish(new JoinedGuildNotification { Guild = guild }, _cancellationToken);
+
+        _client.Log += logMessage =>
+            _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
 
         _client.MessageCommandExecuted += command =>
             _mediator.Publish(new MessageCommandExecutedNotification { Command = command }, _cancellationToken);

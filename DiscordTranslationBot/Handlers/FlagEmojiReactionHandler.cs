@@ -1,13 +1,11 @@
 ﻿using Discord;
 using DiscordTranslationBot.Exceptions;
-using DiscordTranslationBot.Jobs;
-using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Requests.TempReply;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
-using Quartz;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
@@ -20,7 +18,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;
     private readonly Log _log;
-    private readonly ISchedulerFactory _schedulerFactory;
+    private readonly IMediator _mediator;
     private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
@@ -29,20 +27,20 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="countryService">Country service to use.</param>
-    /// <param name="schedulerFactory">Scheduler factory to use.</param>
+    /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public FlagEmojiReactionHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
         ICountryService countryService,
-        ISchedulerFactory schedulerFactory,
+        IMediator mediator,
         ILogger<FlagEmojiReactionHandler> logger
     )
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
         _countryService = countryService;
-        _schedulerFactory = schedulerFactory;
+        _mediator = mediator;
         _log = new Log(logger);
     }
 
@@ -116,10 +114,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
-                    await SendTempReplyAsync(
-                        ex.Message,
-                        notification.Reaction,
-                        notification.Message,
+                    await _mediator.Send(
+                        new SendTempReply
+                        {
+                            Text = ex.Message,
+                            Reaction = notification.Reaction,
+                            SourceMessage = notification.Message
+                        },
                         cancellationToken
                     );
 
@@ -149,10 +150,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.FailureToDetectSourceLanguage();
 
-            await SendTempReplyAsync(
-                "Couldn't detect the source language to translate from or the result is the same.",
-                notification.Reaction,
-                notification.Message,
+            await _mediator.Send(
+                new SendTempReply
+                {
+                    Text = "Couldn't detect the source language to translate from or the result is the same.",
+                    Reaction = notification.Reaction,
+                    SourceMessage = notification.Message
+                },
                 cancellationToken
             );
 
@@ -170,45 +174,14 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                {Format.BlockQuote(translationResult.TranslatedText)}
                """;
 
-        await SendTempReplyAsync(replyText, notification.Reaction, notification.Message, cancellationToken, 20);
-    }
-
-    /// <summary>
-    /// Sends a reply and then clears the reaction and reply after a certain time.
-    /// </summary>
-    /// <param name="text">Text to send in message.</param>
-    /// <param name="reaction">The reaction.</param>
-    /// <param name="sourceMessage">The source message to reply to.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="deletionDelayInSeconds">How many seconds the message should be shown.</param>
-    private async Task SendTempReplyAsync(
-        string text,
-        Reaction reaction,
-        IMessage sourceMessage,
-        CancellationToken cancellationToken,
-        int deletionDelayInSeconds = 10
-    )
-    {
-        using var _ = sourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
-
-        // Send reply message.
-        var reply = await sourceMessage
-            .Channel
-            .SendMessageAsync(
-                text,
-                messageReference: new MessageReference(sourceMessage.Id),
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
-
-        // Schedule deletion of the reply message.
-        var scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
-
-        await scheduler.ScheduleJob(
-            DeleteTempReplyForFlagEmojiReactionJob.Create(reply, reaction, sourceMessage),
-            TriggerBuilder
-                .Create()
-                .StartAt(DateBuilder.FutureDate(deletionDelayInSeconds, IntervalUnit.Second))
-                .Build(),
+        await _mediator.Send(
+            new SendTempReply
+            {
+                Text = replyText,
+                Reaction = notification.Reaction,
+                SourceMessage = notification.Message,
+                DeletionDelayInSeconds = 20
+            },
             cancellationToken
         );
     }
@@ -242,11 +215,5 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
         )]
         public partial void FailureToDetectSourceLanguage();
-
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}"
-        )]
-        public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
     }
 }

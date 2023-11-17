@@ -1,5 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Notifications;
+using FluentValidation;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -27,15 +28,20 @@ public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHan
     public Task Handle(LogNotification notification, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = notification.LogMessage.Severity switch
+        var logLevel = notification.LogMessage.Exception switch
         {
-            LogSeverity.Debug => LogLevel.Debug,
-            LogSeverity.Verbose => LogLevel.Trace,
-            LogSeverity.Info => LogLevel.Information,
-            LogSeverity.Warning => LogLevel.Warning,
-            LogSeverity.Error => LogLevel.Error,
-            LogSeverity.Critical => LogLevel.Critical,
-            _ => LogLevel.Debug
+            ValidationException => LogLevel.Error,
+            _
+                => notification.LogMessage.Severity switch
+                {
+                    LogSeverity.Debug => LogLevel.Debug,
+                    LogSeverity.Verbose => LogLevel.Trace,
+                    LogSeverity.Info => LogLevel.Information,
+                    LogSeverity.Warning => LogLevel.Warning,
+                    LogSeverity.Error => LogLevel.Error,
+                    LogSeverity.Critical => LogLevel.Critical,
+                    _ => LogLevel.Debug
+                }
         };
 
         LogDiscordMessage(
