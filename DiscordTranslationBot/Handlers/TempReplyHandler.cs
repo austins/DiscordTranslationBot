@@ -1,45 +1,53 @@
 ﻿using Discord;
+using DiscordTranslationBot.Commands.TempReply;
 using DiscordTranslationBot.Mediator;
-using DiscordTranslationBot.Requests.TempReply;
 
 namespace DiscordTranslationBot.Handlers;
 
 public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>, IRequestHandler<SendTempReply>
 {
+    private readonly IBackgroundCommandService _backgroundCommandService;
     private readonly Log _log;
-    private readonly IMediator _mediator;
 
-    public TempReplyHandler(IMediator mediator, ILogger<TempReplyHandler> logger)
+    public TempReplyHandler(IBackgroundCommandService backgroundCommandService, ILogger<TempReplyHandler> logger)
     {
-        _mediator = mediator;
+        _backgroundCommandService = backgroundCommandService;
         _log = new Log(logger);
     }
 
     public async Task Handle(DeleteTempReply request, CancellationToken cancellationToken)
     {
-        // If there is also a reaction and the source message still exists, remove the reaction from it.
-        if (request.Reaction != null)
+        try
         {
-            var sourceMessage = await request
-                .Reply
-                .Channel
-                .GetMessageAsync(
-                    request.SourceMessage.Id,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
-
-            if (sourceMessage != null)
+            // If there is also a reaction and the source message still exists, remove the reaction from it.
+            if (request.Reaction != null)
             {
-                await sourceMessage.RemoveReactionAsync(
-                    request.Reaction.Emote,
-                    request.Reaction.UserId,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
-            }
-        }
+                var sourceMessage = await request
+                    .Reply
+                    .Channel
+                    .GetMessageAsync(
+                        request.SourceMessage.Id,
+                        options: new RequestOptions { CancelToken = cancellationToken }
+                    );
 
-        // Delete the reply message.
-        await request.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+                if (sourceMessage != null)
+                {
+                    await sourceMessage.RemoveReactionAsync(
+                        request.Reaction.Emote,
+                        request.Reaction.UserId,
+                        new RequestOptions { CancelToken = cancellationToken }
+                    );
+                }
+            }
+
+            // Delete the reply message.
+            await request.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+        }
+        catch (Exception ex)
+        {
+            _log.FailedToDeleteTempMessage(ex, request.Reply.Id);
+            throw;
+        }
     }
 
     public async Task Handle(SendTempReply request, CancellationToken cancellationToken)
@@ -63,16 +71,15 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
 
             // Delete the temp reply in the background with a delay as to not block the request
             // and to clear the typing state scope by allowing it to dispose after the reply is sent.
-            await _mediator.SendInBackgroundAsync(
+            _backgroundCommandService.Schedule(
                 new DeleteTempReply
                 {
                     Reply = reply,
                     Reaction = request.Reaction,
                     SourceMessage = request.SourceMessage
                 },
-                ex => _log.FailedToDeleteTempMessage(ex, reply.Id),
-                cancellationToken,
-                TimeSpan.FromSeconds(request.DeletionDelayInSeconds)
+                TimeSpan.FromSeconds(request.DeletionDelayInSeconds),
+                cancellationToken
             );
         }
         catch (Exception ex)

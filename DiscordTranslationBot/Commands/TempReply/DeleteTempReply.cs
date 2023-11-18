@@ -2,9 +2,9 @@
 using DiscordTranslationBot.Models.Discord;
 using FluentValidation;
 
-namespace DiscordTranslationBot.Requests.TempReply;
+namespace DiscordTranslationBot.Commands.TempReply;
 
-public sealed class DeleteTempReply : ITempReplyRequest
+public sealed class DeleteTempReply : ITempReplyCommand
 {
     public required IMessage Reply { get; init; }
 
@@ -17,7 +17,7 @@ public sealed class DeleteTempReplyValidator : AbstractValidator<DeleteTempReply
 {
     public DeleteTempReplyValidator()
     {
-        Include(new ITempReplyRequestValidator());
+        Include(new ITempReplyCommandValidator());
         RuleFor(x => x.Reply).NotNull();
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Discord;
+using DiscordTranslationBot.Commands.TempReply;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Requests.TempReply;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 using Emoji = NeoSmart.Unicode.Emoji;

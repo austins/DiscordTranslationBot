@@ -2,18 +2,18 @@
 using DiscordTranslationBot.Models.Discord;
 using FluentValidation;
 
-namespace DiscordTranslationBot.Requests.TempReply;
+namespace DiscordTranslationBot.Commands.TempReply;
 
-public interface ITempReplyRequest : IRequest
+public interface ITempReplyCommand : IRequest
 {
     public Reaction? Reaction { get; init; }
 
     public IMessage SourceMessage { get; init; }
 }
 
-public sealed class ITempReplyRequestValidator : AbstractValidator<ITempReplyRequest>
+public sealed class ITempReplyCommandValidator : AbstractValidator<ITempReplyCommand>
 {
-    public ITempReplyRequestValidator()
+    public ITempReplyCommandValidator()
     {
         RuleFor(x => x.SourceMessage).NotNull();
     }

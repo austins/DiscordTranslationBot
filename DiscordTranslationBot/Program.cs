@@ -31,6 +31,7 @@ await Host.CreateDefaultBuilder(args)
                     c.RegisterServicesFromAssemblyContaining<Program>();
                     c.AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
                 })
+                .AddSingleton<IBackgroundCommandService, BackgroundCommandService>()
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
                     new DiscordSocketClient(
