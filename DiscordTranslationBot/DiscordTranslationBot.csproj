@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
     <PropertyGroup>
         <UserSecretsId>dotnet-DiscordTranslationBot-92BF073E-600E-4E16-B57C-2B418D8A07E3</UserSecretsId>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
