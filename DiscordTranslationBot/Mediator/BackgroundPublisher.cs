@@ -2,25 +2,37 @@
 
 namespace DiscordTranslationBot.Mediator;
 
+/// <summary>
+/// Mediator notification publisher that publishes notifications in the background.
+/// </summary>
 public sealed partial class BackgroundPublisher : INotificationPublisher
 {
     private readonly Log _log;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundPublisher" /> class.
+    /// </summary>
+    /// <param name="logger">Logger to use.</param>
     public BackgroundPublisher(ILogger<BackgroundPublisher> logger)
     {
         _log = new Log(logger);
     }
 
+    /// <summary>
+    /// Publishes a notification to any notification handlers in the background.
+    /// </summary>
+    /// <param name="handlerExecutors">The notification handlers.</param>
+    /// <param name="notification">The notification.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
     public Task Publish(
         IEnumerable<NotificationHandlerExecutor> handlerExecutors,
         INotification notification,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
         foreach (var handler in handlerExecutors)
         {
-            handler
-                .HandlerCallback(notification, cancellationToken)
+            handler.HandlerCallback(notification, cancellationToken)
                 .SafeFireAndForget(ex => _log.FailureInNotificationHandler(ex));
         }
 
