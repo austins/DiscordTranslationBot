@@ -30,8 +30,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     public AzureTranslatorProvider(
         IHttpClientFactory httpClientFactory,
         IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<AzureTranslatorProvider> logger
-    )
+        ILogger<AzureTranslatorProvider> logger)
         : base(httpClientFactory)
     {
         _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
@@ -84,21 +83,18 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         var response = await httpClient.GetAsync(
             new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
-            cancellationToken
-        );
+            cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
             _log.ResponseFailure("Languages", response.StatusCode);
 
             throw new InvalidOperationException(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}."
-            );
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
         }
 
         var content = JsonSerializer.Deserialize<Languages>(
-            await response.Content.ReadAsStringAsync(cancellationToken)
-        );
+            await response.Content.ReadAsStringAsync(cancellationToken));
 
         if (content?.LangCodes?.Any() != true)
         {
@@ -106,9 +102,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content
-            .LangCodes
-            .Select(lc => new SupportedLanguage { LangCode = lc.Key, Name = lc.Value.Name })
+        SupportedLanguages = content.LangCodes.Select(
+                lc => new SupportedLanguage
+                {
+                    LangCode = lc.Key,
+                    Name = lc.Value.Name
+                })
             .ToHashSet();
     }
 
@@ -119,8 +118,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    )
+        SupportedLanguage? sourceLanguage = null)
     {
         try
         {
@@ -129,8 +127,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
 
                 throw new ArgumentException(
-                    $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}."
-                );
+                    $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
             }
 
             var result = new TranslationResult
@@ -157,10 +154,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
             request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);
 
-            request.Content = new List<ITranslateRequest>
-            {
-                new TranslateRequest { Text = text }
-            }.SerializeToRequestContent();
+            request.Content = new List<ITranslateRequest> { new TranslateRequest { Text = text } }
+                .SerializeToRequestContent();
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
@@ -168,8 +163,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 _log.ResponseFailure("Translate", response.StatusCode);
 
                 throw new InvalidOperationException(
-                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}."
-                );
+                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
             var content = await response.Content.ReadAsTranslateResultsAsync<TranslateResult>(cancellationToken);
@@ -182,10 +176,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
             result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
 
-            result.DetectedLanguageName = SupportedLanguages
-                .SingleOrDefault(
-                    sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase)
-                )
+            result.DetectedLanguageName = SupportedLanguages.SingleOrDefault(
+                    sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
                 ?.Name;
 
             result.TranslatedText = translation.Translations[0].Text;
@@ -216,8 +208,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "The text can't exceed {textCharacterLimit} characters including spaces. Length: {textLength}."
-        )]
+            Message = "The text can't exceed {textCharacterLimit} characters including spaces. Length: {textLength}.")]
         public partial void CharacterLimitExceeded(int textCharacterLimit, int textLength);
     }
 }

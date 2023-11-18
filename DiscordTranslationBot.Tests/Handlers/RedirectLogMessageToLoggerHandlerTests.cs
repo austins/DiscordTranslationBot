@@ -29,19 +29,14 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
 
         var request = new LogNotification
         {
-            LogMessage = new LogMessage(severity, "source", "message",
-#pragma warning disable CA2201
-                new Exception("test")
-#pragma warning restore CA2201
-            )
+            LogMessage = new LogMessage(severity, "source", "message", new InvalidOperationException("test"))
         };
 
         // Act
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        var logArgs = _logger
-            .ReceivedCalls()
+        var logArgs = _logger.ReceivedCalls()
             .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
             .GetArguments();
 

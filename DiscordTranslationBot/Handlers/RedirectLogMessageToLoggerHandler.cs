@@ -31,25 +31,23 @@ public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHan
         var logLevel = notification.LogMessage.Exception switch
         {
             ValidationException => LogLevel.Error,
-            _
-                => notification.LogMessage.Severity switch
-                {
-                    LogSeverity.Debug => LogLevel.Debug,
-                    LogSeverity.Verbose => LogLevel.Trace,
-                    LogSeverity.Info => LogLevel.Information,
-                    LogSeverity.Warning => LogLevel.Warning,
-                    LogSeverity.Error => LogLevel.Error,
-                    LogSeverity.Critical => LogLevel.Critical,
-                    _ => LogLevel.Debug
-                }
+            _ => notification.LogMessage.Severity switch
+            {
+                LogSeverity.Debug => LogLevel.Debug,
+                LogSeverity.Verbose => LogLevel.Trace,
+                LogSeverity.Info => LogLevel.Information,
+                LogSeverity.Warning => LogLevel.Warning,
+                LogSeverity.Error => LogLevel.Error,
+                LogSeverity.Critical => LogLevel.Critical,
+                _ => LogLevel.Debug
+            }
         };
 
         LogDiscordMessage(
             logLevel,
             notification.LogMessage.Exception,
             notification.LogMessage.Source,
-            notification.LogMessage.Message
-        );
+            notification.LogMessage.Message);
 
         return Task.CompletedTask;
     }

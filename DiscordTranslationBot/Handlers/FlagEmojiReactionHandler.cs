@@ -34,8 +34,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         IEnumerable<TranslationProviderBase> translationProviders,
         ICountryService countryService,
         IMediator mediator,
-        ILogger<FlagEmojiReactionHandler> logger
-    )
+        ILogger<FlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
@@ -51,10 +50,8 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (
-            !Emoji.IsEmoji(notification.Reaction.Emote.Name)
-            || !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country)
-        )
+        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name)
+            || !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country))
         {
             return;
         }
@@ -63,13 +60,10 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification
-                .Message
-                .RemoveReactionAsync(
-                    notification.Reaction.Emote,
-                    notification.Reaction.UserId,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -80,13 +74,10 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         {
             _log.EmptySourceMessage();
 
-            await notification
-                .Message
-                .RemoveReactionAsync(
-                    notification.Reaction.Emote,
-                    notification.Reaction.UserId,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -102,8 +93,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 translationResult = await translationProvider.TranslateByCountryAsync(
                     country,
                     sanitizedMessage,
-                    cancellationToken
-                );
+                    cancellationToken);
 
                 break;
             }
@@ -121,8 +111,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                             Reaction = notification.Reaction,
                             SourceMessage = notification.Message
                         },
-                        cancellationToken
-                    );
+                        cancellationToken);
 
                     return;
                 }
@@ -135,13 +124,10 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
         if (translationResult == null)
         {
-            await notification
-                .Message
-                .RemoveReactionAsync(
-                    notification.Reaction.Emote,
-                    notification.Reaction.UserId,
-                    new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Message.RemoveReactionAsync(
+                notification.Reaction.Emote,
+                notification.Reaction.UserId,
+                new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -157,8 +143,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                     Reaction = notification.Reaction,
                     SourceMessage = notification.Message
                 },
-                cancellationToken
-            );
+                cancellationToken);
 
             return;
         }
@@ -182,8 +167,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 SourceMessage = notification.Message,
                 DeletionDelayInSeconds = 20
             },
-            cancellationToken
-        );
+            cancellationToken);
     }
 
     private sealed partial class Log
@@ -200,8 +184,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Nothing to translate. The sanitized source message is empty."
-        )]
+            Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "Unsupported country {countryName} for {providerType}.")]
@@ -212,8 +195,8 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
         [LoggerMessage(
             Level = LogLevel.Warning,
-            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-        )]
+            Message =
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.")]
         public partial void FailureToDetectSourceLanguage();
     }
 }

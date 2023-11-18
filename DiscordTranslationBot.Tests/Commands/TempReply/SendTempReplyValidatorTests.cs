@@ -21,7 +21,11 @@ public sealed class SendTempReplyValidatorTests
         var command = new SendTempReply
         {
             Text = "test",
-            Reaction = new Reaction { UserId = 1, Emote = Substitute.For<IEmote>() },
+            Reaction = new Reaction
+            {
+                UserId = 1,
+                Emote = Substitute.For<IEmote>()
+            },
             SourceMessage = Substitute.For<IMessage>(),
             DeletionDelayInSeconds = 20
         };
@@ -42,7 +46,7 @@ public sealed class SendTempReplyValidatorTests
         // Arrange
         var command = new SendTempReply
         {
-            Text = text,
+            Text = text!,
             Reaction = null,
             SourceMessage = null!
         };

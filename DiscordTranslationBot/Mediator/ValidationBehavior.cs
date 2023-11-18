@@ -14,7 +14,7 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     private readonly IReadOnlyList<IValidator<TRequest>> _validators;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest,TResponse}"/> class.
+    /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest,TResponse}" /> class.
     /// </summary>
     /// <param name="validators">Validators for the request to use.</param>
     public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
@@ -26,17 +26,19 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     /// Validates an incoming request if it has any validators before executing its handler.
     /// </summary>
     /// <param name="request">The request.</param>
-    /// <param name="next">Awaitable delegate for the next action in the pipeline. Eventually this delegate represents the handler.</param>
+    /// <param name="next">
+    /// Awaitable delegate for the next action in the pipeline. Eventually this delegate represents the
+    /// handler.
+    /// </param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
     /// <exception cref="ValidationException">If there are any validation errors.</exception>
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
-        if (_validators.Count > 0)
+        if (_validators.Any())
         {
             var failures = new List<ValidationFailure>();
             foreach (var validator in _validators)

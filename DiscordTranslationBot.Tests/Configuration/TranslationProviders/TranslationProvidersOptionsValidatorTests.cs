@@ -46,7 +46,11 @@ public sealed class TranslationProvidersOptionsValidatorTests
                 Region = stringValue,
                 SecretKey = stringValue
             },
-            LibreTranslate = new LibreTranslateOptions { Enabled = true, ApiUrl = null }
+            LibreTranslate = new LibreTranslateOptions
+            {
+                Enabled = true,
+                ApiUrl = null
+            }
         };
 
         // Act

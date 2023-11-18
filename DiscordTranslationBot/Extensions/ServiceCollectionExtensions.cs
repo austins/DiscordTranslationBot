@@ -21,8 +21,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TValidator">The validator for the options.</typeparam>
     public static void AddOptionsWithFluentValidation<TOptions, TValidator>(
         this IServiceCollection services,
-        IConfigurationSection configurationSection
-    )
+        IConfigurationSection configurationSection)
         where TOptions : class
         where TValidator : class, IValidator<TOptions>
     {
@@ -35,18 +34,16 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The services collection.</param>
     /// <param name="configuration">The host configuration.</param>
-    /// <returns></returns>
+    /// <returns>Service collection.</returns>
     public static IServiceCollection AddTranslationProviders(
         this IServiceCollection services,
-        IConfiguration configuration
-    )
+        IConfiguration configuration)
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
 
         services.AddOptionsWithFluentValidation<TranslationProvidersOptions, TranslationProvidersOptionsValidator>(
-            section
-        );
+            section);
 
         // Register translation providers. They are prioritized in the order added.
         var options = section.Get<TranslationProvidersOptions>();
@@ -62,11 +59,9 @@ public static class ServiceCollectionExtensions
         }
 
         // Configure named HttpClient for translation providers.
-        services
-            .AddHttpClient(TranslationProviderBase.ClientName)
+        services.AddHttpClient(TranslationProviderBase.ClientName)
             .AddTransientHttpErrorPolicy(
-                b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2))
-            );
+                b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2)));
 
         return services;
     }

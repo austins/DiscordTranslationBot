@@ -26,7 +26,11 @@ public sealed class TempReplyHandlerTests
         var request = new DeleteTempReply
         {
             Reply = Substitute.For<IMessage>(),
-            Reaction = new Reaction { UserId = 1, Emote = Substitute.For<IEmote>() },
+            Reaction = new Reaction
+            {
+                UserId = 1,
+                Emote = Substitute.For<IEmote>()
+            },
             SourceMessage = Substitute.For<IMessage>()
         };
 
@@ -37,23 +41,17 @@ public sealed class TempReplyHandlerTests
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await request
-            .Reply
-            .Channel
-            .Received(1)
+        await request.Reply.Channel.Received(1)
             .GetMessageAsync(
                 Arg.Is<ulong>(x => x == request.SourceMessage.Id),
                 Arg.Any<CacheMode>(),
-                Arg.Any<RequestOptions>()
-            );
+                Arg.Any<RequestOptions>());
 
-        await sourceMessage
-            .Received(1)
+        await sourceMessage.Received(1)
             .RemoveReactionAsync(
                 Arg.Is<IEmote>(x => x == request.Reaction.Emote),
                 Arg.Is<ulong>(x => x == request.Reaction.UserId),
-                Arg.Any<RequestOptions>()
-            );
+                Arg.Any<RequestOptions>());
 
         await request.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }

@@ -5,20 +5,6 @@ using NeoSmart.Unicode;
 namespace DiscordTranslationBot.Services;
 
 /// <summary>
-/// Interface for <see cref="CountryService" />.
-/// </summary>
-public interface ICountryService
-{
-    /// <summary>
-    /// Get a country by a flag emoji unicode string.
-    /// </summary>
-    /// <param name="emojiUnicode">The unicode string of the flag emoji.</param>
-    /// <param name="country">The country found.</param>
-    /// <returns>true if country found; false if not.</returns>
-    bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country);
-}
-
-/// <summary>
 /// Maps all flag emojis to a set of <see cref="Country" /> and assigns language codes to them.
 /// </summary>
 /// <remarks>
@@ -40,9 +26,7 @@ public sealed partial class CountryService : ICountryService
         _log = new Log(logger);
 
         // Get all flag emojis.
-        _countries = Emoji
-            .All
-            .Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
+        _countries = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
             .Select(e => new Country(e.ToString()!, e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToHashSet();
 
@@ -116,8 +100,7 @@ public sealed partial class CountryService : ICountryService
             _log.CountryNotFound();
 
             throw new InvalidOperationException(
-                "Country language codes couldn't be initialized as country couldn't be found."
-            );
+                "Country language codes couldn't be initialized as country couldn't be found.");
         }
 
         country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
@@ -137,8 +120,7 @@ public sealed partial class CountryService : ICountryService
 
         [LoggerMessage(
             Level = LogLevel.Critical,
-            Message = "Country language codes couldn't be initialized as country couldn't be found."
-        )]
+            Message = "Country language codes couldn't be initialized as country couldn't be found.")]
         public partial void CountryNotFound();
     }
 }

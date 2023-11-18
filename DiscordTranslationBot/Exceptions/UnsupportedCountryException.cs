@@ -10,5 +10,7 @@ public sealed class UnsupportedCountryException : Exception
     /// </summary>
     /// <param name="message">Message for exception.</param>
     public UnsupportedCountryException(string message)
-        : base(message) { }
+        : base(message)
+    {
+    }
 }

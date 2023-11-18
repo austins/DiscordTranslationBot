@@ -24,8 +24,7 @@ public sealed class ValidationBehaviorTests
     public async Task Handle_ValidRequest_Success()
     {
         // Arrange
-        _validator
-            .ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
+        _validator.ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult());
 
         // Act & Assert
@@ -38,8 +37,7 @@ public sealed class ValidationBehaviorTests
     public async Task Handle_InvalidRequest_Throws()
     {
         // Arrange
-        _validator
-            .ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
+        _validator.ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult(new[] { new ValidationFailure("test", "test") }));
 
         // Act & Assert

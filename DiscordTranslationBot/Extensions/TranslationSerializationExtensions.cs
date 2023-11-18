@@ -24,8 +24,7 @@ public static class TranslationSerializationExtensions
     /// <returns>Deserialized response content.</returns>
     public static Task<TTranslateResult?> ReadAsTranslateResultAsync<TTranslateResult>(
         this HttpContent content,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
         where TTranslateResult : ITranslateResult, new()
     {
         return content.ReadFromJsonAsync<TTranslateResult>(SerializerOptions, cancellationToken);
@@ -40,8 +39,7 @@ public static class TranslationSerializationExtensions
     /// <returns>Deserialized response content.</returns>
     public static Task<IList<TTranslateResult>?> ReadAsTranslateResultsAsync<TTranslateResult>(
         this HttpContent content,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
         where TTranslateResult : ITranslateResult, new()
     {
         return content.ReadFromJsonAsync<IList<TTranslateResult>>(SerializerOptions, cancellationToken);
@@ -57,8 +55,7 @@ public static class TranslationSerializationExtensions
         return new StringContent(
             JsonSerializer.Serialize(request, SerializerOptions),
             Encoding.UTF8,
-            "application/json"
-        );
+            "application/json");
     }
 
     /// <summary>
@@ -71,7 +68,6 @@ public static class TranslationSerializationExtensions
         return new StringContent(
             JsonSerializer.Serialize(request, SerializerOptions),
             Encoding.UTF8,
-            "application/json"
-        );
+            "application/json");
     }
 }

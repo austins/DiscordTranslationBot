@@ -43,15 +43,6 @@ public abstract partial class TranslationProviderBase
     public abstract string ProviderName { get; }
 
     /// <summary>
-    /// Creates a named HTTP client instance for the translation provider.
-    /// </summary>
-    /// <returns>An HttpClient instance.</returns>
-    protected HttpClient CreateHttpClient()
-    {
-        return _httpClientFactory.CreateClient(ClientName);
-    }
-
-    /// <summary>
     /// Initialize the <see cref="SupportedLanguages" /> for the provider.
     /// </summary>
     /// <remarks>
@@ -72,8 +63,7 @@ public abstract partial class TranslationProviderBase
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null
-    );
+        SupportedLanguage? sourceLanguage = null);
 
     /// <summary>
     /// Translate text by country.
@@ -86,8 +76,7 @@ public abstract partial class TranslationProviderBase
     public virtual Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
         // Gets the lang code that a country supports.
         var targetLanguage =
@@ -97,7 +86,15 @@ public abstract partial class TranslationProviderBase
         return TranslateAsync(targetLanguage, text, cancellationToken);
     }
 
-#pragma warning disable CS1591
+    /// <summary>
+    /// Creates a named HTTP client instance for the translation provider.
+    /// </summary>
+    /// <returns>An HttpClient instance.</returns>
+    protected HttpClient CreateHttpClient()
+    {
+        return _httpClientFactory.CreateClient(ClientName);
+    }
+
     protected abstract partial class Log<TTranslationProvider>
         where TTranslationProvider : TranslationProviderBase
     {
@@ -110,8 +107,7 @@ public abstract partial class TranslationProviderBase
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}."
-        )]
+            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}.")]
         public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
@@ -126,5 +122,4 @@ public abstract partial class TranslationProviderBase
         [LoggerMessage(Level = LogLevel.Error, Message = "Unable to connect to the {providerName} API URL.")]
         public partial void ConnectionFailure(Exception ex, string providerName);
     }
-#pragma warning restore CS1591
 }

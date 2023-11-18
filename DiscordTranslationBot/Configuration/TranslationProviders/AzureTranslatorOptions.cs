@@ -36,7 +36,6 @@ public sealed class AzureTranslatorOptionsValidator : AbstractValidator<AzureTra
             {
                 RuleFor(x => x.SecretKey).NotEmpty();
                 RuleFor(x => x.Region).NotEmpty();
-            }
-        );
+            });
     }
 }

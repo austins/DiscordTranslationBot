@@ -36,27 +36,33 @@ public sealed partial class DiscordEventListener
     {
         _client.Ready += () => _mediator.Publish(new ReadyNotification(), _cancellationToken);
 
-        _client.JoinedGuild += guild =>
-            _mediator.Publish(new JoinedGuildNotification { Guild = guild }, _cancellationToken);
+        _client.JoinedGuild += guild => _mediator.Publish(
+            new JoinedGuildNotification { Guild = guild },
+            _cancellationToken);
 
-        _client.Log += logMessage =>
-            _mediator.Publish(new LogNotification { LogMessage = logMessage }, _cancellationToken);
+        _client.Log += logMessage => _mediator.Publish(
+            new LogNotification { LogMessage = logMessage },
+            _cancellationToken);
 
-        _client.MessageCommandExecuted += command =>
-            _mediator.Publish(new MessageCommandExecutedNotification { Command = command }, _cancellationToken);
+        _client.MessageCommandExecuted += command => _mediator.Publish(
+            new MessageCommandExecutedNotification { Command = command },
+            _cancellationToken);
 
-        _client.SlashCommandExecuted += command =>
-            _mediator.Publish(new SlashCommandExecutedNotification { Command = command }, _cancellationToken);
+        _client.SlashCommandExecuted += command => _mediator.Publish(
+            new SlashCommandExecutedNotification { Command = command },
+            _cancellationToken);
 
-        _client.ReactionAdded += async (message, _, reaction) =>
-            await _mediator.Publish(
-                new ReactionAddedNotification
+        _client.ReactionAdded += async (message, _, reaction) => await _mediator.Publish(
+            new ReactionAddedNotification
+            {
+                Message = await message.GetOrDownloadAsync(),
+                Reaction = new Reaction
                 {
-                    Message = await message.GetOrDownloadAsync(),
-                    Reaction = new Reaction { UserId = reaction.UserId, Emote = reaction.Emote }
-                },
-                _cancellationToken
-            );
+                    UserId = reaction.UserId,
+                    Emote = reaction.Emote
+                }
+            },
+            _cancellationToken);
 
         _log.EventsInitialized();
         return Task.CompletedTask;

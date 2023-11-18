@@ -26,8 +26,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
     public TranslateMessageCommandHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
-        ILogger<TranslateMessageCommandHandler> logger
-    )
+        ILogger<TranslateMessageCommandHandler> logger)
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
@@ -50,13 +49,10 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification
-                .Command
-                .RespondAsync(
-                    "Translating this bot's messages isn't allowed.",
-                    ephemeral: true,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Command.RespondAsync(
+                "Translating this bot's messages isn't allowed.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -66,13 +62,10 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.EmptySourceMessage();
 
-            await notification
-                .Command
-                .RespondAsync(
-                    "No text to translate.",
-                    ephemeral: true,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Command.RespondAsync(
+                "No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -87,18 +80,17 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             try
             {
-                var targetLanguage = translationProvider
-                    .SupportedLanguages
-                    .FirstOrDefault(l => l.LangCode == userLocale);
+                var targetLanguage =
+                    translationProvider.SupportedLanguages.FirstOrDefault(l => l.LangCode == userLocale);
 
                 if (targetLanguage == null)
                 {
                     var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
                     if (indexOfHyphen > 0)
                     {
-                        targetLanguage = translationProvider
-                            .SupportedLanguages
-                            .FirstOrDefault(l => l.LangCode == userLocale[..indexOfHyphen]);
+                        targetLanguage =
+                            translationProvider.SupportedLanguages.FirstOrDefault(
+                                l => l.LangCode == userLocale[..indexOfHyphen]);
                     }
                 }
 
@@ -113,8 +105,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
                 translationResult = await translationProvider.TranslateAsync(
                     targetLanguage,
                     sanitizedMessage,
-                    cancellationToken
-                );
+                    cancellationToken);
 
                 break;
             }
@@ -127,12 +118,9 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         if (translationResult == null)
         {
             // Send message if no translation providers support the locale.
-            await notification
-                .Command
-                .FollowupAsync(
-                    $"Your locale {userLocale} isn't supported for translation via this action.",
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Command.FollowupAsync(
+                $"Your locale {userLocale} isn't supported for translation via this action.",
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -141,12 +129,9 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
         {
             _log.FailureToDetectSourceLanguage();
 
-            await notification
-                .Command
-                .FollowupAsync(
-                    "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Command.FollowupAsync(
+                "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -162,23 +147,19 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
             $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
 
         var description = $"""
-             {Format.Bold(fromHeading)}:
-             {sanitizedMessage.Truncate(50)}
+                           {Format.Bold(fromHeading)}:
+                           {sanitizedMessage.Truncate(50)}
 
-             {Format.Bold(toHeading)}:
-             {translationResult.TranslatedText}
-             """;
+                           {Format.Bold(toHeading)}:
+                           {translationResult.TranslatedText}
+                           """;
 
-        await notification
-            .Command
-            .FollowupAsync(
-                embed: new EmbedBuilder()
-                    .WithTitle("Translated Message")
-                    .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)
-                    .WithDescription(description)
-                    .Build(),
-                options: new RequestOptions { CancelToken = cancellationToken }
-            );
+        await notification.Command.FollowupAsync(
+            embed: new EmbedBuilder().WithTitle("Translated Message")
+                .WithUrl(GetJumpUrl(notification.Command.Data.Message).AbsoluteUri)
+                .WithDescription(description)
+                .Build(),
+            options: new RequestOptions { CancelToken = cancellationToken });
     }
 
     /// <summary>
@@ -208,8 +189,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Nothing to translate. The sanitized source message is empty."
-        )]
+            Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
@@ -217,8 +197,8 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
 
         [LoggerMessage(
             Level = LogLevel.Warning,
-            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-        )]
+            Message =
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.")]
         public partial void FailureToDetectSourceLanguage();
     }
 }

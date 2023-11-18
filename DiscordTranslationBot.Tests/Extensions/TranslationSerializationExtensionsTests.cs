@@ -78,9 +78,7 @@ public sealed class TranslationSerializationExtensionsTests
         var result = request.SerializeToRequestContent();
 
         // Assert
-        (await result.ReadAsStringAsync(CancellationToken.None))
-            .Should()
-            .Be(expected);
+        (await result.ReadAsStringAsync(CancellationToken.None)).Should().Be(expected);
     }
 
     [Fact]
@@ -99,8 +97,6 @@ public sealed class TranslationSerializationExtensionsTests
         var result = request.SerializeToRequestContent();
 
         // Assert
-        (await result.ReadAsStringAsync(CancellationToken.None))
-            .Should()
-            .Be(expected);
+        (await result.ReadAsStringAsync(CancellationToken.None)).Should().Be(expected);
     }
 }

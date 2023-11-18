@@ -24,17 +24,14 @@ public sealed partial class BackgroundPublisher : INotificationPublisher
     /// <param name="handlerExecutors">The notification handlers.</param>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
     public Task Publish(
         IEnumerable<NotificationHandlerExecutor> handlerExecutors,
         INotification notification,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
         foreach (var handler in handlerExecutors)
         {
-            handler
-                .HandlerCallback(notification, cancellationToken)
+            handler.HandlerCallback(notification, cancellationToken)
                 .SafeFireAndForget(ex => _log.FailureInNotificationHandler(ex));
         }
 

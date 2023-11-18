@@ -21,7 +21,11 @@ public sealed class DeleteTempReplyValidatorTests
         var command = new DeleteTempReply
         {
             Reply = Substitute.For<IMessage>(),
-            Reaction = new Reaction { UserId = 1, Emote = Substitute.For<IEmote>() },
+            Reaction = new Reaction
+            {
+                UserId = 1,
+                Emote = Substitute.For<IEmote>()
+            },
             SourceMessage = Substitute.For<IMessage>()
         };
 

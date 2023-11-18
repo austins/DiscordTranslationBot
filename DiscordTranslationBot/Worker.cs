@@ -34,8 +34,7 @@ public sealed partial class Worker : BackgroundService
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
         IHostApplicationLifetime hostApplicationLifetime,
-        ILogger<Worker> logger
-    )
+        ILogger<Worker> logger)
     {
         _translationProviders = translationProviders.ToList();
         _client = (DiscordSocketClient)client;
@@ -114,8 +113,8 @@ public sealed partial class Worker : BackgroundService
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "No translation providers enabled. Please configure and enable at least one translation provider."
-        )]
+            Message =
+                "No translation providers enabled. Please configure and enable at least one translation provider.")]
         public partial void NoTranslationProvidersEnabled();
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Translation providers enabled: {providerNames}")]
@@ -126,8 +125,7 @@ public sealed partial class Worker : BackgroundService
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Finished initializing translation provider: {providerName}"
-        )]
+            Message = "Finished initializing translation provider: {providerName}")]
         public partial void InitializedTranslationProvider(string providerName);
     }
 }

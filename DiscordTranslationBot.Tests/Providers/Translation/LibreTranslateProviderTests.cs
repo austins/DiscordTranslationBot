@@ -19,30 +19,31 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
     public LibreTranslateProviderTests()
     {
-        MockHttpMessageHandler
-            .When(HttpMethod.Get, "*/languages")
+        MockHttpMessageHandler.When(HttpMethod.Get, "*/languages")
             .Respond(
                 "application/json",
                 """
-                            [
-                              {
-                                "code": "en",
-                                "name": "English"
-                              },
-                              {
-                                "code": "fr",
-                                "name": "French"
-                              }
-                            ]
-                            """
-            );
+                [
+                  {
+                    "code": "en",
+                    "name": "English"
+                  },
+                  {
+                    "code": "fr",
+                    "name": "French"
+                  }
+                ]
+                """);
 
         _translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
             {
-                LibreTranslate = new LibreTranslateOptions { Enabled = true, ApiUrl = new Uri("http://localhost") }
-            }
-        );
+                LibreTranslate = new LibreTranslateOptions
+                {
+                    Enabled = true,
+                    ApiUrl = new Uri("http://localhost")
+                }
+            });
 
         _logger = Substitute.For<ILogger<LibreTranslateProvider>>();
 
@@ -53,8 +54,16 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "test";
 
@@ -74,17 +83,15 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             Text = text
         };
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .WithContent(await request.SerializeToRequestContent().ReadAsStringAsync())
             .Respond(
                 "application/json",
                 $$"""
-                          {
-                              "translatedText": "{{expected.TranslatedText}}"
-                          }
-                          """
-            );
+                  {
+                      "translatedText": "{{expected.TranslatedText}}"
+                  }
+                  """);
 
         // Act
         var result = await Sut.TranslateAsync(targetLanguage, text, CancellationToken.None, sourceLanguage);
@@ -121,18 +128,16 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             Text = text
         };
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .WithContent(await request.SerializeToRequestContent().ReadAsStringAsync())
             .Respond(
                 "application/json",
                 $$"""
-                          {
-                              "detectedLanguage": {"confidence": 100, "language": "{{expected.DetectedLanguageCode}}"},
-                              "translatedText": "{{expected.TranslatedText}}"
-                          }
-                          """
-            );
+                  {
+                      "detectedLanguage": {"confidence": 100, "language": "{{expected.DetectedLanguageCode}}"},
+                      "translatedText": "{{expected.TranslatedText}}"
+                  }
+                  """);
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
@@ -162,8 +167,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
-        HttpStatusCode statusCode
-    )
+        HttpStatusCode statusCode)
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString()!, "France")
@@ -192,17 +196,15 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .Respond(
                 "application/json",
                 """
-                            {
-                                "detectedLanguage": {"confidence": 0, "language": "de"},
-                                "translatedText": ""
-                            }
-                            """
-            );
+                {
+                    "detectedLanguage": {"confidence": 0, "language": "de"},
+                    "translatedText": ""
+                }
+                """);
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))

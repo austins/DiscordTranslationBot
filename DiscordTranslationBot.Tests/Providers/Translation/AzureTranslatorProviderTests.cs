@@ -19,27 +19,25 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
     public AzureTranslatorProviderTests()
     {
-        MockHttpMessageHandler
-            .When(HttpMethod.Get, "*/languages")
+        MockHttpMessageHandler.When(HttpMethod.Get, "*/languages")
             .Respond(
                 "application/json",
                 """
-                        {
-                          "translation": {
-                            "en": {
-                              "name": "English",
-                              "nativeName": "English",
-                              "dir": "ltr"
-                            },
-                            "fr": {
-                              "name": "French",
-                              "nativeName": "Français",
-                              "dir": "ltr"
-                            }
-                          }
-                        }
-                        """
-            );
+                {
+                  "translation": {
+                    "en": {
+                      "name": "English",
+                      "nativeName": "English",
+                      "dir": "ltr"
+                    },
+                    "fr": {
+                      "name": "French",
+                      "nativeName": "Français",
+                      "dir": "ltr"
+                    }
+                  }
+                }
+                """);
 
         _translationProvidersOptions = Options.Create(
             new TranslationProvidersOptions
@@ -51,8 +49,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                     Region = "westus2",
                     SecretKey = "test"
                 }
-            }
-        );
+            });
 
         _logger = Substitute.For<ILogger<AzureTranslatorProvider>>();
 
@@ -63,8 +60,16 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "test";
 
@@ -77,8 +82,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             TranslatedText = "translated"
         };
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .WithQueryString("from", sourceLanguage.LangCode)
             .Respond(
                 "application/json",
@@ -90,8 +94,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
                           ]
                       }
                   ]
-                  """
-            );
+                  """);
 
         // Act
         var result = await Sut.TranslateAsync(targetLanguage, text, CancellationToken.None, sourceLanguage);
@@ -122,22 +125,20 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         var requestContent = new List<ITranslateRequest> { new TranslateRequest { Text = text } };
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .WithContent(await requestContent.SerializeToRequestContent().ReadAsStringAsync())
             .Respond(
                 "application/json",
                 $$"""
-                          [
-                              {
-                                  "detectedLanguage": {"language": "{{expected.DetectedLanguageCode}}", "score": 1.0},
-                                  "translations": [
-                                      {"text": "{{expected.TranslatedText}}", "to": "{{expected.TargetLanguageCode}}"}
-                                  ]
-                              }
+                  [
+                      {
+                          "detectedLanguage": {"language": "{{expected.DetectedLanguageCode}}", "score": 1.0},
+                          "translations": [
+                              {"text": "{{expected.TranslatedText}}", "to": "{{expected.TargetLanguageCode}}"}
                           ]
-                          """
-            );
+                      }
+                  ]
+                  """);
 
         // Act
         var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
@@ -187,8 +188,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
-        HttpStatusCode statusCode
-    )
+        HttpStatusCode statusCode)
     {
         // Arrange
         var country = new Country(Emoji.FlagFrance.ToString()!, "France")
@@ -217,19 +217,17 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         const string text = "test";
 
-        MockHttpMessageHandler
-            .When(HttpMethod.Post, "*/translate")
+        MockHttpMessageHandler.When(HttpMethod.Post, "*/translate")
             .Respond(
                 "application/json",
                 """
-                        [
-                            {
-                                "detectedLanguage": {"language": "en", "score": 1.0},
-                                "translations": []
-                            }
-                        ]
-                        """
-            );
+                [
+                    {
+                        "detectedLanguage": {"language": "en", "score": 1.0},
+                        "translations": []
+                    }
+                ]
+                """);
 
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))

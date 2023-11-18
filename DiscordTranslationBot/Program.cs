@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1852 // Class must be sealed.
+#pragma warning disable SA1210
 global using MediatR;
 using Discord;
 using Discord.WebSocket;
@@ -9,6 +10,8 @@ using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Services;
 using FluentValidation;
 
+#pragma warning restore SA1210
+
 await Host.CreateDefaultBuilder(args)
     .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
     .ConfigureServices(
@@ -18,19 +21,18 @@ await Host.CreateDefaultBuilder(args)
 
             // Set up configuration.
             services.AddOptionsWithFluentValidation<DiscordOptions, DiscordOptionsValidator>(
-                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName)
-            );
+                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName));
 
             // Set up services.
-            services
-                .AddTranslationProviders(builder.Configuration)
-                .AddMediatR(c =>
-                {
-                    c.Lifetime = ServiceLifetime.Singleton;
-                    c.NotificationPublisherType = typeof(BackgroundPublisher);
-                    c.RegisterServicesFromAssemblyContaining<Program>();
-                    c.AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
-                })
+            services.AddTranslationProviders(builder.Configuration)
+                .AddMediatR(
+                    c =>
+                    {
+                        c.Lifetime = ServiceLifetime.Singleton;
+                        c.NotificationPublisherType = typeof(BackgroundPublisher);
+                        c.RegisterServicesFromAssemblyContaining<Program>();
+                        c.AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
+                    })
                 .AddSingleton<IBackgroundCommandService, BackgroundCommandService>()
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
@@ -44,12 +46,9 @@ await Host.CreateDefaultBuilder(args)
                                 | GatewayIntents.MessageContent,
                             MessageCacheSize = 100,
                             UseInteractionSnowflakeDate = false
-                        }
-                    )
-                )
+                        }))
                 .AddSingleton<DiscordEventListener>()
                 .AddHostedService<Worker>();
-        }
-    )
+        })
     .Build()
     .RunAsync();

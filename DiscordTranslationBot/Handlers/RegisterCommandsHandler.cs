@@ -13,8 +13,7 @@ namespace DiscordTranslationBot.Handlers;
 /// Handler for the registering commands.
 /// </summary>
 public sealed partial class RegisterCommandsHandler
-    : INotificationHandler<ReadyNotification>,
-        INotificationHandler<JoinedGuildNotification>
+    : INotificationHandler<ReadyNotification>, INotificationHandler<JoinedGuildNotification>
 {
     private readonly IDiscordClient _client;
     private readonly ILogger<RegisterCommandsHandler> _logger;
@@ -29,8 +28,7 @@ public sealed partial class RegisterCommandsHandler
     public RegisterCommandsHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
-        ILogger<RegisterCommandsHandler> logger
-    )
+        ILogger<RegisterCommandsHandler> logger)
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
@@ -87,8 +85,7 @@ public sealed partial class RegisterCommandsHandler
                 {
                     await guild.CreateApplicationCommandAsync(
                         command,
-                        new RequestOptions { CancelToken = cancellationToken }
-                    );
+                        new RequestOptions { CancelToken = cancellationToken });
                 }
                 catch (HttpException exception)
                 {
@@ -105,8 +102,7 @@ public sealed partial class RegisterCommandsHandler
     private static void GetMessageCommands(List<ApplicationCommandProperties> commandsToRegister)
     {
         commandsToRegister.Add(
-            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateCommandName).Build()
-        );
+            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateCommandName).Build());
     }
 
     /// <summary>
@@ -124,47 +120,37 @@ public sealed partial class RegisterCommandsHandler
         if (translationProvider.TranslateCommandLangCodes == null)
         {
             // If no lang codes are specified, take the first up to the max options limit.
-            supportedLangChoices = translationProvider
-                .SupportedLanguages
-                .Take(SlashCommandBuilder.MaxOptionsCount)
+            supportedLangChoices = translationProvider.SupportedLanguages.Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
         }
         else
         {
             // Get valid specified lang codes up to the limit.
-            supportedLangChoices = translationProvider
-                .SupportedLanguages
+            supportedLangChoices = translationProvider.SupportedLanguages
                 .Where(l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
                 .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
 
             // If there are less languages found than the max options and more supported languages,
             // get the rest up to the max options limit.
-            if (
-                supportedLangChoices.Count < SlashCommandBuilder.MaxOptionsCount
-                && translationProvider.SupportedLanguages.Count > supportedLangChoices.Count
-            )
+            if (supportedLangChoices.Count < SlashCommandBuilder.MaxOptionsCount
+                && translationProvider.SupportedLanguages.Count > supportedLangChoices.Count)
             {
                 supportedLangChoices.AddRange(
-                    translationProvider
-                        .SupportedLanguages
-                        .Where(l => !supportedLangChoices.Contains(l))
+                    translationProvider.SupportedLanguages.Where(l => !supportedLangChoices.Contains(l))
                         .Take(SlashCommandBuilder.MaxOptionsCount - supportedLangChoices.Count)
-                        .ToList()
-                );
+                        .ToList());
             }
         }
 
         // Convert the list of supported languages to command choices and sort alphabetically.
         var langChoices = supportedLangChoices
             .Select(
-                l =>
-                    new ApplicationCommandOptionChoiceProperties
-                    {
-                        Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
-                        Value = l.LangCode
-                    }
-            )
+                l => new ApplicationCommandOptionChoiceProperties
+                {
+                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
+                    Value = l.LangCode
+                })
             .OrderBy(c => c.Name)
             .ToList();
 
@@ -184,25 +170,20 @@ public sealed partial class RegisterCommandsHandler
         translateToOption.Choices = langChoices;
 
         commandsToRegister.Add(
-            new SlashCommandBuilder()
-                .WithName(SlashCommandConstants.TranslateCommandName)
+            new SlashCommandBuilder().WithName(SlashCommandConstants.TranslateCommandName)
                 .WithDescription("Translate text from one language to another.")
                 .AddOption(translateFromOption)
                 .AddOption(translateToOption)
                 .AddOption(
-                    new SlashCommandOptionBuilder()
-                        .WithName(SlashCommandConstants.TranslateCommandTextOptionName)
+                    new SlashCommandOptionBuilder().WithName(SlashCommandConstants.TranslateCommandTextOptionName)
                         .WithDescription("The text to be translated.")
                         .WithType(ApplicationCommandOptionType.String)
-                        .WithRequired(true)
-                )
-                .Build()
-        );
+                        .WithRequired(true))
+                .Build());
     }
 
     [LoggerMessage(
         Level = LogLevel.Error,
-        Message = "Failed to register slash command for guild ID {guildId} with error(s): {errors}"
-    )]
+        Message = "Failed to register slash command for guild ID {guildId} with error(s): {errors}")]
     private partial void FailedToRegisterCommandForGuild(ulong guildId, string errors);
 }

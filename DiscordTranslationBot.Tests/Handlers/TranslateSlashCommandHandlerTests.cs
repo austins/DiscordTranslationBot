@@ -20,16 +20,23 @@ public sealed class TranslateSlashCommandHandlerTests
 
         _sut = new TranslateSlashCommandHandler(
             new[] { _translationProvider },
-            Substitute.For<ILogger<TranslateSlashCommandHandler>>()
-        );
+            Substitute.For<ILogger<TranslateSlashCommandHandler>>());
     }
 
     [Fact]
     public async Task Handle_SlashCommandExecutedNotification_Success()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "text";
 
@@ -48,7 +55,13 @@ public sealed class TranslateSlashCommandHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption });
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption>
+            {
+                toOption,
+                textOption,
+                fromOption
+            });
 
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
@@ -57,17 +70,19 @@ public sealed class TranslateSlashCommandHandlerTests
         user.Id.Returns(1UL);
         command.User.Returns(user);
 
-        _translationProvider
-            .SupportedLanguages
-            .Returns(new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage>
+            {
+                sourceLanguage,
+                targetLanguage
+            });
 
         _translationProvider
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-            )
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
             .Returns(
                 new TranslationResult
                 {
@@ -76,8 +91,7 @@ public sealed class TranslateSlashCommandHandlerTests
                     TargetLanguageCode = targetLanguage.LangCode,
                     TargetLanguageName = targetLanguage.Name,
                     TranslatedText = "translated text"
-                }
-            );
+                });
 
         var notification = new SlashCommandExecutedNotification { Command = command };
 
@@ -85,23 +99,19 @@ public sealed class TranslateSlashCommandHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .Received(1)
+        await _translationProvider.Received(1)
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-            );
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
         await command.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
 
-        await command
-            .Received(1)
+        await command.Received(1)
             .FollowupAsync(
                 Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
-                options: Arg.Any<RequestOptions>()
-            );
+                options: Arg.Any<RequestOptions>());
     }
 
     [Fact]
@@ -123,9 +133,7 @@ public sealed class TranslateSlashCommandHandlerTests
         _ = notification.Command.Data.Received(1).Name;
         _ = notification.Command.Data.DidNotReceive().Options;
 
-        await notification
-            .Command
-            .DidNotReceive()
+        await notification.Command.DidNotReceive()
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
@@ -153,26 +161,31 @@ public sealed class TranslateSlashCommandHandlerTests
         // Assert
         await command.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
 
-        await command
-            .Received(1)
+        await command.Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceive()
+        await _translationProvider.DidNotReceive()
             .TranslateAsync(
                 Arg.Any<SupportedLanguage>(),
                 Arg.Any<string>(),
                 Arg.Any<CancellationToken>(),
-                Arg.Any<SupportedLanguage>()
-            );
+                Arg.Any<SupportedLanguage>());
     }
 
     [Fact]
     public async Task Handle_SlashCommandExecutedNotification_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage { LangCode = "fr", Name = "French" };
-        var sourceLanguage = new SupportedLanguage { LangCode = "en", Name = "English" };
+        var targetLanguage = new SupportedLanguage
+        {
+            LangCode = "fr",
+            Name = "French"
+        };
+        var sourceLanguage = new SupportedLanguage
+        {
+            LangCode = "en",
+            Name = "English"
+        };
 
         const string text = "text";
 
@@ -191,7 +204,13 @@ public sealed class TranslateSlashCommandHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { toOption, textOption, fromOption });
+        data.Options.Returns(
+            new List<IApplicationCommandInteractionDataOption>
+            {
+                toOption,
+                textOption,
+                fromOption
+            });
 
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
@@ -200,17 +219,19 @@ public sealed class TranslateSlashCommandHandlerTests
         user.Id.Returns(1UL);
         command.User.Returns(user);
 
-        _translationProvider
-            .SupportedLanguages
-            .Returns(new HashSet<SupportedLanguage> { sourceLanguage, targetLanguage });
+        _translationProvider.SupportedLanguages.Returns(
+            new HashSet<SupportedLanguage>
+            {
+                sourceLanguage,
+                targetLanguage
+            });
 
         _translationProvider
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-            )
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
             .Returns(
                 new TranslationResult
                 {
@@ -219,8 +240,7 @@ public sealed class TranslateSlashCommandHandlerTests
                     TargetLanguageCode = targetLanguage.LangCode,
                     TargetLanguageName = targetLanguage.Name,
                     TranslatedText = text
-                }
-            );
+                });
 
         var notification = new SlashCommandExecutedNotification { Command = command };
 
@@ -228,20 +248,16 @@ public sealed class TranslateSlashCommandHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .Received(1)
+        await _translationProvider.Received(1)
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode)
-            );
+                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
-        await command
-            .Received(1)
+        await command.Received(1)
             .FollowupAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
-                options: Arg.Any<RequestOptions>()
-            );
+                options: Arg.Any<RequestOptions>());
     }
 }

@@ -16,8 +16,7 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        HttpClientFactory
-            .CreateClient(Arg.Is<string>(x => x == TranslationProviderBase.ClientName))
+        HttpClientFactory.CreateClient(Arg.Is<string>(x => x == TranslationProviderBase.ClientName))
             .Returns(_ => new HttpClient(MockHttpMessageHandler));
 
         ArgumentNullException.ThrowIfNull(Sut);

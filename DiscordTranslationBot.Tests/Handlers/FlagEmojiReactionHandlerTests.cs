@@ -53,12 +53,11 @@ public sealed class FlagEmojiReactionHandlerTests
         _message.Author.Id.Returns(MessageUserId);
         _message.Content.Returns(Content);
 
-        _message
-            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
+        _message.RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
         var guild = Substitute.For<IGuild>();
-        guild.Id.Returns((ulong)1);
+        guild.Id.Returns(1UL);
 
         var channel = Substitute.For<IMessageChannel, IGuildChannel>();
         channel.EnterTypingState().ReturnsForAnyArgs(Substitute.For<IDisposable>());
@@ -72,8 +71,7 @@ public sealed class FlagEmojiReactionHandlerTests
             new[] { _translationProvider },
             _countryService,
             _mediator,
-            Substitute.For<ILogger<FlagEmojiReactionHandler>>()
-        );
+            Substitute.For<ILogger<FlagEmojiReactionHandler>>());
     }
 
     [Fact]
@@ -83,7 +81,11 @@ public sealed class FlagEmojiReactionHandlerTests
         var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Reaction = new Reaction { UserId = 1UL, Emote = new Emoji("not_an_emoji") }
+            Reaction = new Reaction
+            {
+                UserId = 1UL,
+                Emote = new Emoji("not_an_emoji")
+            }
         };
 
         // Act
@@ -115,8 +117,7 @@ public sealed class FlagEmojiReactionHandlerTests
         // Assert
         _countryService.Received(1).TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
 
-        await _message
-            .DidNotReceive()
+        await _message.DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
         await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
@@ -133,13 +134,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         var notification = new ReactionAddedNotification
         {
@@ -157,8 +158,7 @@ public sealed class FlagEmojiReactionHandlerTests
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceive()
+        await _translationProvider.DidNotReceive()
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
@@ -171,13 +171,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         var translationResult = new TranslationResult
         {
@@ -204,16 +204,13 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .Received(1)
+        await _translationProvider.Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator
-            .Received(1)
+        await _mediator.Received(1)
             .Send(
                 Arg.Is<SendTempReply>(x => x.Text.Contains("Translated message from", StringComparison.Ordinal)),
-                Arg.Any<CancellationToken>()
-            );
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -225,13 +222,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         _message.Content.Returns(string.Empty);
 
@@ -249,8 +246,7 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .DidNotReceive()
+        await _translationProvider.DidNotReceive()
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -265,13 +261,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         _translationProvider
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -297,7 +293,8 @@ public sealed class FlagEmojiReactionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ReactionAddedNotification_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
+    public async Task
+        Handle_ReactionAddedNotification_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
         // Arrange
         var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
@@ -305,13 +302,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         const string exMessage = "exception message";
 
@@ -333,8 +330,7 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .Received(1)
+        await _translationProvider.Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
         await _mediator.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
@@ -349,13 +345,13 @@ public sealed class FlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService
-            .TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(x =>
-            {
-                x[1] = country;
-                return true;
-            });
+        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+            .Returns(
+                x =>
+                {
+                    x[1] = country;
+                    return true;
+                });
 
         var translationResult = new TranslationResult
         {
@@ -382,17 +378,13 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .Received(1)
+        await _translationProvider.Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator
-            .Received(1)
+        await _mediator.Received(1)
             .Send(
                 Arg.Is<SendTempReply>(
-                    x => x.Text == "Couldn't detect the source language to translate from or the result is the same."
-                ),
-                Arg.Any<CancellationToken>()
-            );
+                    x => x.Text == "Couldn't detect the source language to translate from or the result is the same."),
+                Arg.Any<CancellationToken>());
     }
 }

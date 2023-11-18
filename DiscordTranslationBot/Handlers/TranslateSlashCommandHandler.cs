@@ -21,8 +21,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
     /// <param name="logger">Logger to use.</param>
     public TranslateSlashCommandHandler(
         IEnumerable<TranslationProviderBase> translationProviders,
-        ILogger<TranslateSlashCommandHandler> logger
-    )
+        ILogger<TranslateSlashCommandHandler> logger)
     {
         _translationProviders = translationProviders.ToList();
         _log = new Log(logger);
@@ -51,13 +50,10 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
         {
             _log.EmptySourceText();
 
-            await notification
-                .Command
-                .RespondAsync(
-                    "No text to translate.",
-                    ephemeral: true,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+            await notification.Command.RespondAsync(
+                "No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
@@ -66,8 +62,8 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
         var to = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
 
-        var from = (string?)
-            options.FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)?.Value;
+        var from = (string?)options.FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)
+            ?.Value;
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
         var translationProvider = _translationProviders[0];
@@ -83,34 +79,27 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
                 targetLanguage,
                 sanitizedText,
                 cancellationToken,
-                sourceLanguage
-            );
+                sourceLanguage);
 
             if (translationResult.TranslatedText == sanitizedText)
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await notification
-                    .Command
-                    .FollowupAsync(
-                        "Couldn't detect the source language to translate from or the result is the same.",
-                        options: new RequestOptions { CancelToken = cancellationToken }
-                    );
+                await notification.Command.FollowupAsync(
+                    "Couldn't detect the source language to translate from or the result is the same.",
+                    options: new RequestOptions { CancelToken = cancellationToken });
 
                 return;
             }
 
-            await notification
-                .Command
-                .FollowupAsync(
-                    $"""
+            await notification.Command.FollowupAsync(
+                $"""
                  {MentionUtils.MentionUser(notification.Command.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
                  """,
-                    options: new RequestOptions { CancelToken = cancellationToken }
-                );
+                options: new RequestOptions { CancelToken = cancellationToken });
         }
         catch (Exception ex)
         {
@@ -129,8 +118,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Nothing to translate. The sanitized source message is empty."
-        )]
+            Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceText();
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
@@ -138,8 +126,8 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
         [LoggerMessage(
             Level = LogLevel.Warning,
-            Message = "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language."
-        )]
+            Message =
+                "Couldn't detect the source language to translate from. This could happen when the provider's detected language confidence is 0 or the source language is the same as the target language.")]
         public partial void FailureToDetectSourceLanguage();
     }
 }
