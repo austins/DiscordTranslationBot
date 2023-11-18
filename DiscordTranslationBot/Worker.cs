@@ -66,6 +66,7 @@ public sealed partial class Worker : BackgroundService
         {
             _log.InitializingTranslationProvider(translationProvider.ProviderName);
             await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
+            _log.InitializedTranslationProvider(translationProvider.ProviderName);
         }
 
         // Initialize the Discord client.
@@ -122,5 +123,11 @@ public sealed partial class Worker : BackgroundService
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Initializing translation provider: {providerName}")]
         public partial void InitializingTranslationProvider(string providerName);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Finished initializing translation provider: {providerName}"
+        )]
+        public partial void InitializedTranslationProvider(string providerName);
     }
 }

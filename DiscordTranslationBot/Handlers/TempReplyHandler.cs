@@ -35,16 +35,21 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
             // If there is also a reaction and the source message still exists, remove the reaction from it.
             if (request.Reaction != null)
             {
-                var sourceMessage = await request.Reply.Channel.GetMessageAsync(
-                    request.SourceMessage.Id,
-                    options: new RequestOptions { CancelToken = cancellationToken });
+                var sourceMessage = await request
+                    .Reply
+                    .Channel
+                    .GetMessageAsync(
+                        request.SourceMessage.Id,
+                        options: new RequestOptions { CancelToken = cancellationToken }
+                    );
 
                 if (sourceMessage != null)
                 {
                     await sourceMessage.RemoveReactionAsync(
                         request.Reaction.Emote,
                         request.Reaction.UserId,
-                        new RequestOptions { CancelToken = cancellationToken });
+                        new RequestOptions { CancelToken = cancellationToken }
+                    );
                 }
             }
 
@@ -67,14 +72,20 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
     {
         try
         {
-            using var _ =
-                request.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
+            using var _ = request
+                .SourceMessage
+                .Channel
+                .EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
 
             // Send reply message.
-            var reply = await request.SourceMessage.Channel.SendMessageAsync(
-                request.Text,
-                messageReference: new MessageReference(request.SourceMessage.Id),
-                options: new RequestOptions { CancelToken = cancellationToken });
+            var reply = await request
+                .SourceMessage
+                .Channel
+                .SendMessageAsync(
+                    request.Text,
+                    messageReference: new MessageReference(request.SourceMessage.Id),
+                    options: new RequestOptions { CancelToken = cancellationToken }
+                );
 
             // Delete the temp reply in the background with a delay as to not block the request
             // and to clear the typing state scope by allowing it to dispose after the reply is sent.
@@ -86,7 +97,8 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
                     SourceMessage = request.SourceMessage
                 },
                 TimeSpan.FromSeconds(request.DeletionDelayInSeconds),
-                cancellationToken);
+                cancellationToken
+            );
         }
         catch (Exception ex)
         {
@@ -109,7 +121,8 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}")]
+            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}"
+        )]
         public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
     }
 }
