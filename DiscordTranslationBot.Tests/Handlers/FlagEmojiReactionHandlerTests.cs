@@ -1,39 +1,39 @@
 ﻿using Discord;
+using DiscordTranslationBot.Commands.TempReply;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Jobs;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Discord;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
-using Quartz;
+using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class FlagEmojiReactionHandlerTests
 {
     private const string Content = """
-        👍 test<:disdainsam:630009232128868353> _test_*test*
-        > test
-        __test__
-        """;
+                                   👍 test<:disdainsam:630009232128868353> _test_*test*
+                                   > test
+                                   __test__
+                                   """;
 
     private const string ExpectedSanitizedMessage = """
-        👍 test testtest
-         test
-        test
-        """;
+                                                    👍 test testtest
+                                                     test
+                                                    test
+                                                    """;
 
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
 
     private readonly ICountryService _countryService;
+    private readonly IMediator _mediator;
     private readonly IUserMessage _message;
     private readonly FlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
-    private readonly IScheduler _scheduler;
 
     public FlagEmojiReactionHandlerTests()
     {
@@ -65,16 +65,13 @@ public sealed class FlagEmojiReactionHandlerTests
         _message.Channel.Returns(channel);
         ((IGuildChannel)channel).Guild.Returns(guild);
 
-        _scheduler = Substitute.For<IScheduler>();
-
-        var schedulerFactory = Substitute.For<ISchedulerFactory>();
-        schedulerFactory.GetScheduler().Returns(_scheduler);
+        _mediator = Substitute.For<IMediator>();
 
         _sut = Substitute.For<FlagEmojiReactionHandler>(
             client,
             new[] { _translationProvider },
             _countryService,
-            schedulerFactory,
+            _mediator,
             Substitute.For<ILogger<FlagEmojiReactionHandler>>()
         );
     }
@@ -122,13 +119,7 @@ public sealed class FlagEmojiReactionHandlerTests
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _scheduler
-            .DidNotReceive()
-            .ScheduleJob(
-                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
-                Arg.Any<ITrigger>(),
-                Arg.Any<CancellationToken>()
-            );
+        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -217,11 +208,10 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _scheduler
+        await _mediator
             .Received(1)
-            .ScheduleJob(
-                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
-                Arg.Any<ITrigger>(),
+            .Send(
+                Arg.Is<SendTempReply>(x => x.Text.Contains("Translated message from", StringComparison.Ordinal)),
                 Arg.Any<CancellationToken>()
             );
     }
@@ -301,13 +291,7 @@ public sealed class FlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _scheduler
-            .DidNotReceive()
-            .ScheduleJob(
-                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
-                Arg.Any<ITrigger>(),
-                Arg.Any<CancellationToken>()
-            );
+        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
 
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
@@ -353,13 +337,7 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _scheduler
-            .Received(1)
-            .ScheduleJob(
-                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
-                Arg.Any<ITrigger>(),
-                Arg.Any<CancellationToken>()
-            );
+        await _mediator.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -408,11 +386,12 @@ public sealed class FlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _scheduler
+        await _mediator
             .Received(1)
-            .ScheduleJob(
-                Arg.Is<IJobDetail>(x => x.JobType == typeof(DeleteTempReplyForFlagEmojiReactionJob)),
-                Arg.Any<ITrigger>(),
+            .Send(
+                Arg.Is<SendTempReply>(
+                    x => x.Text == "Couldn't detect the source language to translate from or the result is the same."
+                ),
                 Arg.Any<CancellationToken>()
             );
     }
