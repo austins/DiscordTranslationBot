@@ -160,3 +160,6 @@ dotnet_diagnostic.SA1003.severity = error
 dotnet_diagnostic.SA1016.severity = error
 dotnet_diagnostic.SA1017.severity = error
 dotnet_diagnostic.SA1515.severity = error
+dotnet_diagnostic.SA1612.severity = error
+dotnet_diagnostic.SA1506.severity = error
+dotnet_diagnostic.SA1514.severity = error
