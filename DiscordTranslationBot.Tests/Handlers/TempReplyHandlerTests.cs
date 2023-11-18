@@ -99,6 +99,9 @@ public sealed class TempReplyHandlerTests
 
         await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        _backgroundCommandService.ReceivedWithAnyArgs(1).Schedule(default!, default, default);
+        _backgroundCommandService.Received(1)
+            .Schedule(
+                Arg.Is<DeleteTempReply>(x => x.Delay == TimeSpan.FromSeconds(request.DeletionDelayInSeconds)),
+                Arg.Any<CancellationToken>());
     }
 }

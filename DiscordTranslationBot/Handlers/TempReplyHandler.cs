@@ -83,9 +83,9 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
                 {
                     Reply = reply,
                     Reaction = request.Reaction,
-                    SourceMessage = request.SourceMessage
+                    SourceMessage = request.SourceMessage,
+                    Delay = TimeSpan.FromSeconds(request.DeletionDelayInSeconds)
                 },
-                TimeSpan.FromSeconds(request.DeletionDelayInSeconds),
                 cancellationToken);
         }
         catch (Exception ex)

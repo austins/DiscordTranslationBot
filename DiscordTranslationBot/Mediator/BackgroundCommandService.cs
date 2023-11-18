@@ -21,18 +21,12 @@ public sealed partial class BackgroundCommandService : IBackgroundCommandService
         _log = new Log(logger);
     }
 
-    /// <inheritdoc cref="IBackgroundCommandService.Invoke" />
-    public void Invoke(IRequest request, CancellationToken cancellationToken)
-    {
-        _mediator.Send(request, cancellationToken).SafeFireAndForget(ex => _log.FailureInRequestHandler(ex));
-    }
-
     /// <inheritdoc cref="IBackgroundCommandService.Schedule" />
-    public void Schedule(IRequest request, TimeSpan delay, CancellationToken cancellationToken)
+    public void Schedule(IBackgroundCommand request, CancellationToken cancellationToken)
     {
-        if (delay <= TimeSpan.Zero)
+        if (request.Delay != null && request.Delay.Value <= TimeSpan.Zero)
         {
-            throw new InvalidOperationException("Delay must be greater than zero.");
+            throw new InvalidOperationException("Delay must be greater than zero or null.");
         }
 
         SendAsync().SafeFireAndForget(ex => _log.FailureInRequestHandler(ex));
@@ -40,7 +34,11 @@ public sealed partial class BackgroundCommandService : IBackgroundCommandService
 
         async Task SendAsync()
         {
-            await Task.Delay(delay, cancellationToken);
+            if (request.Delay != null)
+            {
+                await Task.Delay(request.Delay.Value, cancellationToken);
+            }
+
             await _mediator.Send(request, cancellationToken);
         }
     }

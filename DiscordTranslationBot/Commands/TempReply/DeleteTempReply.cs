@@ -8,12 +8,15 @@ namespace DiscordTranslationBot.Commands.TempReply;
 /// <summary>
 /// Command to delete a temp reply. This is best invoked with <see cref="IBackgroundCommandService" />.
 /// </summary>
-public sealed class DeleteTempReply : ITempReplyCommand
+public sealed class DeleteTempReply : ITempReplyCommand, IBackgroundCommand
 {
     /// <summary>
     /// The reply message to delete.
     /// </summary>
     public required IMessage Reply { get; init; }
+
+    /// <inheritdoc cref="IBackgroundCommand.Delay" />
+    public TimeSpan? Delay { get; init; }
 
     /// <inheritdoc cref="ITempReplyCommand.Reaction" />
     public Reaction? Reaction { get; init; }
