@@ -36,7 +36,7 @@ public sealed class SendTempReplyValidator : AbstractValidator<SendTempReply>
     /// </summary>
     public SendTempReplyValidator()
     {
-        Include(new ITempReplyCommandValidator());
+        Include(new TempReplyCommandValidator());
         RuleFor(x => x.Text).NotEmpty();
         RuleFor(x => x.DeletionDelayInSeconds).GreaterThan(0);
     }

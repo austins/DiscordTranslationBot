@@ -30,7 +30,6 @@ public sealed partial class BackgroundCommandService : IBackgroundCommandService
         }
 
         SendAsync().SafeFireAndForget(ex => _log.FailureInRequestHandler(ex));
-        return;
 
         async Task SendAsync()
         {

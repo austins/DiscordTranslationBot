@@ -35,7 +35,7 @@ public sealed class DeleteTempReplyValidator : AbstractValidator<DeleteTempReply
     /// </summary>
     public DeleteTempReplyValidator()
     {
-        Include(new ITempReplyCommandValidator());
+        Include(new TempReplyCommandValidator());
         RuleFor(x => x.Reply).NotNull();
     }
 }

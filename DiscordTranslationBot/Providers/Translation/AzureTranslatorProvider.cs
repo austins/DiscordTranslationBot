@@ -82,7 +82,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         var httpClient = CreateHttpClient();
 
         var response = await httpClient.GetAsync(
-            new Uri("https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation"),
+            new Uri($"{_azureTranslatorOptions.ApiUrl}languages?api-version=3.0&scope=translation"),
             cancellationToken);
 
         if (!response.IsSuccessStatusCode)

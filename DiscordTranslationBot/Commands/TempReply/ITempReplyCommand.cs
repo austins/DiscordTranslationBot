@@ -23,12 +23,12 @@ public interface ITempReplyCommand : IRequest
 /// <summary>
 /// Validator for <see cref="ITempReplyCommand" />.
 /// </summary>
-public sealed class ITempReplyCommandValidator : AbstractValidator<ITempReplyCommand>
+public sealed class TempReplyCommandValidator : AbstractValidator<ITempReplyCommand>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ITempReplyCommandValidator" /> class.
+    /// Initializes a new instance of the <see cref="TempReplyCommandValidator" /> class.
     /// </summary>
-    public ITempReplyCommandValidator()
+    public TempReplyCommandValidator()
     {
         RuleFor(x => x.SourceMessage).NotNull();
     }
