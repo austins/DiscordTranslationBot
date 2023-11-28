@@ -1,22 +1,22 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReply;
 using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Models.Discord;
+using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class TempReplyHandlerTests
 {
-    private readonly IBackgroundCommandService _backgroundCommandService;
+    private readonly IMediator _mediator;
 
     private readonly TempReplyHandler _sut;
 
     public TempReplyHandlerTests()
     {
-        _backgroundCommandService = Substitute.For<IBackgroundCommandService>();
+        _mediator = Substitute.For<IMediator>();
 
-        _sut = new TempReplyHandler(_backgroundCommandService, Substitute.For<ILogger<TempReplyHandler>>());
+        _sut = new TempReplyHandler(_mediator, Substitute.For<ILogger<TempReplyHandler>>());
     }
 
     [Fact]
@@ -99,8 +99,8 @@ public sealed class TempReplyHandlerTests
 
         await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        _backgroundCommandService.Received(1)
-            .Schedule(
+        await _mediator.Received(1)
+            .Send(
                 Arg.Is<DeleteTempReply>(x => x.Delay == TimeSpan.FromSeconds(request.DeletionDelayInSeconds)),
                 Arg.Any<CancellationToken>());
     }

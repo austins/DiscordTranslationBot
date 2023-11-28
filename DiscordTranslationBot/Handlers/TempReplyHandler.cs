@@ -1,6 +1,5 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReply;
-using DiscordTranslationBot.Mediator;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -9,17 +8,17 @@ namespace DiscordTranslationBot.Handlers;
 /// </summary>
 public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>, IRequestHandler<SendTempReply>
 {
-    private readonly IBackgroundCommandService _backgroundCommandService;
     private readonly Log _log;
+    private readonly IMediator _mediator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TempReplyHandler" /> class.
     /// </summary>
-    /// <param name="backgroundCommandService">Background command service to use.</param>
+    /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public TempReplyHandler(IBackgroundCommandService backgroundCommandService, ILogger<TempReplyHandler> logger)
+    public TempReplyHandler(IMediator mediator, ILogger<TempReplyHandler> logger)
     {
-        _backgroundCommandService = backgroundCommandService;
+        _mediator = mediator;
         _log = new Log(logger);
     }
 
@@ -78,7 +77,7 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
 
             // Delete the temp reply in the background with a delay as to not block the request
             // and to clear the typing state scope by allowing it to dispose after the reply is sent.
-            _backgroundCommandService.Schedule(
+            await _mediator.Send(
                 new DeleteTempReply
                 {
                     Reply = reply,

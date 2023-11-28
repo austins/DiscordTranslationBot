@@ -32,9 +32,9 @@ await Host.CreateDefaultBuilder(args)
                         c.NotificationPublisherType = typeof(BackgroundPublisher);
 
                         c.RegisterServicesFromAssemblyContaining<Program>()
+                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton)
                             .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
                     })
-                .AddSingleton<IBackgroundCommandService, BackgroundCommandService>()
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
                     new DiscordSocketClient(
