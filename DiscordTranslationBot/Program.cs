@@ -1,6 +1,7 @@
-﻿#pragma warning disable CA1852 // Class must be sealed.
-#pragma warning disable SA1210
+#pragma warning disable CA1852 // Seal internal types
+#pragma warning disable SA1210 // Using directives should be ordered alphabetically by namespace
 global using MediatR;
+#pragma warning restore SA1210 // Using directives should be ordered alphabetically by namespace
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
@@ -9,8 +10,6 @@ using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Services;
 using FluentValidation;
-
-#pragma warning restore SA1210
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
