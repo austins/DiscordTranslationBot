@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Mediator;
+using DiscordTranslationBot.Mediator;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
