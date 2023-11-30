@@ -1,7 +1,7 @@
 ﻿namespace DiscordTranslationBot.Mediator;
 
 /// <summary>
-/// A request that can be executed in the background using <see cref="IBackgroundCommandService" />.
+/// A request that can be executed in the background.
 /// </summary>
 public interface IBackgroundCommand : IRequest
 {

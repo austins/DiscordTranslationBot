@@ -6,7 +6,7 @@ using FluentValidation;
 namespace DiscordTranslationBot.Commands.TempReply;
 
 /// <summary>
-/// Command to delete a temp reply. This is best invoked with <see cref="IBackgroundCommandService" />.
+/// Command to delete a temp reply.
 /// </summary>
 public sealed class DeleteTempReply : ITempReplyCommand, IBackgroundCommand
 {
