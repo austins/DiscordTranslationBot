@@ -10,7 +10,7 @@ namespace DiscordTranslationBot.Extensions;
 /// <summary>
 /// Extension methods for a service collection.
 /// </summary>
-public static class ServiceCollectionExtensions
+internal static class ServiceCollectionExtensions
 {
     /// <summary>
     /// Adds options validated with FluentValidation and on start.
@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configurationSection">The configuration section.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
     /// <typeparam name="TValidator">The validator for the options.</typeparam>
-    public static void AddOptionsWithFluentValidation<TOptions, TValidator>(
+    internal static void AddOptionsWithFluentValidation<TOptions, TValidator>(
         this IServiceCollection services,
         IConfigurationSection configurationSection)
         where TOptions : class
@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The services collection.</param>
     /// <param name="configuration">The host configuration.</param>
     /// <returns>Service collection.</returns>
-    public static IServiceCollection AddTranslationProviders(
+    internal static IServiceCollection AddTranslationProviders(
         this IServiceCollection services,
         IConfiguration configuration)
     {

@@ -10,7 +10,7 @@ namespace DiscordTranslationBot;
 /// <summary>
 /// The main worker service.
 /// </summary>
-public sealed partial class Worker : BackgroundService
+internal sealed partial class Worker : BackgroundService
 {
     private readonly DiscordSocketClient _client;
     private readonly IOptions<DiscordOptions> _discordOptions;
@@ -28,7 +28,7 @@ public sealed partial class Worker : BackgroundService
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public Worker(
+    internal Worker(
         IEnumerable<TranslationProviderBase> translationProviders,
         IDiscordClient client,
         DiscordEventListener eventListener,

@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Mediator;
 /// <summary>
 /// Mediator notification publisher that publishes notifications in the background.
 /// </summary>
-public sealed partial class BackgroundPublisher : INotificationPublisher
+internal sealed partial class BackgroundPublisher : INotificationPublisher
 {
     private readonly Log _log;
 
@@ -13,7 +13,7 @@ public sealed partial class BackgroundPublisher : INotificationPublisher
     /// Initializes a new instance of the <see cref="BackgroundPublisher" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
-    public BackgroundPublisher(ILogger<BackgroundPublisher> logger)
+    internal BackgroundPublisher(ILogger<BackgroundPublisher> logger)
     {
         _log = new Log(logger);
     }

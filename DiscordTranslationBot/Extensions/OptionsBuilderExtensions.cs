@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Extensions;
 /// <summary>
 /// Extension methods for OptionsBuilder.
 /// </summary>
-public static class OptionsBuilderExtensions
+internal static class OptionsBuilderExtensions
 {
     /// <summary>
     /// Enables validation of options using FluentValidation.
@@ -14,7 +14,7 @@ public static class OptionsBuilderExtensions
     /// <param name="builder">The options builder.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
     /// <returns>The options builder for chaining.</returns>
-    public static OptionsBuilder<TOptions> ValidateWithFluentValidation<TOptions>(this OptionsBuilder<TOptions> builder)
+    internal static OptionsBuilder<TOptions> ValidateWithFluentValidation<TOptions>(this OptionsBuilder<TOptions> builder)
         where TOptions : class
     {
         builder.Services.AddSingleton<IValidateOptions<TOptions>>(
@@ -30,7 +30,7 @@ public static class OptionsBuilderExtensions
 /// Validator for options.
 /// </summary>
 /// <typeparam name="TOptions">The options type.</typeparam>
-public sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptions<TOptions>
+internal sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptions<TOptions>
     where TOptions : class
 {
     private readonly string? _name;
@@ -41,7 +41,7 @@ public sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptions
     /// </summary>
     /// <param name="validator">The validator to use.</param>
     /// <param name="name">The name of the option.</param>
-    public FluidValidationOptionsValidator(IValidator<TOptions> validator, string? name)
+    internal FluidValidationOptionsValidator(IValidator<TOptions> validator, string? name)
     {
         _validator = validator;
         _name = name;

@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Services;
 /// <summary>
 /// Configures the events for the Discord client.
 /// </summary>
-public sealed partial class DiscordEventListener
+internal sealed partial class DiscordEventListener
 {
     private readonly CancellationToken _cancellationToken;
     private readonly DiscordSocketClient _client;
@@ -21,7 +21,7 @@ public sealed partial class DiscordEventListener
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public DiscordEventListener(IDiscordClient client, IMediator mediator, ILogger<DiscordEventListener> logger)
+    internal DiscordEventListener(IDiscordClient client, IMediator mediator, ILogger<DiscordEventListener> logger)
     {
         _client = (DiscordSocketClient)client;
         _mediator = mediator;
