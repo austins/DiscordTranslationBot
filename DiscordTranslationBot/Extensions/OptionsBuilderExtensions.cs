@@ -41,7 +41,7 @@ internal sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptio
     /// </summary>
     /// <param name="validator">The validator to use.</param>
     /// <param name="name">The name of the option.</param>
-    internal FluidValidationOptionsValidator(IValidator<TOptions> validator, string? name)
+    public FluidValidationOptionsValidator(IValidator<TOptions> validator, string? name)
     {
         _validator = validator;
         _name = name;

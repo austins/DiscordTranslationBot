@@ -21,7 +21,7 @@ internal sealed partial class DiscordEventListener
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
-    internal DiscordEventListener(IDiscordClient client, IMediator mediator, ILogger<DiscordEventListener> logger)
+    public DiscordEventListener(IDiscordClient client, IMediator mediator, ILogger<DiscordEventListener> logger)
     {
         _client = (DiscordSocketClient)client;
         _mediator = mediator;

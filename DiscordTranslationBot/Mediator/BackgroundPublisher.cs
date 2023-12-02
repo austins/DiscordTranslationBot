@@ -13,7 +13,7 @@ internal sealed partial class BackgroundPublisher : INotificationPublisher
     /// Initializes a new instance of the <see cref="BackgroundPublisher" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
-    internal BackgroundPublisher(ILogger<BackgroundPublisher> logger)
+    public BackgroundPublisher(ILogger<BackgroundPublisher> logger)
     {
         _log = new Log(logger);
     }

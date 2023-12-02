@@ -28,7 +28,7 @@ internal sealed partial class Worker : BackgroundService
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     /// <param name="logger">Logger to use.</param>
-    internal Worker(
+    public Worker(
         IEnumerable<TranslationProviderBase> translationProviders,
         IDiscordClient client,
         DiscordEventListener eventListener,
