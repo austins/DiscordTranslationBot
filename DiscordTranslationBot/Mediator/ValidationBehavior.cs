@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
 
 namespace DiscordTranslationBot.Mediator;
 
@@ -11,19 +10,19 @@ namespace DiscordTranslationBot.Mediator;
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly IReadOnlyList<IValidator<TRequest>> _validators;
+    private readonly IValidator<TRequest>? _validator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest,TResponse}" /> class.
     /// </summary>
-    /// <param name="validators">Validators for the request to use.</param>
-    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+    /// <param name="serviceProvider">Service provider to use.</param>
+    public ValidationBehavior(IServiceProvider serviceProvider)
     {
-        _validators = validators.ToList();
+        _validator = serviceProvider.GetService<IValidator<TRequest>>();
     }
 
     /// <summary>
-    /// Validates an incoming request if it has any validators before executing its handler.
+    /// Validates an incoming request if it has a validator before executing its handler.
     /// </summary>
     /// <param name="request">The request.</param>
     /// <param name="next">
@@ -38,22 +37,9 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (_validators.Any())
+        if (_validator != null)
         {
-            var failures = new List<ValidationFailure>();
-            foreach (var validator in _validators)
-            {
-                var result = await validator.ValidateAsync(request, cancellationToken);
-                if (!result.IsValid)
-                {
-                    failures.AddRange(result.Errors);
-                }
-            }
-
-            if (failures.Count > 0)
-            {
-                throw new ValidationException(failures);
-            }
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
         }
 
         return await next();

@@ -17,32 +17,45 @@ public sealed class ValidationBehaviorTests
         _request = Substitute.For<IRequest>();
         _validator = Substitute.For<IValidator<IRequest>>();
 
-        _sut = new ValidationBehavior<IRequest, Unit>(new[] { _validator });
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
+
+        _sut = new ValidationBehavior<IRequest, Unit>(serviceProvider);
     }
 
     [Fact]
     public async Task Handle_ValidRequest_Success()
     {
         // Arrange
-        _validator.ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
+        _validator.ValidateAsync(Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult());
 
         // Act & Assert
         await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None))
             .Should()
             .NotThrowAsync<ValidationException>();
+
+        await _validator.Received(1)
+            .ValidateAsync(
+                Arg.Any<IValidationContext>(),
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_InvalidRequest_Throws()
     {
         // Arrange
-        _validator.ValidateAsync(Arg.Is<IRequest>(x => x == _request), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult(new[] { new ValidationFailure("test", "test") }));
+        _validator.ValidateAsync(Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new ValidationException(new[] { new ValidationFailure("test", "test") }));
 
         // Act & Assert
         await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None))
             .Should()
             .ThrowAsync<ValidationException>();
+
+        await _validator
+            .Received(1).ValidateAsync(
+                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
+                Arg.Any<CancellationToken>());
     }
 }
