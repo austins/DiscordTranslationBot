@@ -1,20 +1,36 @@
 ﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace DiscordTranslationBot.Extensions;
 
-/// <summary>
-/// Extension methods for OptionsBuilder.
-/// </summary>
-internal static class OptionsBuilderExtensions
+internal static class OptionsValidationExtensions
 {
+    /// <summary>
+    /// Adds options validated with FluentValidation and on start.
+    /// </summary>
+    /// <param name="services">The services collection.</param>
+    /// <param name="configurationSection">The configuration section.</param>
+    /// <typeparam name="TOptions">The options type.</typeparam>
+    /// <typeparam name="TValidator">The validator for the options.</typeparam>
+    internal static void AddOptionsWithFluentValidation<TOptions, TValidator>(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+        where TOptions : class
+        where TValidator : class, IValidator<TOptions>
+    {
+        services.TryAddSingleton<IValidator<TOptions>, TValidator>();
+        ValidateWithFluentValidation(services.AddOptions<TOptions>().Bind(configurationSection)).ValidateOnStart();
+    }
+
     /// <summary>
     /// Enables validation of options using FluentValidation.
     /// </summary>
     /// <param name="builder">The options builder.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
     /// <returns>The options builder for chaining.</returns>
-    internal static OptionsBuilder<TOptions> ValidateWithFluentValidation<TOptions>(this OptionsBuilder<TOptions> builder)
+    private static OptionsBuilder<TOptions> ValidateWithFluentValidation<TOptions>(
+        this OptionsBuilder<TOptions> builder)
         where TOptions : class
     {
         builder.Services.AddSingleton<IValidateOptions<TOptions>>(
@@ -37,7 +53,7 @@ internal sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptio
     private readonly IValidator<TOptions> _validator;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FluidValidationOptionsValidator{TOptions}" /> class.
+    /// Initializes a new instance.
     /// </summary>
     /// <param name="validator">The validator to use.</param>
     /// <param name="name">The name of the option.</param>
