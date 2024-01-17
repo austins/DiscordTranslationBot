@@ -1,4 +1,4 @@
-#pragma warning disable CA1852 // Seal internal types
+﻿#pragma warning disable CA1852 // Seal internal types
 #pragma warning disable SA1210 // Using directives should be ordered alphabetically by namespace
 global using MediatR;
 #pragma warning restore SA1210 // Using directives should be ordered alphabetically by namespace
