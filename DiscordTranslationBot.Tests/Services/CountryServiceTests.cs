@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Services;
+using DiscordTranslationBot.Services;
 using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Services;
@@ -7,18 +7,12 @@ public sealed class CountryServiceTests
 {
     private readonly CountryService _sut = new(Substitute.For<ILogger<CountryService>>());
 
-    public static TheoryData<string, string> TryGetCountryTestData
+    public static TheoryData<string, string> TryGetCountryTestData => new()
     {
-        get
-        {
-            return new()
-            {
-                { Emoji.FlagUnitedStates.ToString(), "United States" },
-                { Emoji.FlagFrance.ToString(), "France" },
-                { "🇯🇵", "Japan" }
-            };
-        }
-    }
+        { Emoji.FlagUnitedStates.ToString(), "United States" },
+        { Emoji.FlagFrance.ToString(), "France" },
+        { "🇯🇵", "Japan" }
+    };
 
     [Theory]
     [MemberData(nameof(TryGetCountryTestData))]
