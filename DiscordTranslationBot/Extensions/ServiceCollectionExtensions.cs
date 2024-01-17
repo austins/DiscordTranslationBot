@@ -1,7 +1,14 @@
-﻿using DiscordTranslationBot.Configuration.TranslationProviders;
+﻿using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
+using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.AzureTranslator;
+using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
+using Refit;
+using AzureTranslatorProvider = DiscordTranslationBot.Providers.Translation.AzureTranslator.AzureTranslatorProvider;
 
 namespace DiscordTranslationBot.Extensions;
 
@@ -29,21 +36,39 @@ internal static class ServiceCollectionExtensions
         // Register translation providers. They are prioritized in the order added.
         var options = section.Get<TranslationProvidersOptions>();
 
+        var refitSettings = new RefitSettings
+        {
+            ContentSerializer = new SystemTextJsonContentSerializer(
+                new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) })
+        };
+
         if (options?.AzureTranslator.Enabled == true)
         {
+            services.AddTransient<AzureTranslatorHeadersHandler>();
+
+            services.AddRefitClient<IAzureTranslatorClient>(refitSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = options.AzureTranslator.ApiUrl)
+                .AddHttpMessageHandler<AzureTranslatorHeadersHandler>()
+                .AddRetryPolicy();
+
             services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
         }
 
         if (options?.LibreTranslate.Enabled == true)
         {
+            services.AddRefitClient<ILibreTranslateClient>(refitSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = options.LibreTranslate.ApiUrl)
+                .AddRetryPolicy();
+
             services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
         }
 
-        // Configure named HttpClient for translation providers.
-        services.AddHttpClient(TranslationProviderBase.ClientName)
-            .AddTransientHttpErrorPolicy(
-                b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2)));
-
         return services;
+    }
+
+    private static void AddRetryPolicy(this IHttpClientBuilder builder)
+    {
+        builder.AddTransientHttpErrorPolicy(
+            b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2)));
     }
 }

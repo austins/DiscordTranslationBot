@@ -7,13 +7,18 @@ public sealed class CountryServiceTests
 {
     private readonly CountryService _sut = new(Substitute.For<ILogger<CountryService>>());
 
-    public static IEnumerable<object[]> TryGetCountryTestData =>
-        new[]
+    public static TheoryData<string, string> TryGetCountryTestData
+    {
+        get
         {
-            new object[] { Emoji.FlagUnitedStates.ToString(), "United States" },
-            new object[] { Emoji.FlagFrance.ToString(), "France" },
-            new object[] { "🇯🇵", "Japan" }
-        };
+            return new()
+            {
+                { Emoji.FlagUnitedStates.ToString(), "United States" },
+                { Emoji.FlagFrance.ToString(), "France" },
+                { "🇯🇵", "Japan" }
+            };
+        }
+    }
 
     [Theory]
     [MemberData(nameof(TryGetCountryTestData))]

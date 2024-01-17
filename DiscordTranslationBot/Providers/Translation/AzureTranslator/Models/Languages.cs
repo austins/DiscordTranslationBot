@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
+namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 
 /// <summary>
 /// The list of supported languages from the Azure Translator languages endpoint.

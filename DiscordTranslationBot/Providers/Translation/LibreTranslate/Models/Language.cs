@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
+namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 
 /// <summary>
 /// Supported language from the LibreTranslate languages endpoint.

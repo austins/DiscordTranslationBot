@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using DiscordTranslationBot.Models.Providers.Translation;
 
-namespace DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
+namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 
 /// <summary>
 /// The result from the LibreTranslate translate endpoint.

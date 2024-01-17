@@ -1,11 +1,8 @@
 ﻿using System.Text.Json;
-using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
-using Microsoft.Extensions.Options;
+using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 
-namespace DiscordTranslationBot.Providers.Translation;
+namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 
 /// <summary>
 /// Provider for Azure Translator.
@@ -18,22 +15,17 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     /// </summary>
     public const int TextCharacterLimit = 10000;
 
-    private readonly AzureTranslatorOptions _azureTranslatorOptions;
+    private readonly IAzureTranslatorClient _client;
     private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureTranslatorProvider" /> class.
     /// </summary>
-    /// <param name="httpClientFactory">HTTP client factory to use.</param>
-    /// <param name="translationProvidersOptions">Translation providers options.</param>
+    /// <param name="client">Azure Translator client to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public AzureTranslatorProvider(
-        IHttpClientFactory httpClientFactory,
-        IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<AzureTranslatorProvider> logger)
-        : base(httpClientFactory)
+    public AzureTranslatorProvider(IAzureTranslatorClient client, ILogger<AzureTranslatorProvider> logger)
     {
-        _azureTranslatorOptions = translationProvidersOptions.Value.AzureTranslator;
+        _client = client;
         _log = new Log(logger);
     }
 
@@ -79,12 +71,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             return;
         }
 
-        var httpClient = CreateHttpClient();
-
-        var response = await httpClient.GetAsync(
-            new Uri($"{_azureTranslatorOptions.ApiUrl}languages?api-version=3.0&scope=translation"),
-            cancellationToken);
-
+        var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             _log.ResponseFailure("Languages", response.StatusCode);
@@ -93,16 +80,13 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 $"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
         }
 
-        var content = JsonSerializer.Deserialize<Languages>(
-            await response.Content.ReadAsStringAsync(cancellationToken));
-
-        if (content?.LangCodes?.Any() != true)
+        if (response.Content?.LangCodes?.Any() != true)
         {
             _log.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content.LangCodes.Select(
+        SupportedLanguages = response.Content.LangCodes.Select(
                 lc => new SupportedLanguage
                 {
                     LangCode = lc.Key,
@@ -136,28 +120,12 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 TargetLanguageName = targetLanguage.Name
             };
 
-            var httpClient = CreateHttpClient();
+            var response = await _client.TranslateAsync(
+                result.TargetLanguageCode,
+                new List<TranslateRequest> { new() { Text = text } },
+                cancellationToken,
+                sourceLangCode: sourceLanguage?.LangCode);
 
-            using var request = new HttpRequestMessage();
-            request.Method = HttpMethod.Post;
-
-            var translateUrl =
-                $"{_azureTranslatorOptions.ApiUrl}translate?api-version=3.0&to={result.TargetLanguageCode}";
-
-            if (sourceLanguage?.LangCode != null)
-            {
-                translateUrl += $"&from={sourceLanguage.LangCode}";
-            }
-
-            request.RequestUri = new Uri(translateUrl);
-
-            request.Headers.Add("Ocp-Apim-Subscription-Key", _azureTranslatorOptions.SecretKey);
-            request.Headers.Add("Ocp-Apim-Subscription-Region", _azureTranslatorOptions.Region);
-
-            request.Content = new List<ITranslateRequest> { new TranslateRequest { Text = text } }
-                .SerializeToRequestContent();
-
-            var response = await httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 _log.ResponseFailure("Translate", response.StatusCode);
@@ -166,8 +134,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
                     $"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
-            var content = await response.Content.ReadAsTranslateResultsAsync<TranslateResult>(cancellationToken);
-            var translation = content?.SingleOrDefault();
+            var translation = response.Content?.FirstOrDefault();
             if (translation?.Translations?.Any() != true)
             {
                 _log.NoTranslationReturned();
@@ -176,7 +143,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
             result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
 
-            result.DetectedLanguageName = SupportedLanguages.SingleOrDefault(
+            result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
                     sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
                 ?.Name;
 
