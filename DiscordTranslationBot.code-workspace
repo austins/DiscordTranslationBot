@@ -1,0 +1,22 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "[json]": {
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[jsonc]": {
+            "editor.defaultFormatter": "vscode.json-language-features"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "editorconfig.editorconfig",
+            "ms-dotnettools.csdevkit"
+        ]
+    }
+}

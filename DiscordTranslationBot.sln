@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.dockerignore = .dockerignore
 		Dockerfile = Dockerfile
 		.gitattributes = .gitattributes
+		DiscordTranslationBot.code-workspace = DiscordTranslationBot.code-workspace
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{FF90D684-1D09-4EB2-BA2F-6FBF9051413B}"
