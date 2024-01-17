@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
+using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using Refit;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;

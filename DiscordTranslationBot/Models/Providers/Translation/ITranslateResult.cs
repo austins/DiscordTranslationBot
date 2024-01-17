@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Models.Providers.Translation;
+namespace DiscordTranslationBot.Models.Providers.Translation;
 
 /// <summary>
 /// The result from a translate endpoint response.

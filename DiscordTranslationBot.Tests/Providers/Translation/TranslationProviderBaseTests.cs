@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Exceptions;
+using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Providers.Translation;
 using NeoSmart.Unicode;

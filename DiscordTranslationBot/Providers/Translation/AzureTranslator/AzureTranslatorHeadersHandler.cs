@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Configuration.TranslationProviders;
 using Microsoft.Extensions.Options;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;

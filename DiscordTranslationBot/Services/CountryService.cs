@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Models;
 using NeoSmart.Unicode;

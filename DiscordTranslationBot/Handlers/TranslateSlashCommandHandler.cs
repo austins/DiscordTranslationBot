@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;

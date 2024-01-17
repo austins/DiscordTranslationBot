@@ -1,4 +1,4 @@
-﻿using AsyncAwaitBestPractices;
+using AsyncAwaitBestPractices;
 
 namespace DiscordTranslationBot.Mediator;
 

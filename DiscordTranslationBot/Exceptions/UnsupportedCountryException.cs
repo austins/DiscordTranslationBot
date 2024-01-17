@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Exceptions;
+namespace DiscordTranslationBot.Exceptions;
 
 /// <summary>
 /// Exception indicating that a country couldn't be mapped to a target language code and is unsupported.

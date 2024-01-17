@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Configuration.TranslationProviders;
+using DiscordTranslationBot.Configuration.TranslationProviders;
 using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;

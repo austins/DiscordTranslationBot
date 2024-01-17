@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Models.Providers.Translation;
+namespace DiscordTranslationBot.Models.Providers.Translation;
 
 /// <summary>
 /// Info about a translation provider's supported language.

@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Models.Providers.Translation;
+namespace DiscordTranslationBot.Models.Providers.Translation;
 
 /// <summary>
 /// Interface for a translate request for a provider's translate endpoint.

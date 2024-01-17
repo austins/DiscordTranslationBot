@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using DiscordTranslationBot.Models;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;

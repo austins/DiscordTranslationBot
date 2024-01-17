@@ -1,4 +1,4 @@
-﻿using DiscordTranslationBot.Mediator;
+using DiscordTranslationBot.Mediator;
 using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;

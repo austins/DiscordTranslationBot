@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using DiscordTranslationBot.Models.Providers.Translation;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;

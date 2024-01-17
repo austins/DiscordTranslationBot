@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Models;
+namespace DiscordTranslationBot.Models;
 
 /// <summary>
 /// Details about a country.

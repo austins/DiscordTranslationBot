@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Constants;
+namespace DiscordTranslationBot.Constants;
 
 /// <summary>
 /// Constants for message commands.

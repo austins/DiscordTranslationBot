@@ -1,4 +1,4 @@
-﻿namespace DiscordTranslationBot.Mediator;
+namespace DiscordTranslationBot.Mediator;
 
 /// <summary>
 /// A request that can be executed in the background.
