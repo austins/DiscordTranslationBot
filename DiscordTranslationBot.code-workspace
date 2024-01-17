@@ -6,10 +6,7 @@
     ],
     "settings": {
         "editor.formatOnSave": true,
-        "[json]": {
-            "editor.defaultFormatter": "vscode.json-language-features"
-        },
-        "[jsonc]": {
+        "[json][jsonc]": {
             "editor.defaultFormatter": "vscode.json-language-features"
         }
     },
