@@ -1,33 +1,25 @@
 ﻿using System.Text.Json;
-using DiscordTranslationBot.Configuration.TranslationProviders;
-using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Models.Providers.Translation.LibreTranslate;
-using Microsoft.Extensions.Options;
+using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 
-namespace DiscordTranslationBot.Providers.Translation;
+namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 
 /// <summary>
 /// Provider for LibreTranslate.
 /// </summary>
 public sealed class LibreTranslateProvider : TranslationProviderBase
 {
-    private readonly LibreTranslateOptions _libreTranslateOptions;
+    private readonly ILibreTranslateClient _client;
     private readonly Log<LibreTranslateProvider> _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider" /> class.
     /// </summary>
-    /// <param name="httpClientFactory">HTTP client factory to use.</param>
-    /// <param name="translationProvidersOptions">Translation providers options.</param>
+    /// <param name="client">LibreTranslate client to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public LibreTranslateProvider(
-        IHttpClientFactory httpClientFactory,
-        IOptions<TranslationProvidersOptions> translationProvidersOptions,
-        ILogger<LibreTranslateProvider> logger)
-        : base(httpClientFactory)
+    public LibreTranslateProvider(ILibreTranslateClient client, ILogger<LibreTranslateProvider> logger)
     {
-        _libreTranslateOptions = translationProvidersOptions.Value.LibreTranslate;
+        _client = client;
         _log = new Log(logger);
     }
 
@@ -45,12 +37,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             return;
         }
 
-        var httpClient = CreateHttpClient();
-
-        var response = await httpClient.GetAsync(
-            new Uri($"{_libreTranslateOptions.ApiUrl}languages"),
-            cancellationToken);
-
+        var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             _log.ResponseFailure("Languages", response.StatusCode);
@@ -59,16 +46,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 $"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
         }
 
-        var content = JsonSerializer.Deserialize<IList<Language>>(
-            await response.Content.ReadAsStringAsync(cancellationToken));
-
-        if (content?.Any() != true)
+        if (response.Content?.Any() != true)
         {
             _log.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = content.Select(
+        SupportedLanguages = response.Content.Select(
                 lc => new SupportedLanguage
                 {
                     LangCode = lc.LangCode,
@@ -93,18 +77,13 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                 TargetLanguageName = targetLanguage.Name
             };
 
-            var httpClient = CreateHttpClient();
-
-            using var request = new TranslateRequest
-            {
-                Text = text,
-                SourceLangCode = sourceLanguage?.LangCode ?? "auto",
-                TargetLangCode = targetLanguage.LangCode
-            }.SerializeToRequestContent();
-
-            var response = await httpClient.PostAsync(
-                new Uri($"{_libreTranslateOptions.ApiUrl}/translate"),
-                request,
+            var response = await _client.TranslateAsync(
+                new TranslateRequest
+                {
+                    Text = text,
+                    SourceLangCode = sourceLanguage?.LangCode ?? "auto",
+                    TargetLangCode = targetLanguage.LangCode
+                },
                 cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -115,20 +94,19 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
                     $"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
             }
 
-            var content = await response.Content.ReadAsTranslateResultAsync<TranslateResult>(cancellationToken);
-            if (string.IsNullOrWhiteSpace(content?.TranslatedText))
+            if (string.IsNullOrWhiteSpace(response.Content?.TranslatedText))
             {
                 _log.NoTranslationReturned();
                 throw new InvalidOperationException("No translation returned.");
             }
 
-            result.DetectedLanguageCode = content.DetectedLanguage?.LanguageCode;
+            result.DetectedLanguageCode = response.Content.DetectedLanguage?.LanguageCode;
 
             result.DetectedLanguageName = SupportedLanguages.SingleOrDefault(
                     sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
                 ?.Name;
 
-            result.TranslatedText = content.TranslatedText;
+            result.TranslatedText = response.Content.TranslatedText;
 
             return result;
         }

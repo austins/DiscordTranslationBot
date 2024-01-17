@@ -17,7 +17,7 @@ public sealed class RegisterCommandsHandlerTests
     {
         _client = Substitute.For<IDiscordClient>();
 
-        _translationProvider = Substitute.For<TranslationProviderBase>(Substitute.For<IHttpClientFactory>());
+        _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns(ProviderName);
 
         _sut = new RegisterCommandsHandler(

@@ -11,22 +11,6 @@ namespace DiscordTranslationBot.Providers.Translation;
 public abstract partial class TranslationProviderBase
 {
     /// <summary>
-    /// Name of the translation provider HTTP client.
-    /// </summary>
-    public const string ClientName = "TranslationProvider";
-
-    private readonly IHttpClientFactory _httpClientFactory;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TranslationProviderBase" /> class.
-    /// </summary>
-    /// <param name="httpClientFactory">HTTP client factory to use.</param>
-    protected TranslationProviderBase(IHttpClientFactory httpClientFactory)
-    {
-        _httpClientFactory = httpClientFactory;
-    }
-
-    /// <summary>
     /// Lang codes that can be specified for the translate command choices.
     /// </summary>
     public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
@@ -84,15 +68,6 @@ public abstract partial class TranslationProviderBase
             ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
 
         return TranslateAsync(targetLanguage, text, cancellationToken);
-    }
-
-    /// <summary>
-    /// Creates a named HTTP client instance for the translation provider.
-    /// </summary>
-    /// <returns>An HttpClient instance.</returns>
-    protected HttpClient CreateHttpClient()
-    {
-        return _httpClientFactory.CreateClient(ClientName);
     }
 
     protected abstract partial class Log<TTranslationProvider>

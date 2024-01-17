@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DiscordTranslationBot.Models.Providers.Translation.AzureTranslator;
+namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 
 /// <summary>
-/// The detected language from the Azure Translator translate endpoint.
+/// The detected language from the LibreTranslate translate endpoint.
 /// </summary>
 public sealed class DetectedLanguage
 {

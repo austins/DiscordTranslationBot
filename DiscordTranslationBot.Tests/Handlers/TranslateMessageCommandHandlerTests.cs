@@ -20,12 +20,10 @@ public sealed class TranslateMessageCommandHandlerTests
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
 
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-
         _translationProviders = new List<TranslationProviderBase>
         {
-            Substitute.For<TranslationProviderBase>(httpClientFactory),
-            Substitute.For<TranslationProviderBase>(httpClientFactory)
+            Substitute.For<TranslationProviderBase>(),
+            Substitute.For<TranslationProviderBase>()
         };
 
         _sut = Substitute.ForPartsOf<TranslateMessageCommandHandler>(
