@@ -1,4 +1,3 @@
-using System.Text.Json;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 
@@ -74,10 +73,10 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure("Languages", response.StatusCode);
+            _log.ResponseFailure("Languages endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
 
             throw new InvalidOperationException(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.");
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
         }
 
         if (response.Content?.LangCodes?.Any() != true)
@@ -104,63 +103,50 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         CancellationToken cancellationToken,
         SupportedLanguage? sourceLanguage = null)
     {
-        try
+        if (text.Length >= TextCharacterLimit)
         {
-            if (text.Length >= TextCharacterLimit)
-            {
-                _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
+            _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
 
-                throw new ArgumentException(
-                    $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
-            }
-
-            var result = new TranslationResult
-            {
-                TargetLanguageCode = targetLanguage.LangCode,
-                TargetLanguageName = targetLanguage.Name
-            };
-
-            var response = await _client.TranslateAsync(
-                result.TargetLanguageCode,
-                new List<TranslateRequest> { new() { Text = text } },
-                cancellationToken,
-                sourceLangCode: sourceLanguage?.LangCode);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _log.ResponseFailure("Translate", response.StatusCode);
-
-                throw new InvalidOperationException(
-                    $"Translate endpoint returned unsuccessful status code {response.StatusCode}.");
-            }
-
-            var translation = response.Content?.FirstOrDefault();
-            if (translation?.Translations?.Any() != true)
-            {
-                _log.NoTranslationReturned();
-                throw new InvalidOperationException("No translation returned.");
-            }
-
-            result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
-
-            result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
-                    sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
-                ?.Name;
-
-            result.TranslatedText = translation.Translations[0].Text;
-
-            return result;
+            throw new ArgumentException(
+                $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
         }
-        catch (JsonException ex)
+
+        var result = new TranslationResult
         {
-            _log.DeserializationFailure(ex);
-            throw;
-        }
-        catch (HttpRequestException ex)
+            TargetLanguageCode = targetLanguage.LangCode,
+            TargetLanguageName = targetLanguage.Name
+        };
+
+        var response = await _client.TranslateAsync(
+            result.TargetLanguageCode,
+            new List<TranslateRequest> { new() { Text = text } },
+            cancellationToken,
+            sourceLangCode: sourceLanguage?.LangCode);
+
+        if (!response.IsSuccessStatusCode)
         {
-            _log.ConnectionFailure(ex, ProviderName);
-            throw;
+            _log.ResponseFailure("Translate endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
+
+            throw new InvalidOperationException(
+                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
         }
+
+        var translation = response.Content?.FirstOrDefault();
+        if (translation?.Translations?.Any() != true)
+        {
+            _log.NoTranslationReturned();
+            throw new InvalidOperationException("No translation returned.");
+        }
+
+        result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
+
+        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
+                sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+            ?.Name;
+
+        result.TranslatedText = translation.Translations[0].Text;
+
+        return result;
     }
 
     private sealed partial class Log : Log<AzureTranslatorProvider>

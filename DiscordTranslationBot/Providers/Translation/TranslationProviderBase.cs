@@ -82,19 +82,13 @@ public abstract partial class TranslationProviderBase
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "{endpointName} endpoint returned unsuccessful status code {statusCode}.")]
-        public partial void ResponseFailure(string endpointName, HttpStatusCode statusCode);
+            Message = "Response failure with status {statusCode}: {message}")]
+        public partial void ResponseFailure(string message, HttpStatusCode statusCode, Exception? ex = null);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
         public partial void NoLanguageCodesReturned();
 
         [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
         public partial void NoTranslationReturned();
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to deserialize the response.")]
-        public partial void DeserializationFailure(Exception ex);
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Unable to connect to the {providerName} API URL.")]
-        public partial void ConnectionFailure(Exception ex, string providerName);
     }
 }
