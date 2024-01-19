@@ -4,7 +4,6 @@ using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using NeoSmart.Unicode;
-using NSubstitute.ClearExtensions;
 using Refit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation.LibreTranslate;
@@ -35,7 +34,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 }
             });
 
-        _client.GetLanguagesAsync(Arg.Any<CancellationToken>()).Returns(languagesResponse);
+        _client.GetLanguagesAsync(default).ReturnsForAnyArgs(languagesResponse);
 
         _logger = Substitute.For<ILogger<LibreTranslateProvider>>();
 
@@ -142,7 +141,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         response.IsSuccessStatusCode.Returns(true);
         response.Content.Returns(new List<Language>());
 
-        _client.GetLanguagesAsync(Arg.Any<CancellationToken>()).Returns(response);
+        _client.GetLanguagesAsync(default).ReturnsForAnyArgs(response);
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new LibreTranslateProvider(_client, _logger);
@@ -152,6 +151,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("Languages endpoint returned no language codes.");
+
+        await _client.Received(1).GetLanguagesAsync(default);
     }
 
     [Theory]
@@ -182,6 +183,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
+
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
 
     [Fact]
@@ -215,5 +218,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
+
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
 }
