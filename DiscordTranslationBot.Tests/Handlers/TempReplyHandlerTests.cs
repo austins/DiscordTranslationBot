@@ -88,8 +88,7 @@ public sealed class TempReplyHandlerTests
             DeletionDelayInSeconds = 10
         };
 
-        var reply = Substitute.For<IUserMessage>();
-        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(Substitute.For<IUserMessage>());
 
         // Act
         await _sut.Handle(request, CancellationToken.None);

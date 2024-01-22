@@ -35,6 +35,7 @@ public sealed class RegisterCommandsHandlerTests
             Substitute.For<IGuild>(),
             Substitute.For<IGuild>()
         };
+
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
 
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
@@ -96,8 +97,7 @@ public sealed class RegisterCommandsHandlerTests
                 }
             });
 
-        var guild = Substitute.For<IGuild>();
-        var notification = new JoinedGuildNotification { Guild = guild };
+        var notification = new JoinedGuildNotification { Guild = Substitute.For<IGuild>() };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -105,10 +105,10 @@ public sealed class RegisterCommandsHandlerTests
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
 
-        await guild.Received(1)
+        await notification.Guild.Received(1)
             .CreateApplicationCommandAsync(Arg.Any<MessageCommandProperties>(), Arg.Any<RequestOptions>());
 
-        await guild.Received(1)
+        await notification.Guild.Received(1)
             .CreateApplicationCommandAsync(Arg.Any<SlashCommandProperties>(), Arg.Any<RequestOptions>());
     }
 }

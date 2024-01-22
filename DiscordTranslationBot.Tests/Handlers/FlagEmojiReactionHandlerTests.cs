@@ -40,11 +40,8 @@ public sealed class FlagEmojiReactionHandlerTests
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns("Test Provider");
 
-        var botUser = Substitute.For<ISelfUser>();
-        botUser.Id.Returns(BotUserId);
-
         var client = Substitute.For<IDiscordClient>();
-        client.CurrentUser.Returns(botUser);
+        client.CurrentUser.Id.Returns(BotUserId);
 
         _countryService = Substitute.For<ICountryService>();
 
@@ -56,13 +53,10 @@ public sealed class FlagEmojiReactionHandlerTests
         _message.RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
-        var guild = Substitute.For<IGuild>();
-        guild.Id.Returns(1UL);
-
         var channel = Substitute.For<IMessageChannel, IGuildChannel>();
         channel.EnterTypingState().ReturnsForAnyArgs(Substitute.For<IDisposable>());
         _message.Channel.Returns(channel);
-        ((IGuildChannel)channel).Guild.Returns(guild);
+        ((IGuildChannel)channel).Guild.Id.Returns(1UL);
 
         _mediator = Substitute.For<IMediator>();
 
