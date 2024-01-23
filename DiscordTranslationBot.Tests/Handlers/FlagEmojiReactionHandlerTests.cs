@@ -12,7 +12,7 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class FlagEmojiReactionHandlerTests
+public sealed class FlagEmojiReactionHandlerTests : TestBase
 {
     private const string Content = """
                                    👍 test<:disdainsam:630009232128868353> _test_*test*
@@ -35,7 +35,8 @@ public sealed class FlagEmojiReactionHandlerTests
     private readonly FlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public FlagEmojiReactionHandlerTests()
+    public FlagEmojiReactionHandlerTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns("Test Provider");
@@ -65,7 +66,7 @@ public sealed class FlagEmojiReactionHandlerTests
             new[] { _translationProvider },
             _countryService,
             _mediator,
-            Substitute.For<ILogger<FlagEmojiReactionHandler>>());
+            CreateLogger<FlagEmojiReactionHandler>());
     }
 
     [Fact]

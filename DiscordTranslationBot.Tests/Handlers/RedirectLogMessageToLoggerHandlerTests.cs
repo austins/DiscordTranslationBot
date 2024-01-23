@@ -4,20 +4,21 @@ using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class RedirectLogMessageToLoggerHandlerTests
+public sealed class RedirectLogMessageToLoggerHandlerTests : TestBase
 {
-    private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
+    private readonly ICacheLogger<RedirectLogMessageToLoggerHandler> _logger;
     private readonly RedirectLogMessageToLoggerHandler _sut;
 
-    public RedirectLogMessageToLoggerHandlerTests()
+    public RedirectLogMessageToLoggerHandlerTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
-        _logger = Substitute.For<ILogger<RedirectLogMessageToLoggerHandler>>();
+        _logger = CreateLogger<RedirectLogMessageToLoggerHandler>(LogLevel.Trace);
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
     [Theory]
-    [InlineData(LogSeverity.Debug, LogLevel.Debug)]
-    [InlineData(LogSeverity.Verbose, LogLevel.Trace)]
+    [InlineData(LogSeverity.Debug, LogLevel.Trace)]
+    [InlineData(LogSeverity.Verbose, LogLevel.Debug)]
     [InlineData(LogSeverity.Info, LogLevel.Information)]
     [InlineData(LogSeverity.Warning, LogLevel.Warning)]
     [InlineData(LogSeverity.Error, LogLevel.Error)]
@@ -25,27 +26,18 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
     public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
-        _logger.IsEnabled(expectedLevel).Returns(true);
-
         var request = new LogNotification
         {
-            LogMessage = new LogMessage(severity, "source", "message", new InvalidOperationException("test"))
+            LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
         };
 
         // Act
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        var logArgs = _logger.ReceivedCalls()
-            .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
-            .GetArguments();
-
-        logArgs[0].Should().Be(expectedLevel);
-
-        var logMessages = (IReadOnlyList<KeyValuePair<string, object>>)logArgs[2]!;
-        logMessages[0].Value.Should().Be(request.LogMessage.Source);
-        logMessages[1].Value.Should().Be(request.LogMessage.Message);
-
-        logArgs[3].Should().Be(request.LogMessage.Exception);
+        _logger.Count.Should().Be(1);
+        _logger.Last!.LogLevel.Should().Be(expectedLevel);
+        _logger.Last.Exception.Should().Be(request.LogMessage.Exception);
+        _logger.Last.Message.Should().Be($"Discord {request.LogMessage.Source}: {request.LogMessage.Message}");
     }
 }

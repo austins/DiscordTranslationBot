@@ -6,17 +6,18 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class TempReplyHandlerTests
+public sealed class TempReplyHandlerTests : TestBase
 {
     private readonly IMediator _mediator;
 
     private readonly TempReplyHandler _sut;
 
-    public TempReplyHandlerTests()
+    public TempReplyHandlerTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
         _mediator = Substitute.For<IMediator>();
 
-        _sut = new TempReplyHandler(_mediator, Substitute.For<ILogger<TempReplyHandler>>());
+        _sut = new TempReplyHandler(_mediator, CreateLogger<TempReplyHandler>());
     }
 
     [Fact]

@@ -2,8 +2,13 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Tests.Utilities;
 
-public sealed class FormatUtilityTests
+public sealed class FormatUtilityTests : TestBase
 {
+    public FormatUtilityTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
+    {
+    }
+
     [Theory]
     [InlineData(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
     [InlineData("<@000000000000000000> test", "test")]

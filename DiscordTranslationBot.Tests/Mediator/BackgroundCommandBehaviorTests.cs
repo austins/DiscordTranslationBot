@@ -3,13 +3,19 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
 
-public sealed class BackgroundCommandBehaviorTests
+public sealed class BackgroundCommandBehaviorTests : TestBase
 {
+    public BackgroundCommandBehaviorTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
+    {
+    }
+
     [Fact]
     public async Task Handle_NotABackgroundCommand_Success()
     {
         // Arrange
-        var sut = new BackgroundCommandBehavior<IRequest<int>, int>(Substitute.For<ILogger<BackgroundCommandBehavior<IRequest<int>, int>>>());
+        var sut = new BackgroundCommandBehavior<IRequest<int>, int>(
+            CreateLogger<BackgroundCommandBehavior<IRequest<int>, int>>());
 
         var request = Substitute.For<IRequest<int>>();
 
@@ -28,7 +34,8 @@ public sealed class BackgroundCommandBehaviorTests
     public async Task Handle_BackgroundCommand_InvalidDelay_Throws(int seconds)
     {
         // Arrange
-        var sut = new BackgroundCommandBehavior<IRequest, Unit>(Substitute.For<ILogger<BackgroundCommandBehavior<IRequest, Unit>>>());
+        var sut = new BackgroundCommandBehavior<IRequest, Unit>(
+            CreateLogger<BackgroundCommandBehavior<IRequest, Unit>>());
 
         var request = Substitute.For<IBackgroundCommand>();
         request.Delay.Returns(TimeSpan.FromSeconds(seconds));

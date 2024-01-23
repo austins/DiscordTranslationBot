@@ -6,14 +6,15 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class RegisterCommandsHandlerTests
+public sealed class RegisterCommandsHandlerTests : TestBase
 {
     private const string ProviderName = "Test Provider";
     private readonly IDiscordClient _client;
     private readonly RegisterCommandsHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public RegisterCommandsHandlerTests()
+    public RegisterCommandsHandlerTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
         _client = Substitute.For<IDiscordClient>();
 
@@ -23,7 +24,7 @@ public sealed class RegisterCommandsHandlerTests
         _sut = new RegisterCommandsHandler(
             _client,
             new[] { _translationProvider },
-            Substitute.For<ILogger<RegisterCommandsHandler>>());
+            CreateLogger<RegisterCommandsHandler>());
     }
 
     [Fact]

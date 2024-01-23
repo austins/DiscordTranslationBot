@@ -3,16 +3,23 @@ using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Services;
 
-public sealed class CountryServiceTests
+public sealed class CountryServiceTests : TestBase
 {
-    private readonly CountryService _sut = new(Substitute.For<ILogger<CountryService>>());
+    private readonly CountryService _sut;
 
-    public static TheoryData<string, string> TryGetCountryTestData => new()
+    public CountryServiceTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
-        { Emoji.FlagUnitedStates.ToString(), "United States" },
-        { Emoji.FlagFrance.ToString(), "France" },
-        { "🇯🇵", "Japan" }
-    };
+        _sut = new CountryService(CreateLogger<CountryService>());
+    }
+
+    public static TheoryData<string, string> TryGetCountryTestData =>
+        new()
+        {
+            { Emoji.FlagUnitedStates.ToString(), "United States" },
+            { Emoji.FlagFrance.ToString(), "France" },
+            { "🇯🇵", "Japan" }
+        };
 
     [Theory]
     [MemberData(nameof(TryGetCountryTestData))]

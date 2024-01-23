@@ -5,8 +5,13 @@ using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
-public abstract class TranslationProviderBaseTests : IAsyncLifetime
+public abstract class TranslationProviderBaseTests : TestBase, IAsyncLifetime
 {
+    protected TranslationProviderBaseTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
+    {
+    }
+
     protected TranslationProviderBase Sut { get; init; } = null!;
 
     public async Task InitializeAsync()

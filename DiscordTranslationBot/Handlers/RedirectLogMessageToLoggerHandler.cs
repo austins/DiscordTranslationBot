@@ -33,13 +33,13 @@ public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHan
             ValidationException => LogLevel.Error,
             _ => notification.LogMessage.Severity switch
             {
-                LogSeverity.Debug => LogLevel.Debug,
-                LogSeverity.Verbose => LogLevel.Trace,
+                LogSeverity.Debug => LogLevel.Trace,
+                LogSeverity.Verbose => LogLevel.Debug,
                 LogSeverity.Info => LogLevel.Information,
                 LogSeverity.Warning => LogLevel.Warning,
                 LogSeverity.Error => LogLevel.Error,
                 LogSeverity.Critical => LogLevel.Critical,
-                _ => LogLevel.Debug
+                _ => LogLevel.Trace
             }
         };
 

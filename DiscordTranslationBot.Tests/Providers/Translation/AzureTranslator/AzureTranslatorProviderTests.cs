@@ -12,9 +12,10 @@ namespace DiscordTranslationBot.Tests.Providers.Translation.AzureTranslator;
 public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 {
     private readonly IAzureTranslatorClient _client;
-    private readonly ILogger<AzureTranslatorProvider> _logger;
+    private readonly ICacheLogger<AzureTranslatorProvider> _logger;
 
-    public AzureTranslatorProviderTests()
+    public AzureTranslatorProviderTests(ITestOutputHelper testOutputHelper)
+        : base(testOutputHelper)
     {
         _client = Substitute.For<IAzureTranslatorClient>();
 
@@ -32,7 +33,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         _client.GetLanguagesAsync(default).ReturnsForAnyArgs(languagesResponse);
 
-        _logger = Substitute.For<ILogger<AzureTranslatorProvider>>();
+        _logger = CreateLogger<AzureTranslatorProvider>();
 
         Sut = new AzureTranslatorProvider(_client, _logger);
     }
