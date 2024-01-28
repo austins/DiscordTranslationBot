@@ -7,21 +7,21 @@ namespace DiscordTranslationBot.Tests.Mediator;
 
 public sealed class ValidationBehaviorTests : TestBase
 {
-    private readonly IRequest _request;
+    private readonly IBaseRequest _request;
 
-    private readonly ValidationBehavior<IRequest, Unit> _sut;
-    private readonly IValidator<IRequest> _validator;
+    private readonly ValidationBehavior<IBaseRequest, Unit> _sut;
+    private readonly IValidator<IBaseRequest> _validator;
 
     public ValidationBehaviorTests(ITestOutputHelper testOutputHelper)
         : base(testOutputHelper)
     {
-        _request = Substitute.For<IRequest>();
-        _validator = Substitute.For<IValidator<IRequest>>();
+        _request = Substitute.For<IBaseRequest>();
+        _validator = Substitute.For<IValidator<IBaseRequest>>();
 
         var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
+        serviceProvider.GetService(typeof(IValidator<IBaseRequest>)).Returns(_validator);
 
-        _sut = new ValidationBehavior<IRequest, Unit>(serviceProvider);
+        _sut = new ValidationBehavior<IBaseRequest, Unit>(serviceProvider);
     }
 
     [Fact]
@@ -34,9 +34,7 @@ public sealed class ValidationBehaviorTests : TestBase
             .Returns(new ValidationResult());
 
         // Act & Assert
-        await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None))
-            .Should()
-            .NotThrowAsync<ValidationException>();
+        await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None)).Should().NotThrowAsync();
 
         await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
