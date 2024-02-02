@@ -5,12 +5,11 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
 
-public sealed class DeleteTempReplyValidatorTests : TestBase
+public sealed class DeleteTempReplyValidatorTests
 {
     private readonly DeleteTempReplyValidator _sut;
 
-    public DeleteTempReplyValidatorTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public DeleteTempReplyValidatorTests()
     {
         _sut = new DeleteTempReplyValidator();
     }

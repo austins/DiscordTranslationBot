@@ -3,14 +3,9 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
 
-public sealed class TranslationProvidersOptionsValidatorTests : TestBase
+public sealed class TranslationProvidersOptionsValidatorTests
 {
     private readonly TranslationProvidersOptionsValidator _sut = new();
-
-    public TranslationProvidersOptionsValidatorTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
-    {
-    }
 
     [Fact]
     public void Valid_Options_ValidatesWithoutErrors()

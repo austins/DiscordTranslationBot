@@ -5,15 +5,14 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
 
-public sealed class ValidationBehaviorTests : TestBase
+public sealed class ValidationBehaviorTests
 {
     private readonly IBaseRequest _request;
 
     private readonly ValidationBehavior<IBaseRequest, Unit> _sut;
     private readonly IValidator<IBaseRequest> _validator;
 
-    public ValidationBehaviorTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public ValidationBehaviorTests()
     {
         _request = Substitute.For<IBaseRequest>();
         _validator = Substitute.For<IValidator<IBaseRequest>>();

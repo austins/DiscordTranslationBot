@@ -4,15 +4,14 @@ using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class RedirectLogMessageToLoggerHandlerTests : TestBase
+public sealed class RedirectLogMessageToLoggerHandlerTests
 {
-    private readonly ICacheLogger<RedirectLogMessageToLoggerHandler> _logger;
+    private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
     private readonly RedirectLogMessageToLoggerHandler _sut;
 
-    public RedirectLogMessageToLoggerHandlerTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public RedirectLogMessageToLoggerHandlerTests()
     {
-        _logger = CreateLogger<RedirectLogMessageToLoggerHandler>(LogLevel.Trace);
+        _logger = Substitute.For<ILogger<RedirectLogMessageToLoggerHandler>>();
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
@@ -26,6 +25,8 @@ public sealed class RedirectLogMessageToLoggerHandlerTests : TestBase
     public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
+        _logger.IsEnabled(expectedLevel).Returns(true);
+
         var request = new LogNotification
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
@@ -35,9 +36,16 @@ public sealed class RedirectLogMessageToLoggerHandlerTests : TestBase
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        _logger.Count.Should().Be(1);
-        _logger.Last!.LogLevel.Should().Be(expectedLevel);
-        _logger.Last.Exception.Should().Be(request.LogMessage.Exception);
-        _logger.Last.Message.Should().Be($"Discord {request.LogMessage.Source}: {request.LogMessage.Message}");
+        var logArgs = _logger.ReceivedCalls()
+            .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
+            .GetArguments();
+
+        logArgs[0].Should().Be(expectedLevel);
+
+        var logMessages = (IReadOnlyList<KeyValuePair<string, object>>)logArgs[2]!;
+        logMessages[0].Value.Should().Be(request.LogMessage.Source);
+        logMessages[1].Value.Should().Be(request.LogMessage.Message);
+
+        logArgs[3].Should().Be(request.LogMessage.Exception);
     }
 }

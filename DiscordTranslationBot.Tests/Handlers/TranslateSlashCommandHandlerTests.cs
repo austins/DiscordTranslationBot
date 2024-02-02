@@ -7,21 +7,20 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class TranslateSlashCommandHandlerTests : TestBase
+public sealed class TranslateSlashCommandHandlerTests
 {
     private const string ProviderName = "Test Provider";
     private readonly TranslateSlashCommandHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public TranslateSlashCommandHandlerTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public TranslateSlashCommandHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns(ProviderName);
 
         _sut = new TranslateSlashCommandHandler(
             new[] { _translationProvider },
-            CreateLogger<TranslateSlashCommandHandler>());
+            Substitute.For<ILogger<TranslateSlashCommandHandler>>());
     }
 
     [Fact]

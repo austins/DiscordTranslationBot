@@ -3,14 +3,13 @@ using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Services;
 
-public sealed class CountryServiceTests : TestBase
+public sealed class CountryServiceTests
 {
     private readonly CountryService _sut;
 
-    public CountryServiceTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public CountryServiceTests()
     {
-        _sut = new CountryService(CreateLogger<CountryService>());
+        _sut = new CountryService(Substitute.For<ILogger<CountryService>>());
     }
 
     public static TheoryData<string, string> TryGetCountryTestData =>

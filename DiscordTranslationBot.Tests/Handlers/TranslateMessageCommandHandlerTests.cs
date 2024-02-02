@@ -7,7 +7,7 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class TranslateMessageCommandHandlerTests : TestBase
+public sealed class TranslateMessageCommandHandlerTests
 {
     private const ulong BotUserId = 1UL;
     private readonly IMessageCommandInteraction _command;
@@ -15,8 +15,7 @@ public sealed class TranslateMessageCommandHandlerTests : TestBase
     private readonly TranslateMessageCommandHandler _sut;
     private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
-    public TranslateMessageCommandHandlerTests(ITestOutputHelper testOutputHelper)
-        : base(testOutputHelper)
+    public TranslateMessageCommandHandlerTests()
     {
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
@@ -30,7 +29,7 @@ public sealed class TranslateMessageCommandHandlerTests : TestBase
         _sut = Substitute.ForPartsOf<TranslateMessageCommandHandler>(
             client,
             _translationProviders,
-            CreateLogger<TranslateMessageCommandHandler>());
+            Substitute.For<ILogger<TranslateMessageCommandHandler>>());
 
         _message = Substitute.For<IMessage>();
         _message.Author.Id.Returns(2UL);
