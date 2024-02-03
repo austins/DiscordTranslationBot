@@ -22,6 +22,12 @@ _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:10000000000
 { "test": "test" }
 ```
 
+- list item 1
+- list item 2
+
+1. numbered list item 1
+2. numbered list item 2
+
 ```
 <p>test</p>
 <p>test</p>
@@ -30,7 +36,13 @@ _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:10000000000
 ```test```
 [link](http://example.com)
 """,
-        "markdown markdown markdown")]
+        """
+markdown markdown markdown
+list item 1
+list item 2
+numbered list item 1
+numbered list item 2
+""")]
     public void SanitizeText_Returns_AsExpected(string text, string expected)
     {
         // Act

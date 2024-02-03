@@ -22,13 +22,13 @@ public static partial class FormatUtility
         // Remove all user mentions, channel mentions, and custom Discord emoji.
         var result = DiscordSyntaxRegex().Replace(text, string.Empty);
 
-        // Remove text within all Markdown fenced code blocks.
+        // Remove text within all Markdown fenced code blocks so the text contained gets removed instead of getting converted to plain text.
         result = MarkdownFencedCodeBlockRegex().Replace(result, string.Empty);
 
         // Remove Markdown links first so its text gets removed instead of getting converted to plain text.
         result = MarkdownLinkRegex().Replace(result, string.Empty);
 
-        // Remove Markdown.
+        // Convert all remaining Markdown to plain text.
         result = Markdown.ToPlainText(result);
 
         // Remove URLs starting with "http://" or "https://".
