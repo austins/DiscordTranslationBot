@@ -15,16 +15,16 @@ namespace DiscordTranslationBot.Tests.Handlers;
 public sealed class FlagEmojiReactionHandlerTests
 {
     private const string Content = """
-                                   👍 test<:disdainsam:630009232128868353> _test_*test*
-                                   > test
-                                   __test__
-                                   """;
+👍 test<:disdainsam:630009232128868353> _test_*test*
+> test
+__test__
+""";
 
     private const string ExpectedSanitizedMessage = """
-                                                    👍 test testtest
-                                                     test
-                                                    test
-                                                    """;
+test testtest
+test
+test
+""";
 
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;

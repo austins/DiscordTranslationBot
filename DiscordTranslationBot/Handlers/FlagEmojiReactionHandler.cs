@@ -69,7 +69,6 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
         }
 
         var sanitizedMessage = FormatUtility.SanitizeText(notification.Message.Content);
-
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();

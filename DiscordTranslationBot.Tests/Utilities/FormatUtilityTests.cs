@@ -6,26 +6,31 @@ public sealed class FormatUtilityTests
 {
     [Theory]
     [InlineData(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
+    [InlineData("text with unicode 👻 emoji 🤔", "text with unicode  emoji")]
     [InlineData("<@000000000000000000> test", "test")]
     [InlineData("test <@!000000000000000000>", "test")]
     [InlineData("<:emote:123000000000000000>", "")]
     [InlineData("<:emote1:000000000000000000>", "")]
     [InlineData("<:1234:000000000000000123>", "")]
     [InlineData("test <a:test_emote:100000000000000123>", "test")]
-    [InlineData("test <> testing", "test < testing")]
     [InlineData("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
+    [InlineData("text with links http://example.com https://example.com test", "text with links   test")]
     [InlineData(
         """
 _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>
 ```json
 { "test": "test" }
 ```
+
+```
+<p>test</p>
+<p>test</p>
+```
+
+```test```
+[link](http://example.com)
 """,
-        """
-markdown markdown markdown 
-json
-{ "test": "test" }
-""")]
+        "markdown markdown markdown")]
     public void SanitizeText_Returns_AsExpected(string text, string expected)
     {
         // Act
