@@ -54,12 +54,24 @@ public static partial class FormatUtility
     [GeneratedRegex(@"<((@!?&?\d+)|(a?:.+?:\d+))>")]
     private static partial Regex DiscordSyntaxRegex();
 
+    /// <summary>
+    /// Regex for all Markdown fenced code blocks.
+    /// </summary>
+    /// <returns>Regex.</returns>
     [GeneratedRegex(@"\`\`\`(?:.|[\r\n])*?\`\`\`")]
     private static partial Regex MarkdownFencedCodeBlockRegex();
 
+    /// <summary>
+    /// Regex for all Markdown links.
+    /// </summary>
+    /// <returns>Regex.</returns>
     [GeneratedRegex(@"\[([^\]]+)\]\(([^)]+)\)")]
     private static partial Regex MarkdownLinkRegex();
 
+    /// <summary>
+    /// Regex for all URLs starting with "http://" or "https://".
+    /// </summary>
+    /// <returns>Regex.</returns>
     [GeneratedRegex(@"\b(?:https?://)\S+\b")]
     private static partial Regex UrlRegex();
 }
