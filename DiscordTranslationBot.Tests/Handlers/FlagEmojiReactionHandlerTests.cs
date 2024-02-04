@@ -12,6 +12,7 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
+[TestClass]
 public sealed class FlagEmojiReactionHandlerTests
 {
     private const string Content = """
@@ -68,7 +69,7 @@ test
             Substitute.For<ILogger<FlagEmojiReactionHandler>>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_Returns_IfNotEmoji()
     {
         // Arrange
@@ -89,7 +90,7 @@ test
         _countryService.DidNotReceive().TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_Returns_IfCountryNotFound()
     {
         // Arrange
@@ -117,7 +118,7 @@ test
         await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
@@ -156,7 +157,7 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_Success()
     {
         // Arrange
@@ -207,7 +208,7 @@ test
                 Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_Returns_SanitizesMessageEmpty()
     {
         // Arrange
@@ -246,7 +247,7 @@ test
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_NoTranslationResult()
     {
         // Arrange
@@ -286,7 +287,7 @@ test
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task
         Handle_ReactionAddedNotification_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
@@ -330,7 +331,7 @@ test
         await _mediator.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ReactionAddedNotification_TempReplySent_OnFailureToDetectSourceLanguage()
     {
         // Arrange

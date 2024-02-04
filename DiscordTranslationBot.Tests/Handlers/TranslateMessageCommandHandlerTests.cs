@@ -7,6 +7,7 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
+[TestClass]
 public sealed class TranslateMessageCommandHandlerTests
 {
     private const ulong BotUserId = 1UL;
@@ -45,7 +46,7 @@ public sealed class TranslateMessageCommandHandlerTests
         _sut.Configure().GetJumpUrl(_message).Returns(new Uri("http://localhost/test"));
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_Success()
     {
         // Arrange
@@ -88,7 +89,7 @@ public sealed class TranslateMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_NotTranslateCommand_Returns()
     {
         // Arrange
@@ -107,7 +108,7 @@ public sealed class TranslateMessageCommandHandlerTests
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_Returns_WhenSanitizedMessageIsEmpty()
     {
         // Arrange
@@ -127,7 +128,7 @@ public sealed class TranslateMessageCommandHandlerTests
         _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_UsesNextTranslationProvider_Success()
     {
         // Arrange
@@ -175,7 +176,7 @@ public sealed class TranslateMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
@@ -196,7 +197,7 @@ public sealed class TranslateMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_Returns_IfNoProviderSupportsLocale()
     {
         // Arrange
@@ -234,7 +235,7 @@ public sealed class TranslateMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_MessageCommandExecutedNotification_Returns_WhenTranslatedTextIsSame()
     {
         // Arrange

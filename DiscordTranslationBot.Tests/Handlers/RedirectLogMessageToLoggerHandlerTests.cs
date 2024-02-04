@@ -4,6 +4,7 @@ using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
+[TestClass]
 public sealed class RedirectLogMessageToLoggerHandlerTests
 {
     private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
@@ -15,13 +16,13 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
-    [Theory]
-    [InlineData(LogSeverity.Debug, LogLevel.Trace)]
-    [InlineData(LogSeverity.Verbose, LogLevel.Debug)]
-    [InlineData(LogSeverity.Info, LogLevel.Information)]
-    [InlineData(LogSeverity.Warning, LogLevel.Warning)]
-    [InlineData(LogSeverity.Error, LogLevel.Error)]
-    [InlineData(LogSeverity.Critical, LogLevel.Critical)]
+    [DataTestMethod]
+    [DataRow(LogSeverity.Debug, LogLevel.Trace)]
+    [DataRow(LogSeverity.Verbose, LogLevel.Debug)]
+    [DataRow(LogSeverity.Info, LogLevel.Information)]
+    [DataRow(LogSeverity.Warning, LogLevel.Warning)]
+    [DataRow(LogSeverity.Error, LogLevel.Error)]
+    [DataRow(LogSeverity.Critical, LogLevel.Critical)]
     public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange

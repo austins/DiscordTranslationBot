@@ -8,6 +8,7 @@ using Refit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation.LibreTranslate;
 
+[TestClass]
 public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 {
     private readonly ILibreTranslateClient _client;
@@ -41,7 +42,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         Sut = new LibreTranslateProvider(_client, _logger);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
@@ -87,7 +88,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
@@ -131,7 +132,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
@@ -155,9 +156,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.Received(1).GetLanguagesAsync(default);
     }
 
-    [Theory]
-    [InlineData(HttpStatusCode.InternalServerError)]
-    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    [DataTestMethod]
+    [DataRow(HttpStatusCode.InternalServerError)]
+    [DataRow(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
         HttpStatusCode statusCode)
     {
@@ -187,7 +188,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange
