@@ -6,6 +6,7 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
+[TestClass]
 public sealed class TempReplyHandlerTests
 {
     private readonly IMediator _mediator;
@@ -16,10 +17,10 @@ public sealed class TempReplyHandlerTests
     {
         _mediator = Substitute.For<IMediator>();
 
-        _sut = new TempReplyHandler(_mediator, Substitute.For<ILogger<TempReplyHandler>>());
+        _sut = new TempReplyHandler(_mediator, new LoggerFake<TempReplyHandler>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_DeleteTempReply_Success_WithReactionAndSourceMessage()
     {
         // Arrange
@@ -56,7 +57,7 @@ public sealed class TempReplyHandlerTests
         await request.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_DeleteTempReply_Success_NoReactionAndSourceMessage()
     {
         // Arrange
@@ -76,7 +77,7 @@ public sealed class TempReplyHandlerTests
         await request.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_SendTempReply_Success()
     {
         // Arrange

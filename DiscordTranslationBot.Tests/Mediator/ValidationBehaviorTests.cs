@@ -5,6 +5,7 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
 
+[TestClass]
 public sealed class ValidationBehaviorTests
 {
     private readonly IBaseRequest _request;
@@ -23,7 +24,7 @@ public sealed class ValidationBehaviorTests
         _sut = new ValidationBehavior<IBaseRequest, Unit>(serviceProvider);
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_ValidRequest_Success()
     {
         // Arrange
@@ -38,7 +39,7 @@ public sealed class ValidationBehaviorTests
         await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Handle_InvalidRequest_Throws()
     {
         // Arrange

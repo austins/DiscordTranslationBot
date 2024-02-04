@@ -5,6 +5,7 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
 
+[TestClass]
 public sealed class DeleteTempReplyValidatorTests
 {
     private readonly DeleteTempReplyValidator _sut;
@@ -14,7 +15,7 @@ public sealed class DeleteTempReplyValidatorTests
         _sut = new DeleteTempReplyValidator();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Valid_ValidatesWithoutErrors()
     {
         // Arrange
@@ -36,7 +37,7 @@ public sealed class DeleteTempReplyValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [Fact]
+    [TestMethod]
     public async Task Invalid_Reply_HasValidationErrors()
     {
         // Arrange

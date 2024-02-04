@@ -2,20 +2,21 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Tests.Utilities;
 
+[TestClass]
 public sealed class FormatUtilityTests
 {
-    [Theory]
-    [InlineData(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
-    [InlineData("text with unicode 👻 emoji 🤔", "text with unicode  emoji")]
-    [InlineData("<@000000000000000000> test", "test")]
-    [InlineData("test <@!000000000000000000>", "test")]
-    [InlineData("<:emote:123000000000000000>", "")]
-    [InlineData("<:emote1:000000000000000000>", "")]
-    [InlineData("<:1234:000000000000000123>", "")]
-    [InlineData("test <a:test_emote:100000000000000123>", "test")]
-    [InlineData("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
-    [InlineData("text with links http://example.com https://example.com test", "text with links   test")]
-    [InlineData(
+    [DataTestMethod]
+    [DataRow(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
+    [DataRow("text with unicode 👻 emoji 🤔", "text with unicode  emoji")]
+    [DataRow("<@000000000000000000> test", "test")]
+    [DataRow("test <@!000000000000000000>", "test")]
+    [DataRow("<:emote:123000000000000000>", "")]
+    [DataRow("<:emote1:000000000000000000>", "")]
+    [DataRow("<:1234:000000000000000123>", "")]
+    [DataRow("test <a:test_emote:100000000000000123>", "test")]
+    [DataRow("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
+    [DataRow("text with links http://example.com https://example.com test", "text with links   test")]
+    [DataRow(
         """
 _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>
 ```json
