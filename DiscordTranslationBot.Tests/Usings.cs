@@ -5,5 +5,3 @@ global using NSubstitute;
 global using NSubstitute.ClearExtensions;
 global using NSubstitute.ExceptionExtensions;
 global using NSubstitute.Extensions;
-
-[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
