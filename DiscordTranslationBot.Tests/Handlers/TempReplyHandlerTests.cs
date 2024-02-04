@@ -17,7 +17,7 @@ public sealed class TempReplyHandlerTests
     {
         _mediator = Substitute.For<IMediator>();
 
-        _sut = new TempReplyHandler(_mediator, Substitute.For<ILogger<TempReplyHandler>>());
+        _sut = new TempReplyHandler(_mediator, new LoggerFake<TempReplyHandler>());
     }
 
     [TestMethod]

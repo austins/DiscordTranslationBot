@@ -66,7 +66,7 @@ test
             new[] { _translationProvider },
             _countryService,
             _mediator,
-            Substitute.For<ILogger<FlagEmojiReactionHandler>>());
+            new LoggerFake<FlagEmojiReactionHandler>());
     }
 
     [TestMethod]

@@ -7,12 +7,12 @@ namespace DiscordTranslationBot.Tests.Handlers;
 [TestClass]
 public sealed class RedirectLogMessageToLoggerHandlerTests
 {
-    private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
+    private readonly LoggerFake<RedirectLogMessageToLoggerHandler> _logger;
     private readonly RedirectLogMessageToLoggerHandler _sut;
 
     public RedirectLogMessageToLoggerHandlerTests()
     {
-        _logger = Substitute.For<ILogger<RedirectLogMessageToLoggerHandler>>();
+        _logger = new LoggerFake<RedirectLogMessageToLoggerHandler>(true);
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
@@ -26,8 +26,6 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
     public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
-        _logger.IsEnabled(expectedLevel).Returns(true);
-
         var request = new LogNotification
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
@@ -37,16 +35,9 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        var logArgs = _logger.ReceivedCalls()
-            .Single(call => call.GetMethodInfo().Name == nameof(ILogger.Log))
-            .GetArguments();
-
-        logArgs[0].Should().Be(expectedLevel);
-
-        var logMessages = (IReadOnlyList<KeyValuePair<string, object>>)logArgs[2]!;
-        logMessages[0].Value.Should().Be(request.LogMessage.Source);
-        logMessages[1].Value.Should().Be(request.LogMessage.Message);
-
-        logArgs[3].Should().Be(request.LogMessage.Exception);
+        var entry = _logger.Entries.First();
+        entry.LogLevel.Should().Be(expectedLevel);
+        entry.Message.Should().Be($"Discord {request.LogMessage.Source}: {request.LogMessage.Message}");
+        entry.Exception.Should().Be(request.LogMessage.Exception);
     }
 }

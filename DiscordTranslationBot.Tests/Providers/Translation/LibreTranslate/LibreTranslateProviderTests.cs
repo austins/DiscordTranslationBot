@@ -12,7 +12,7 @@ namespace DiscordTranslationBot.Tests.Providers.Translation.LibreTranslate;
 public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 {
     private readonly ILibreTranslateClient _client;
-    private readonly ILogger<LibreTranslateProvider> _logger;
+    private readonly LoggerFake<LibreTranslateProvider> _logger;
 
     public LibreTranslateProviderTests()
     {
@@ -37,7 +37,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         _client.GetLanguagesAsync(default).ReturnsForAnyArgs(languagesResponse);
 
-        _logger = Substitute.For<ILogger<LibreTranslateProvider>>();
+        _logger = new LoggerFake<LibreTranslateProvider>();
 
         Sut = new LibreTranslateProvider(_client, _logger);
     }

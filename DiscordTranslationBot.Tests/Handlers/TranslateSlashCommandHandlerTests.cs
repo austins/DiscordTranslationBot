@@ -21,7 +21,7 @@ public sealed class TranslateSlashCommandHandlerTests
 
         _sut = new TranslateSlashCommandHandler(
             new[] { _translationProvider },
-            Substitute.For<ILogger<TranslateSlashCommandHandler>>());
+            new LoggerFake<TranslateSlashCommandHandler>());
     }
 
     [TestMethod]

@@ -10,7 +10,7 @@ public sealed class CountryServiceTests
 
     public CountryServiceTests()
     {
-        _sut = new CountryService(Substitute.For<ILogger<CountryService>>());
+        _sut = new CountryService(new LoggerFake<CountryService>());
     }
 
     public static IEnumerable<object[]> TryGetCountryTestData =>

@@ -24,7 +24,7 @@ public sealed class RegisterCommandsHandlerTests
         _sut = new RegisterCommandsHandler(
             _client,
             new[] { _translationProvider },
-            Substitute.For<ILogger<RegisterCommandsHandler>>());
+            new LoggerFake<RegisterCommandsHandler>());
     }
 
     [TestMethod]

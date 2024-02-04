@@ -11,7 +11,7 @@ public sealed class BackgroundCommandBehaviorTests
     {
         // Arrange
         var sut = new BackgroundCommandBehavior<IRequest<int>, int>(
-            Substitute.For<ILogger<BackgroundCommandBehavior<IRequest<int>, int>>>());
+            new LoggerFake<BackgroundCommandBehavior<IRequest<int>, int>>());
 
         var request = Substitute.For<IRequest<int>>();
 
@@ -31,7 +31,7 @@ public sealed class BackgroundCommandBehaviorTests
     {
         // Arrange
         var sut = new BackgroundCommandBehavior<IRequest, Unit>(
-            Substitute.For<ILogger<BackgroundCommandBehavior<IRequest, Unit>>>());
+            new LoggerFake<BackgroundCommandBehavior<IRequest, Unit>>());
 
         var request = Substitute.For<IBackgroundCommand>();
         request.Delay.Returns(TimeSpan.FromSeconds(seconds));

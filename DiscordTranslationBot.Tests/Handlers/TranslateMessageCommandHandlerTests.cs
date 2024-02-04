@@ -30,7 +30,7 @@ public sealed class TranslateMessageCommandHandlerTests
         _sut = Substitute.ForPartsOf<TranslateMessageCommandHandler>(
             client,
             _translationProviders,
-            Substitute.For<ILogger<TranslateMessageCommandHandler>>());
+            new LoggerFake<TranslateMessageCommandHandler>());
 
         _message = Substitute.For<IMessage>();
         _message.Author.Id.Returns(2UL);
