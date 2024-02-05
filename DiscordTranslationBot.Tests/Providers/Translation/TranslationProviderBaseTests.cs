@@ -5,26 +5,25 @@ using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
-[TestClass]
 public abstract class TranslationProviderBaseTests
 {
     protected TranslationProviderBase Sut { get; init; } = null!;
 
-    [TestInitialize]
-    public async Task TestInitialize()
+    [SetUp]
+    public async Task SetUp()
     {
         ArgumentNullException.ThrowIfNull(Sut);
         await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
     }
 
-    [TestMethod]
+    [Test]
     public void ProviderName_IsNotEmpty()
     {
         // Assert
         Sut.ProviderName.Should().NotBeEmpty();
     }
 
-    [TestMethod]
+    [Test]
     public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
         // Arrange

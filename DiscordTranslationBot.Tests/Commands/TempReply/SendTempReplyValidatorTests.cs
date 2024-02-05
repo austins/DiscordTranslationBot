@@ -5,7 +5,6 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
 
-[TestClass]
 public sealed class SendTempReplyValidatorTests
 {
     private readonly SendTempReplyValidator _sut;
@@ -15,7 +14,7 @@ public sealed class SendTempReplyValidatorTests
         _sut = new SendTempReplyValidator();
     }
 
-    [TestMethod]
+    [Test]
     public async Task Valid_ValidatesWithoutErrors()
     {
         // Arrange
@@ -38,10 +37,9 @@ public sealed class SendTempReplyValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [DataTestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow(" ")]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase(" ")]
     public async Task Invalid_Reply_HasValidationErrors(string? text)
     {
         // Arrange

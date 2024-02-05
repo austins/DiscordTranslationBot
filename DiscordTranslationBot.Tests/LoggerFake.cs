@@ -27,14 +27,14 @@ internal class LoggerFake : ILogger
             _entries.Add(entry);
 
             var output =
-                $"Log @ {DateTime.Now:HH:mm:ss}, {entry.LogLevel}, {_categoryName}[{entry.EventId}]:\n  Message: {entry.Message}";
+                $"Logger output at {DateTime.Now:HH:mm:ss}, {entry.LogLevel}, {_categoryName}[{entry.EventId}]:\n  Message: {entry.Message}";
 
             if (exception != null)
             {
                 output += $"\n  Exception: {exception}";
             }
 
-            Console.WriteLine(output);
+            TestContext.Progress.WriteLine(output);
         }
     }
 

@@ -6,11 +6,12 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-[TestClass]
 public sealed class RegisterCommandsHandlerTests
 {
     private const string ProviderName = "Test Provider";
+#pragma warning disable NUnit1032
     private readonly IDiscordClient _client;
+#pragma warning restore NUnit1032
     private readonly RegisterCommandsHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
@@ -27,7 +28,7 @@ public sealed class RegisterCommandsHandlerTests
             new LoggerFake<RegisterCommandsHandler>());
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_ReadyNotification_Success()
     {
         // Arrange
@@ -67,7 +68,7 @@ public sealed class RegisterCommandsHandlerTests
         }
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_ReadyNotification_NoGuilds_Returns()
     {
         // Arrange
@@ -82,7 +83,7 @@ public sealed class RegisterCommandsHandlerTests
         _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_JoinedGuildNotification_Success()
     {
         // Arrange

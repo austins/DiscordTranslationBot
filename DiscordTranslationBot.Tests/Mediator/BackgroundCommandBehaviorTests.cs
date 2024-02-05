@@ -3,10 +3,9 @@ using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
 
-[TestClass]
 public sealed class BackgroundCommandBehaviorTests
 {
-    [TestMethod]
+    [Test]
     public async Task Handle_NotABackgroundCommand_Success()
     {
         // Arrange
@@ -24,9 +23,8 @@ public sealed class BackgroundCommandBehaviorTests
         result.Should().Be(expectedResult);
     }
 
-    [DataTestMethod]
-    [DataRow(0)]
-    [DataRow(-100)]
+    [TestCase(0)]
+    [TestCase(-100)]
     public async Task Handle_BackgroundCommand_InvalidDelay_Throws(int seconds)
     {
         // Arrange

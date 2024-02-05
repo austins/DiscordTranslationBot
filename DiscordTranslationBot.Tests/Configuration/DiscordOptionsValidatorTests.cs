@@ -3,12 +3,11 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration;
 
-[TestClass]
 public sealed class DiscordOptionsValidatorTests
 {
     private readonly DiscordOptionsValidator _sut = new();
 
-    [TestMethod]
+    [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
         // Arrange
@@ -21,10 +20,9 @@ public sealed class DiscordOptionsValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [DataTestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow(" ")]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase(" ")]
     public void Invalid_BotToken_HasValidationErrors(string? botToken)
     {
         // Arrange
