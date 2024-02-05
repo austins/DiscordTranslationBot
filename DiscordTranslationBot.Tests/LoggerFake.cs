@@ -26,8 +26,15 @@ internal class LoggerFake : ILogger
             var entry = new LogEntry(logLevel, eventId, state, exception, formatter(state, exception));
             _entries.Add(entry);
 
-            Console.WriteLine(
-                $"Log {DateTime.Now:HH:mm:ss} {entry.LogLevel} {_categoryName}[{entry.EventId}]:\n      {entry.Message}");
+            var output =
+                $"Log @ {DateTime.Now:HH:mm:ss}, {entry.LogLevel}, {_categoryName}[{entry.EventId}]:\n  Message: {entry.Message}";
+
+            if (exception != null)
+            {
+                output += $"\n  Exception: {exception}";
+            }
+
+            Console.WriteLine(output);
         }
     }
 
