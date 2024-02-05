@@ -41,13 +41,6 @@ internal class LoggerFake : ILogger
     {
         return null;
     }
-
-    public sealed record LogEntry(
-        LogLevel LogLevel,
-        EventId EventId,
-        object? State,
-        Exception? Exception,
-        string Message);
 }
 
 internal sealed class LoggerFake<TCategoryName> : LoggerFake, ILogger<TCategoryName>
@@ -57,3 +50,10 @@ internal sealed class LoggerFake<TCategoryName> : LoggerFake, ILogger<TCategoryN
     {
     }
 }
+
+internal sealed record LogEntry(
+    LogLevel LogLevel,
+    EventId EventId,
+    object? State,
+    Exception? Exception,
+    string Message);
