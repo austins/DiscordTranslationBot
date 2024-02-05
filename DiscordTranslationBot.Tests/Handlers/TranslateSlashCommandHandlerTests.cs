@@ -7,7 +7,6 @@ using DiscordTranslationBot.Providers.Translation;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-[TestClass]
 public sealed class TranslateSlashCommandHandlerTests
 {
     private const string ProviderName = "Test Provider";
@@ -24,7 +23,7 @@ public sealed class TranslateSlashCommandHandlerTests
             new LoggerFake<TranslateSlashCommandHandler>());
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_SlashCommandExecutedNotification_Success()
     {
         // Arrange
@@ -115,7 +114,7 @@ public sealed class TranslateSlashCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_SlashCommandExecutedNotification_NotTranslateCommand_Returns()
     {
         // Arrange
@@ -138,7 +137,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_SlashCommandExecutedNotification_Returns_SourceTextIsEmpty()
     {
         // Arrange
@@ -173,7 +172,7 @@ public sealed class TranslateSlashCommandHandlerTests
                 Arg.Any<SupportedLanguage>());
     }
 
-    [TestMethod]
+    [Test]
     public async Task Handle_SlashCommandExecutedNotification_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange

@@ -8,7 +8,6 @@ using Refit;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation.LibreTranslate;
 
-[TestClass]
 public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 {
     private readonly ILibreTranslateClient _client;
@@ -42,7 +41,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         Sut = new LibreTranslateProvider(_client, _logger);
     }
 
-    [TestMethod]
+    [Test]
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
@@ -88,7 +87,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [TestMethod]
+    [Test]
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
@@ -132,7 +131,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [TestMethod]
+    [Test]
     public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
@@ -156,9 +155,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.Received(1).GetLanguagesAsync(default);
     }
 
-    [DataTestMethod]
-    [DataRow(HttpStatusCode.InternalServerError)]
-    [DataRow(HttpStatusCode.ServiceUnavailable)]
+    [TestCase(HttpStatusCode.InternalServerError)]
+    [TestCase(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
         HttpStatusCode statusCode)
     {
@@ -188,7 +186,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
 
-    [TestMethod]
+    [Test]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange

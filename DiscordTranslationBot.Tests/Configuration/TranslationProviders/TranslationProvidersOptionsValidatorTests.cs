@@ -3,12 +3,11 @@ using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
 
-[TestClass]
 public sealed class TranslationProvidersOptionsValidatorTests
 {
     private readonly TranslationProvidersOptionsValidator _sut = new();
 
-    [TestMethod]
+    [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
         // Arrange
@@ -31,10 +30,9 @@ public sealed class TranslationProvidersOptionsValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [DataTestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow(" ")]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase(" ")]
     public void Invalid_ProviderOptions_HasValidationErrors(string? stringValue)
     {
         // Arrange
