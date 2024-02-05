@@ -5,6 +5,7 @@ using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Providers.Translation;
 
+[TestClass]
 public abstract class TranslationProviderBaseTests
 {
     protected TranslationProviderBase Sut { get; init; } = null!;
