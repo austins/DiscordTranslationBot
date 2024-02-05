@@ -10,7 +10,7 @@ public abstract class TranslationProviderBaseTests
     protected TranslationProviderBase Sut { get; init; } = null!;
 
     [TestInitialize]
-    public async Task TestInitializeAsync()
+    public async Task TestInitialize()
     {
         ArgumentNullException.ThrowIfNull(Sut);
         await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
