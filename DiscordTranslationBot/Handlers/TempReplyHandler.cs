@@ -32,13 +32,13 @@ public sealed partial class TempReplyHandler : IRequestHandler<DeleteTempReply>,
         try
         {
             // If there is also a reaction and the source message still exists, remove the reaction from it.
-            if (request.Reaction != null)
+            if (request.Reaction is not null)
             {
                 var sourceMessage = await request.Reply.Channel.GetMessageAsync(
                     request.SourceMessage.Id,
                     options: new RequestOptions { CancelToken = cancellationToken });
 
-                if (sourceMessage != null)
+                if (sourceMessage is not null)
                 {
                     await sourceMessage.RemoveReactionAsync(
                         request.Reaction.Emote,

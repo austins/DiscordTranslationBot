@@ -70,8 +70,9 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
         try
         {
-            var sourceLanguage =
-                from != null ? translationProvider.SupportedLanguages.First(l => l.LangCode == from) : null;
+            var sourceLanguage = from is not null
+                ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
+                : null;
 
             var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == to);
 
