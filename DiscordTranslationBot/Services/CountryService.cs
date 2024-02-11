@@ -44,7 +44,7 @@ public sealed partial class CountryService : ICountryService
     public bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country)
     {
         country = _countries.SingleOrDefault(c => c.EmojiUnicode == emojiUnicode);
-        return country is not null;
+        return country != null;
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public sealed partial class CountryService : ICountryService
         foreach (var (flagEmoji, langCodes) in CountryConstants.LangCodeMap)
         {
             var country = _countries.SingleOrDefault(c => c.EmojiUnicode == flagEmoji.ToString());
-            if (country is null)
+            if (country == null)
             {
                 _log.CountryNotFound();
 

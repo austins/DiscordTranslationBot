@@ -29,7 +29,7 @@ internal class LoggerFake : ILogger
             var output =
                 $"Logger output at {DateTime.Now:HH:mm:ss}, {entry.LogLevel}, {_categoryName}[{entry.EventId}]:\n  Message: {entry.Message}";
 
-            if (exception is not null)
+            if (exception != null)
             {
                 output += $"\n  Exception: {exception}";
             }

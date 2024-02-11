@@ -83,7 +83,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
                 var targetLanguage =
                     translationProvider.SupportedLanguages.FirstOrDefault(l => l.LangCode == userLocale);
 
-                if (targetLanguage is null)
+                if (targetLanguage == null)
                 {
                     var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
                     if (indexOfHyphen > 0)
@@ -94,7 +94,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
                     }
                 }
 
-                if (targetLanguage is null)
+                if (targetLanguage == null)
                 {
                     _log.UnsupportedLocale(userLocale, translationProvider.ProviderName);
                     continue;
@@ -115,7 +115,7 @@ public partial class TranslateMessageCommandHandler : INotificationHandler<Messa
             }
         }
 
-        if (translationResult is null)
+        if (translationResult == null)
         {
             // Send message if no translation providers support the locale.
             await notification.Command.FollowupAsync(

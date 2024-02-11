@@ -37,7 +37,7 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (_validator is not null)
+        if (_validator != null)
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
         }

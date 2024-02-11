@@ -121,7 +121,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             }
         }
 
-        if (translationResult is null)
+        if (translationResult == null)
         {
             await notification.Message.RemoveReactionAsync(
                 notification.Reaction.Emote,

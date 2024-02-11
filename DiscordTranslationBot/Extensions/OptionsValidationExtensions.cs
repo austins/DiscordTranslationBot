@@ -72,7 +72,7 @@ internal sealed class FluidValidationOptionsValidator<TOptions> : IValidateOptio
     public ValidateOptionsResult Validate(string? name, TOptions options)
     {
         // Null name is used to configure all named options.
-        if (_name is not null && _name != name)
+        if (_name != null && _name != name)
         {
             // Ignored if not validating this instance.
             return ValidateOptionsResult.Skip;

@@ -43,7 +43,7 @@ public sealed partial class BackgroundCommandBehavior<TRequest, TResponse> : IPi
             return next();
         }
 
-        if (command.Delay is not null && command.Delay.Value <= TimeSpan.Zero)
+        if (command.Delay != null && command.Delay.Value <= TimeSpan.Zero)
         {
             throw new InvalidOperationException("Delay must be greater than zero or null.");
         }
@@ -53,7 +53,7 @@ public sealed partial class BackgroundCommandBehavior<TRequest, TResponse> : IPi
 
         async Task NextForCommandAsync()
         {
-            if (command.Delay is not null)
+            if (command.Delay != null)
             {
                 await Task.Delay(command.Delay.Value, cancellationToken);
             }
