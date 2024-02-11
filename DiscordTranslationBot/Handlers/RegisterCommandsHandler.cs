@@ -117,7 +117,7 @@ public sealed partial class RegisterCommandsHandler
 
         // Gather list of language choices for the command's options.
         List<SupportedLanguage> supportedLangChoices;
-        if (translationProvider.TranslateCommandLangCodes == null)
+        if (translationProvider.TranslateCommandLangCodes is null)
         {
             // If no lang codes are specified, take the first up to the max options limit.
             supportedLangChoices = translationProvider.SupportedLanguages.Take(SlashCommandBuilder.MaxOptionsCount)
