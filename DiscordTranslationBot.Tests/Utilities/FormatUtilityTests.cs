@@ -13,7 +13,7 @@ public sealed class FormatUtilityTests
     [TestCase("<:1234:000000000000000123>", "")]
     [TestCase("test <a:test_emote:100000000000000123>", "test")]
     [TestCase("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
-    [TestCase("text with links http://example.com https://example.com test", "text with links   test")]
+    [TestCase("text with links http://example.com https://example.com/ test", "text with links   test")]
     [TestCase(
         """
 _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>

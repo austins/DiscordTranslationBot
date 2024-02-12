@@ -72,6 +72,6 @@ public static partial class FormatUtility
     /// Regex for all URLs starting with "http://" or "https://".
     /// </summary>
     /// <returns>Regex.</returns>
-    [GeneratedRegex(@"\b(?:https?://)\S+\b")]
+    [GeneratedRegex(@"https?:\/\/\S+")]
     private static partial Regex UrlRegex();
 }
