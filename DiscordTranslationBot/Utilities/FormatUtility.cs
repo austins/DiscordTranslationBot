@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.RegularExpressions;
 using Markdig;
 using NeoSmart.Unicode;
@@ -35,13 +34,7 @@ public static partial class FormatUtility
         result = UrlRegex().Replace(result, string.Empty);
 
         // Remove all unicode emoji.
-        var stringBuilder = new StringBuilder();
-        foreach (var letter in result.Letters().Where(letter => !Emoji.IsEmoji(letter)))
-        {
-            stringBuilder.Append(letter);
-        }
-
-        result = stringBuilder.ToString();
+        result = string.Concat(result.Letters().Where(letter => !Emoji.IsEmoji(letter)));
 
         // Trim and return sanitized text.
         return result.Trim();
