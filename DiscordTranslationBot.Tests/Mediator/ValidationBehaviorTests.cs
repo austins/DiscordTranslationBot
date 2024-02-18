@@ -7,20 +7,20 @@ namespace DiscordTranslationBot.Tests.Mediator;
 
 public sealed class ValidationBehaviorTests
 {
-    private readonly IBaseRequest _request;
+    private readonly IRequest _request;
 
-    private readonly ValidationBehavior<IBaseRequest, Unit> _sut;
-    private readonly IValidator<IBaseRequest> _validator;
+    private readonly ValidationBehavior<IRequest, Unit> _sut;
+    private readonly IValidator<IRequest> _validator;
 
     public ValidationBehaviorTests()
     {
-        _request = Substitute.For<IBaseRequest>();
-        _validator = Substitute.For<IValidator<IBaseRequest>>();
+        _request = Substitute.For<IRequest>();
+        _validator = Substitute.For<IValidator<IRequest>>();
 
         var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IBaseRequest>)).Returns(_validator);
+        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
 
-        _sut = new ValidationBehavior<IBaseRequest, Unit>(serviceProvider);
+        _sut = new ValidationBehavior<IRequest, Unit>(serviceProvider);
     }
 
     [Test]
