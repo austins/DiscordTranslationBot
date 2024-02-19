@@ -2,9 +2,9 @@
 
 namespace DiscordTranslationBot.Tests;
 
-public abstract class ValidationTestBase
+internal static class TestExtensions
 {
-    protected static (IReadOnlyList<ValidationResult> Results, bool IsValid) ValidateObject(object instance)
+    public static (IReadOnlyList<ValidationResult> Results, bool IsValid) ValidateObject(this object instance)
     {
         var results = new List<ValidationResult>();
         var isValid = Validator.TryValidateObject(instance, new ValidationContext(instance), results, true);

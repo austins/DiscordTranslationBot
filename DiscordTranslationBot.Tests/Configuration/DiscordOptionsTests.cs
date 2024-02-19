@@ -2,7 +2,7 @@ using DiscordTranslationBot.Configuration;
 
 namespace DiscordTranslationBot.Tests.Configuration;
 
-public sealed class DiscordOptionsTests : ValidationTestBase
+public sealed class DiscordOptionsTests
 {
     [Test]
     public void Valid_Options_ValidatesWithoutErrors()
@@ -11,7 +11,7 @@ public sealed class DiscordOptionsTests : ValidationTestBase
         var options = new DiscordOptions { BotToken = "token" };
 
         // Act
-        var (results, isValid) = ValidateObject(options);
+        var (results, isValid) = options.ValidateObject();
 
         // Assert
         results.Should().BeEmpty();
@@ -27,7 +27,7 @@ public sealed class DiscordOptionsTests : ValidationTestBase
         var options = new DiscordOptions { BotToken = botToken! };
 
         // Act
-        var (results, isValid) = ValidateObject(options);
+        var (results, isValid) = options.ValidateObject();
 
         // Assert
         results.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(options.BotToken)));

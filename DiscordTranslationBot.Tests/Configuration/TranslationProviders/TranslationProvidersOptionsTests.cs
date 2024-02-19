@@ -2,7 +2,7 @@ using DiscordTranslationBot.Configuration.TranslationProviders;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
 
-public sealed class TranslationProvidersOptionsTests : ValidationTestBase
+public sealed class TranslationProvidersOptionsTests
 {
     [Test]
     public void Valid_Options_ValidatesWithoutErrors()
@@ -21,7 +21,7 @@ public sealed class TranslationProvidersOptionsTests : ValidationTestBase
         };
 
         // Act
-        var (results, isValid) = ValidateObject(options);
+        var (results, isValid) = options.ValidateObject();
 
         // Assert
         results.Should().BeEmpty();
@@ -51,7 +51,7 @@ public sealed class TranslationProvidersOptionsTests : ValidationTestBase
         };
 
         // Act
-        var (results, isValid) = ValidateObject(options);
+        var (results, isValid) = options.ValidateObject();
 
         // Assert
         results.Should().HaveCount(4);

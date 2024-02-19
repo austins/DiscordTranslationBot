@@ -4,7 +4,7 @@ using DiscordTranslationBot.Models.Discord;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
 
-public sealed class SendTempReplyTests : ValidationTestBase
+public sealed class SendTempReplyTests
 {
     [Test]
     public void Valid_ValidatesWithoutErrors()
@@ -23,7 +23,7 @@ public sealed class SendTempReplyTests : ValidationTestBase
         };
 
         // Act
-        var (results, isValid) = ValidateObject(command);
+        var (results, isValid) = command.ValidateObject();
 
         // Assert
         results.Should().BeEmpty();
@@ -44,7 +44,7 @@ public sealed class SendTempReplyTests : ValidationTestBase
         };
 
         // Act
-        var (results, isValid) = ValidateObject(command);
+        var (results, isValid) = command.ValidateObject();
 
         // Assert
         results.Should().HaveCount(2);
