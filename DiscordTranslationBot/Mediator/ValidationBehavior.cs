@@ -1,4 +1,4 @@
-using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Mediator;
 
@@ -10,17 +10,6 @@ namespace DiscordTranslationBot.Mediator;
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly IValidator<TRequest>? _validator;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ValidationBehavior{TRequest,TResponse}" /> class.
-    /// </summary>
-    /// <param name="serviceProvider">Service provider to use.</param>
-    public ValidationBehavior(IServiceProvider serviceProvider)
-    {
-        _validator = serviceProvider.GetService<IValidator<TRequest>>();
-    }
-
     /// <summary>
     /// Validates an incoming request if it has a validator before executing its handler.
     /// </summary>
@@ -31,17 +20,18 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     /// </param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    /// <exception cref="ValidationException">If there are any validation errors.</exception>
-    public async Task<TResponse> Handle(
+    /// <exception cref="RequestValidationException">If there are any validation errors.</exception>
+    public Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (_validator is not null)
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(request, new ValidationContext(request), validationResults, true))
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            throw new RequestValidationException(request.GetType().Name, validationResults);
         }
 
-        return await next();
+        return next();
     }
 }

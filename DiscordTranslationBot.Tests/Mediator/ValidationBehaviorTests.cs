@@ -1,60 +1,57 @@
+using System.ComponentModel.DataAnnotations;
 using DiscordTranslationBot.Mediator;
-using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
 
 public sealed class ValidationBehaviorTests
 {
-    private readonly IRequest _request;
-
     private readonly ValidationBehavior<IRequest, Unit> _sut;
-    private readonly IValidator<IRequest> _validator;
 
     public ValidationBehaviorTests()
     {
-        _request = Substitute.For<IRequest>();
-        _validator = Substitute.For<IValidator<IRequest>>();
-
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
-
-        _sut = new ValidationBehavior<IRequest, Unit>(serviceProvider);
+        _sut = new ValidationBehavior<IRequest, Unit>();
     }
 
     [Test]
     public async Task Handle_ValidRequest_Success()
     {
         // Arrange
-        _validator.ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
-                Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult());
+        var request = new RequestFake
+        {
+            Name = "Test",
+            Value = 1
+        };
 
         // Act & Assert
-        await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None)).Should().NotThrowAsync();
-
-        await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+        await _sut.Invoking(x => x.Handle(request, () => Unit.Task, CancellationToken.None)).Should().NotThrowAsync();
     }
 
     [Test]
     public async Task Handle_InvalidRequest_Throws()
     {
         // Arrange
-        _validator.ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
-                Arg.Any<CancellationToken>())
-            .ThrowsAsync(new ValidationException(new[] { new ValidationFailure("test", "test") }));
+        var request = new RequestFake
+        {
+            Name = null,
+            Value = 0
+        };
 
         // Act & Assert
-        await _sut.Invoking(x => x.Handle(_request, () => Unit.Task, CancellationToken.None))
+        await _sut.Invoking(x => x.Handle(request, () => Unit.Task, CancellationToken.None))
             .Should()
-            .ThrowAsync<ValidationException>();
+            .ThrowAsync<RequestValidationException>()
+            .Where(
+                x => x.Results.Any(y => y.MemberNames.Contains(nameof(RequestFake.Name)))
+                    && x.Results.Any(y => y.MemberNames.Contains(nameof(RequestFake.Value))));
+    }
 
-        await _validator.Received(1)
-            .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
-                Arg.Any<CancellationToken>());
+    private sealed class RequestFake : IRequest
+    {
+        [Required]
+        public string? Name { get; init; }
+
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, MinimumIsExclusive = true)]
+        public required int Value { get; init; }
     }
 }

@@ -1,21 +1,13 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReply;
 using DiscordTranslationBot.Models.Discord;
-using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
 
-public sealed class SendTempReplyValidatorTests
+public sealed class SendTempReplyTests : ValidationTestBase
 {
-    private readonly SendTempReplyValidator _sut;
-
-    public SendTempReplyValidatorTests()
-    {
-        _sut = new SendTempReplyValidator();
-    }
-
     [Test]
-    public async Task Valid_ValidatesWithoutErrors()
+    public void Valid_ValidatesWithoutErrors()
     {
         // Arrange
         var command = new SendTempReply
@@ -31,16 +23,17 @@ public sealed class SendTempReplyValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(command);
+        var (results, isValid) = ValidateObject(command);
 
         // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+        results.Should().BeEmpty();
+        isValid.Should().BeTrue();
     }
 
     [TestCase(null)]
     [TestCase("")]
     [TestCase(" ")]
-    public async Task Invalid_Reply_HasValidationErrors(string? text)
+    public void Invalid_Reply_HasValidationErrors(string? text)
     {
         // Arrange
         var command = new SendTempReply
@@ -51,11 +44,12 @@ public sealed class SendTempReplyValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(command);
+        var (results, isValid) = ValidateObject(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Text);
-        result.ShouldNotHaveValidationErrorFor(x => x.Reaction);
-        result.ShouldHaveValidationErrorFor(x => x.SourceMessage);
+        results.Should().HaveCount(2);
+        results.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(command.Text)));
+        results.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
+        isValid.Should().BeFalse();
     }
 }

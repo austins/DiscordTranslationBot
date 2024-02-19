@@ -1,4 +1,4 @@
-using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Configuration;
 
@@ -15,19 +15,6 @@ public sealed class DiscordOptions
     /// <summary>
     /// The token for the Discord bot.
     /// </summary>
+    [Required]
     public required string BotToken { get; init; }
-}
-
-/// <summary>
-/// Validator for <see cref="DiscordOptions" />.
-/// </summary>
-public sealed class DiscordOptionsValidator : AbstractValidator<DiscordOptions>
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DiscordOptionsValidator" /> class.
-    /// </summary>
-    public DiscordOptionsValidator()
-    {
-        RuleFor(x => x.BotToken).NotEmpty();
-    }
 }

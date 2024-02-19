@@ -1,12 +1,9 @@
 using DiscordTranslationBot.Configuration.TranslationProviders;
-using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
 
-public sealed class TranslationProvidersOptionsValidatorTests
+public sealed class TranslationProvidersOptionsTests : ValidationTestBase
 {
-    private readonly TranslationProvidersOptionsValidator _sut = new();
-
     [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
@@ -24,10 +21,11 @@ public sealed class TranslationProvidersOptionsValidatorTests
         };
 
         // Act
-        var result = _sut.TestValidate(options);
+        var (results, isValid) = ValidateObject(options);
 
         // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+        results.Should().BeEmpty();
+        isValid.Should().BeTrue();
     }
 
     [TestCase(null)]
@@ -53,12 +51,31 @@ public sealed class TranslationProvidersOptionsValidatorTests
         };
 
         // Act
-        var result = _sut.TestValidate(options);
+        var (results, isValid) = ValidateObject(options);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.AzureTranslator.ApiUrl);
-        result.ShouldHaveValidationErrorFor(x => x.AzureTranslator.Region);
-        result.ShouldHaveValidationErrorFor(x => x.AzureTranslator.SecretKey);
-        result.ShouldHaveValidationErrorFor(x => x.LibreTranslate.ApiUrl);
+        results.Should().HaveCount(4);
+
+        results.Should()
+            .ContainSingle(
+                x => x.ErrorMessage!.Contains(
+                    $"{nameof(AzureTranslatorOptions)}.{nameof(TranslationProviderOptionsBase.ApiUrl)}"));
+
+        results.Should()
+            .ContainSingle(
+                x => x.ErrorMessage!.Contains(
+                    $"{nameof(LibreTranslateOptions)}.{nameof(TranslationProviderOptionsBase.ApiUrl)}"));
+
+        results.Should()
+            .ContainSingle(
+                x => x.ErrorMessage!.Contains(
+                    $"{nameof(AzureTranslatorOptions)}.{nameof(AzureTranslatorOptions.Region)}"));
+
+        results.Should()
+            .ContainSingle(
+                x => x.ErrorMessage!.Contains(
+                    $"{nameof(AzureTranslatorOptions)}.{nameof(AzureTranslatorOptions.SecretKey)}"));
+
+        isValid.Should().BeFalse();
     }
 }

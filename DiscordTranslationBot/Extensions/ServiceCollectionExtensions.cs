@@ -29,13 +29,11 @@ internal static class ServiceCollectionExtensions
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
+        services.AddOptions<TranslationProvidersOptions>().Bind(section).ValidateDataAnnotations().ValidateOnStart();
 
-        services.AddOptionsWithFluentValidation<TranslationProvidersOptions, TranslationProvidersOptionsValidator>(
-            section);
-
-        // Register translation providers. They are prioritized in the order added.
         var options = section.Get<TranslationProvidersOptions>();
 
+        // Register translation providers. They are prioritized in the order added.
         var refitSettings = new RefitSettings
         {
             ContentSerializer = new SystemTextJsonContentSerializer(

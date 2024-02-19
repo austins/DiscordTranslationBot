@@ -6,18 +6,17 @@ using DiscordTranslationBot.Configuration;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Services;
-using FluentValidation;
 
 await Host.CreateDefaultBuilder(args)
     .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
     .ConfigureServices(
         (builder, services) =>
         {
-            services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
-
             // Set up configuration.
-            services.AddOptionsWithFluentValidation<DiscordOptions, DiscordOptionsValidator>(
-                builder.Configuration.GetRequiredSection(DiscordOptions.SectionName));
+            services.AddOptions<DiscordOptions>()
+                .Bind(builder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
             // Set up services.
             services.AddTranslationProviders(builder.Configuration)

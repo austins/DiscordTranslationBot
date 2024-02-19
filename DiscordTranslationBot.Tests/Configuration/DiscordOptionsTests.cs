@@ -1,12 +1,9 @@
 using DiscordTranslationBot.Configuration;
-using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Configuration;
 
-public sealed class DiscordOptionsValidatorTests
+public sealed class DiscordOptionsTests : ValidationTestBase
 {
-    private readonly DiscordOptionsValidator _sut = new();
-
     [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
@@ -14,10 +11,11 @@ public sealed class DiscordOptionsValidatorTests
         var options = new DiscordOptions { BotToken = "token" };
 
         // Act
-        var result = _sut.TestValidate(options);
+        var (results, isValid) = ValidateObject(options);
 
         // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+        results.Should().BeEmpty();
+        isValid.Should().BeTrue();
     }
 
     [TestCase(null)]
@@ -29,9 +27,10 @@ public sealed class DiscordOptionsValidatorTests
         var options = new DiscordOptions { BotToken = botToken! };
 
         // Act
-        var result = _sut.TestValidate(options);
+        var (results, isValid) = ValidateObject(options);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BotToken).Only();
+        results.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(options.BotToken)));
+        isValid.Should().BeFalse();
     }
 }

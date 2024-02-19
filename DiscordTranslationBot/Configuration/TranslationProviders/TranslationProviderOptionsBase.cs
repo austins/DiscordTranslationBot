@@ -1,11 +1,11 @@
-using FluentValidation;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Configuration.TranslationProviders;
 
 /// <summary>
 /// Base class for a translation provider's options.
 /// </summary>
-public abstract class TranslationProviderOptionsBase
+public abstract class TranslationProviderOptionsBase : IValidatableObject
 {
     /// <summary>
     /// Flag indicating whether this provider is enabled.
@@ -13,21 +13,15 @@ public abstract class TranslationProviderOptionsBase
     public bool Enabled { get; init; }
 
     /// <summary>
-    /// The API URL for Azure Translator.
+    /// The API URL for translation provider.
     /// </summary>
     public Uri? ApiUrl { get; init; }
-}
 
-/// <summary>
-/// Validator for <see cref="TranslationProviderOptionsBase" />.
-/// </summary>
-public sealed class TranslationProviderOptionsBaseValidator : AbstractValidator<TranslationProviderOptionsBase>
-{
-    /// <summary>
-    /// Initializes validation rules.
-    /// </summary>
-    public TranslationProviderOptionsBaseValidator()
+    public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        When(x => x.Enabled, () => RuleFor(x => x.ApiUrl).NotNull());
+        if (Enabled && ApiUrl?.IsAbsoluteUri != true)
+        {
+            yield return new ValidationResult($"{GetType().Name}.{nameof(ApiUrl)} is required.", [nameof(ApiUrl)]);
+        }
     }
 }
