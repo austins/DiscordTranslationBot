@@ -8,14 +8,14 @@ public sealed class RequestValidationException : Exception
         string requestName,
         IReadOnlyList<ValidationResult> results,
         Exception? innerException = null)
-        : base(BuildMessageWithResults(requestName, results), innerException)
+        : base(BuildMessage(requestName, results), innerException)
     {
         Results = results;
     }
 
     public IReadOnlyList<ValidationResult> Results { get; }
 
-    private static string BuildMessageWithResults(string requestName, IReadOnlyList<ValidationResult> results)
+    private static string BuildMessage(string requestName, IReadOnlyList<ValidationResult> results)
     {
         return $"Request validation failed for '{requestName}':{string.Concat(
             results.Select(
