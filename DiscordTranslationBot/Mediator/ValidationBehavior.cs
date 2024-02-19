@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Mediator;
 
@@ -26,8 +26,7 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        var validationResults = new List<ValidationResult>();
-        if (!Validator.TryValidateObject(request, new ValidationContext(request), validationResults, true))
+        if (!request.TryValidateObject(out var validationResults))
         {
             throw new RequestValidationException(request.GetType().Name, validationResults);
         }

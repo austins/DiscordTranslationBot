@@ -6,19 +6,19 @@ public sealed class RequestValidationException : Exception
 {
     public RequestValidationException(
         string requestName,
-        IReadOnlyList<ValidationResult> results,
+        IReadOnlyList<ValidationResult> validationResults,
         Exception? innerException = null)
-        : base(BuildMessage(requestName, results), innerException)
+        : base(BuildMessage(requestName, validationResults), innerException)
     {
-        Results = results;
+        ValidationResults = validationResults;
     }
 
-    public IReadOnlyList<ValidationResult> Results { get; }
+    public IReadOnlyList<ValidationResult> ValidationResults { get; }
 
-    private static string BuildMessage(string requestName, IReadOnlyList<ValidationResult> results)
+    private static string BuildMessage(string requestName, IReadOnlyList<ValidationResult> validationResults)
     {
         return $"Request validation failed for '{requestName}':{string.Concat(
-            results.Select(
+            validationResults.Select(
                 x =>
                     $"{Environment.NewLine} -- Members: '{string.Join(", ", x.MemberNames)}' with the error: '{x.ErrorMessage}'."))}";
     }

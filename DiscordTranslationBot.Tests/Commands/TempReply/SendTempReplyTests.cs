@@ -1,5 +1,6 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReply;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Discord;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReply;
@@ -23,11 +24,11 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var (results, isValid) = command.ValidateObject();
+        var isValid = command.TryValidateObject(out var validationResults);
 
         // Assert
-        results.Should().BeEmpty();
         isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
     [TestCase(null)]
@@ -44,12 +45,14 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var (results, isValid) = command.ValidateObject();
+        var isValid = command.TryValidateObject(out var validationResults);
 
         // Assert
-        results.Should().HaveCount(2);
-        results.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(command.Text)));
-        results.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
         isValid.Should().BeFalse();
+
+        validationResults.Should()
+            .HaveCount(2)
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.Text)))
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
     }
 }

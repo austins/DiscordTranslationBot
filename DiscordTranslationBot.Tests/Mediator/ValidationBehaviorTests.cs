@@ -42,8 +42,8 @@ public sealed class ValidationBehaviorTests
             .Should()
             .ThrowAsync<RequestValidationException>()
             .Where(
-                x => x.Results.Any(y => y.MemberNames.Contains(nameof(RequestFake.Name)))
-                    && x.Results.Any(y => y.MemberNames.Contains(nameof(RequestFake.Value))));
+                x => x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(RequestFake.Name)))
+                    && x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(RequestFake.Value))));
     }
 
     private sealed class RequestFake : IRequest

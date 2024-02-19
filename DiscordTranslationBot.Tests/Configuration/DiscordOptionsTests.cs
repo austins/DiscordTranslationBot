@@ -1,4 +1,5 @@
 using DiscordTranslationBot.Configuration;
+using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Tests.Configuration;
 
@@ -11,11 +12,11 @@ public sealed class DiscordOptionsTests
         var options = new DiscordOptions { BotToken = "token" };
 
         // Act
-        var (results, isValid) = options.ValidateObject();
+        var isValid = options.TryValidateObject(out var validationResults);
 
         // Assert
-        results.Should().BeEmpty();
         isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
     [TestCase(null)]
@@ -27,10 +28,10 @@ public sealed class DiscordOptionsTests
         var options = new DiscordOptions { BotToken = botToken! };
 
         // Act
-        var (results, isValid) = options.ValidateObject();
+        var isValid = options.TryValidateObject(out var validationResults);
 
         // Assert
-        results.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(options.BotToken)));
         isValid.Should().BeFalse();
+        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(options.BotToken)));
     }
 }

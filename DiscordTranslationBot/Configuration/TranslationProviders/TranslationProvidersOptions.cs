@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Configuration.TranslationProviders;
 
@@ -24,11 +25,9 @@ public sealed class TranslationProvidersOptions : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var results = new List<ValidationResult>();
+        AzureTranslator.TryValidateObject(out var azureTranslatorValidationResults);
+        LibreTranslate.TryValidateObject(out var libreTranslateValidationResults);
 
-        Validator.TryValidateObject(AzureTranslator, new ValidationContext(AzureTranslator), results, true);
-        Validator.TryValidateObject(LibreTranslate, new ValidationContext(LibreTranslate), results, true);
-
-        return results;
+        return azureTranslatorValidationResults.Concat(libreTranslateValidationResults);
     }
 }
