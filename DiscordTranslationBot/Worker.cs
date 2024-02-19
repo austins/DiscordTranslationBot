@@ -10,7 +10,7 @@ namespace DiscordTranslationBot;
 /// <summary>
 /// The main worker service.
 /// </summary>
-internal sealed partial class Worker : BackgroundService
+internal sealed partial class Worker : IHostedService
 {
     private readonly DiscordSocketClient _client;
     private readonly ICountryService _countryService;
@@ -52,7 +52,7 @@ internal sealed partial class Worker : BackgroundService
     /// Runs when app is started.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         // Check if no translation providers are enabled.
         if (!_translationProviders.Any())
@@ -81,32 +81,16 @@ internal sealed partial class Worker : BackgroundService
 
         // Initialize the Discord event listener.
         await _eventListener.InitializeEventsAsync();
-
-        await base.StartAsync(cancellationToken);
     }
 
     /// <summary>
     /// Stops the app gracefully.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         await _client.LogoutAsync();
         await _client.StopAsync();
-
-        await base.StopAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// The main execution thread that monitors for a cancellation request to stop the app.
-    /// </summary>
-    /// <param name="stoppingToken">Cancellation token.</param>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await Task.Delay(1000, stoppingToken);
-        }
     }
 
     private sealed partial class Log
