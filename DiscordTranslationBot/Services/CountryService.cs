@@ -15,7 +15,7 @@ namespace DiscordTranslationBot.Services;
 public sealed partial class CountryService : ICountryService
 {
     private readonly Log _log;
-    private ISet<Country>? _countries;
+    private List<Country>? _countries;
     private bool _isInitialized;
 
     /// <summary>
@@ -38,13 +38,15 @@ public sealed partial class CountryService : ICountryService
         // Get all flag emojis and map to countries.
         _countries = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
             .Select(e => new Country(e.ToString()!, e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
-            .ToHashSet();
+            .ToList();
 
-        if (!_countries.Any())
+        if (_countries.Count == 0)
         {
             _log.NoFlagEmojiFound();
             throw new InvalidOperationException("No flag emoji found.");
         }
+
+        _log.CountriesInitialized(_countries.Count);
 
         // Map supported language codes to each country.
         foreach (var (flagEmoji, langCodes) in CountryConstants.LangCodeMap)
@@ -60,6 +62,9 @@ public sealed partial class CountryService : ICountryService
 
             country.LangCodes.UnionWith(langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase));
         }
+
+        var totalUnusedCountries = _countries.RemoveAll(x => x.LangCodes.Count == 0);
+        _log.LanguageCodesInitialized(CountryConstants.LangCodeMap.Count, totalUnusedCountries);
 
         _isInitialized = true;
     }
@@ -87,5 +92,14 @@ public sealed partial class CountryService : ICountryService
             Level = LogLevel.Critical,
             Message = "Country language codes couldn't be initialized as country couldn't be found.")]
         public partial void CountryNotFound();
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Initialized {total} countries.")]
+        public partial void CountriesInitialized(int total);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message =
+                "Initialized language codes for {totalCountries} countries and cleared {totalUnusedCountries} unused countries.")]
+        public partial void LanguageCodesInitialized(int totalCountries, int totalUnusedCountries);
     }
 }
