@@ -103,7 +103,6 @@ dotnet_style_prefer_simplified_interpolation = true:suggestion
 dotnet_style_namespace_match_folder = true:suggestion
 dotnet_style_allow_multiple_blank_lines_experimental = true:silent
 dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
-dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.CA2254.severity = silent
 dotnet_diagnostic.CA2007.severity = none
 dotnet_diagnostic.SYSLIB1006.severity = none
