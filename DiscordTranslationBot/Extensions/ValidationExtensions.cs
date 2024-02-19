@@ -9,7 +9,7 @@ public static class ValidationExtensions
     /// <see cref="IValidatableObject.Validate" /> method if it implements this.
     /// </summary>
     /// <param name="instance">The instance to validate.</param>
-    /// <param name="validationResults">The resulting validation results; empty if instance is valid.</param>
+    /// <param name="validationResults">All validation results if instance isn't valid; empty if instance is valid.</param>
     /// <returns>
     /// true if valid or if the object has no validation attributes and isn't an <see cref="IValidatableObject" />;
     /// false if invalid.
