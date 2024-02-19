@@ -10,6 +10,7 @@ public sealed class CountryServiceTests
     public CountryServiceTests()
     {
         _sut = new CountryService(new LoggerFake<CountryService>());
+        _sut.Initialize();
     }
 
     public static IReadOnlyCollection<(string EmojiUnicode, string ExpectedCountryName)> TryGetCountryTestData =>

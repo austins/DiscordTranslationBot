@@ -9,6 +9,12 @@ namespace DiscordTranslationBot.Services;
 public interface ICountryService
 {
     /// <summary>
+    /// Initializes the country service.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">No flag emoji found or country couldn't be found.</exception>
+    void Initialize();
+
+    /// <summary>
     /// Get a country by a flag emoji unicode string.
     /// </summary>
     /// <param name="emojiUnicode">The unicode string of the flag emoji.</param>

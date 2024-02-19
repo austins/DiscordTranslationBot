@@ -10,12 +10,10 @@ internal static class CountryConstants
 {
     /// <summary>
     /// Maps supported language codes to countries.
-    ///
     /// The language codes should be the primary language of the country that translation providers
     /// will translate to when the associated flag emoji is received. The language codes are based on
     /// the supported languages of each translation provider.
-    ///
-    /// In <see cref="CountryService.InitializeSupportedLangCodes"/>, the language codes will be mapped case-insensitive to a set of countries.
+    /// In <see cref="CountryService.Initialize" />, the language codes will be mapped case-insensitive to a set of countries.
     /// </summary>
     internal static IReadOnlyDictionary<SingleEmoji, string[]> LangCodeMap { get; } =
         new Dictionary<SingleEmoji, string[]>
