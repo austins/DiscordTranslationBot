@@ -51,7 +51,7 @@ public sealed partial class CountryService : ICountryService
         // Map supported language codes to each country.
         foreach (var (flagEmoji, langCodes) in CountryConstants.LangCodeMap)
         {
-            var country = _countries.SingleOrDefault(c => c.EmojiUnicode == flagEmoji.ToString());
+            var country = _countries.Find(c => c.EmojiUnicode == flagEmoji.ToString());
             if (country is null)
             {
                 _log.CountryNotFound();
