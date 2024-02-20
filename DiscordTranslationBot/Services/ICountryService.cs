@@ -20,5 +20,5 @@ public interface ICountryService
     /// <param name="emojiUnicode">The unicode string of the flag emoji.</param>
     /// <param name="country">The country found.</param>
     /// <returns>true if country found; false if not.</returns>
-    bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country);
+    bool TryGetCountryByEmoji(string emojiUnicode, [NotNullWhen(true)] out Country? country);
 }

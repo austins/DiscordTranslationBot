@@ -69,10 +69,16 @@ public sealed partial class CountryService : ICountryService
         _isInitialized = true;
     }
 
-    /// <inheritdoc cref="ICountryService.TryGetCountry" />
-    public bool TryGetCountry(string emojiUnicode, [NotNullWhen(true)] out Country? country)
+    /// <inheritdoc cref="ICountryService.TryGetCountryByEmoji" />
+    public bool TryGetCountryByEmoji(string emojiUnicode, [NotNullWhen(true)] out Country? country)
     {
-        country = _countries!.SingleOrDefault(c => c.EmojiUnicode == emojiUnicode);
+        if (!Emoji.IsEmoji(emojiUnicode))
+        {
+            country = null;
+            return false;
+        }
+
+        country = _countries!.Find(c => c.EmojiUnicode == emojiUnicode);
         return country is not null;
     }
 
