@@ -86,7 +86,12 @@ test
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _countryService.DidNotReceive().TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
+        _countryService.Received(1).TryGetCountryByEmoji(notification.Reaction.Emote.Name, out Arg.Any<Country?>());
+
+        await _message.DidNotReceive()
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+
+        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -103,13 +108,13 @@ test
             }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(false);
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(false);
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _countryService.Received(1).TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>());
+        _countryService.Received(1).TryGetCountryByEmoji(notification.Reaction.Emote.Name, out Arg.Any<Country?>());
 
         await _message.DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -128,7 +133,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {
@@ -165,7 +170,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {
@@ -216,7 +221,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {
@@ -255,7 +260,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {
@@ -296,7 +301,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {
@@ -308,7 +313,7 @@ test
 
         _translationProvider
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
-            .ThrowsAsync(new UnsupportedCountryException(exMessage));
+            .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
         var notification = new ReactionAddedNotification
         {
@@ -339,7 +344,7 @@ test
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountry(Arg.Any<string>(), out Arg.Any<Country?>())
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
             .Returns(
                 x =>
                 {

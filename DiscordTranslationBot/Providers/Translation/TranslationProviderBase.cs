@@ -56,7 +56,7 @@ public abstract partial class TranslationProviderBase
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
-    /// <exception cref="UnsupportedCountryException">Country not supported.</exception>
+    /// <exception cref="LanguageNotSupportedForCountryException">Country not supported.</exception>
     public virtual Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
@@ -65,7 +65,8 @@ public abstract partial class TranslationProviderBase
         // Gets the lang code that a country supports.
         var targetLanguage =
             SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
-            ?? throw new UnsupportedCountryException($"Translation for country {country.Name} isn't supported.");
+            ?? throw new LanguageNotSupportedForCountryException(
+                $"Target language isn't supported by {ProviderName} for {country.Name}.");
 
         return TranslateAsync(targetLanguage, text, cancellationToken);
     }
@@ -80,9 +81,7 @@ public abstract partial class TranslationProviderBase
             _logger = logger;
         }
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Response failure with status {statusCode}: {message}")]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Response failure with status {statusCode}: {message}")]
         public partial void ResponseFailure(string message, HttpStatusCode statusCode, Exception? ex = null);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]

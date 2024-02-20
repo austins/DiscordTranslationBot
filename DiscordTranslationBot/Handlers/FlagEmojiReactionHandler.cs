@@ -6,7 +6,6 @@ using DiscordTranslationBot.Notifications;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
-using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Handlers;
 
@@ -50,8 +49,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (!Emoji.IsEmoji(notification.Reaction.Emote.Name)
-            || !_countryService.TryGetCountry(notification.Reaction.Emote.Name, out var country))
+        if (!_countryService.TryGetCountryByEmoji(notification.Reaction.Emote.Name, out var country))
         {
             return;
         }
@@ -96,13 +94,13 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
 
                 break;
             }
-            catch (UnsupportedCountryException ex)
+            catch (LanguageNotSupportedForCountryException ex)
             {
-                _log.UnsupportedCountry(ex, country.Name, translationProvider.GetType());
-
                 // Send message if this is the last available translation provider.
                 if (translationProvider == _translationProviders[^1])
                 {
+                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), country.Name);
+
                     await _mediator.Send(
                         new SendTempReply
                         {
@@ -186,8 +184,11 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
-        [LoggerMessage(Level = LogLevel.Warning, Message = "Unsupported country {countryName} for {providerType}.")]
-        public partial void UnsupportedCountry(Exception ex, string? countryName, Type providerType);
+        [LoggerMessage(
+            Level = LogLevel.Warning,
+            Message =
+                "Target language code not supported. Provider {providerType} doesn't support the language code or the country {countryName} has no mapping for the language code.")]
+        public partial void LanguageNotSupportedForCountry(Exception ex, Type providerType, string countryName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
         public partial void TranslationFailure(Exception ex, Type providerType);

@@ -37,6 +37,6 @@ public abstract class TranslationProviderBaseTests
         // Act & Assert
         await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
-            .ThrowAsync<UnsupportedCountryException>();
+            .ThrowAsync<LanguageNotSupportedForCountryException>();
     }
 }

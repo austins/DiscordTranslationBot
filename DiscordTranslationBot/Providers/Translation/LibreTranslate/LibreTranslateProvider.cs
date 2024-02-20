@@ -39,10 +39,14 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure("Languages endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
+            _log.ResponseFailure(
+                "Languages endpoint returned unsuccessful status code.",
+                response.StatusCode,
+                response.Error);
 
             throw new InvalidOperationException(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.",
+                response.Error);
         }
 
         if (response.Content?.Any() != true)
@@ -85,10 +89,14 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure("Translate endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
+            _log.ResponseFailure(
+                "Translate endpoint returned unsuccessful status code.",
+                response.StatusCode,
+                response.Error);
 
             throw new InvalidOperationException(
-                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
+                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.",
+                response.Error);
         }
 
         if (string.IsNullOrWhiteSpace(response.Content?.TranslatedText))
@@ -99,7 +107,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
         result.DetectedLanguageCode = response.Content.DetectedLanguage?.LanguageCode;
 
-        result.DetectedLanguageName = SupportedLanguages.SingleOrDefault(
+        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
                 sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
             ?.Name;
 
