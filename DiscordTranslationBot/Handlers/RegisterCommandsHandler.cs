@@ -148,7 +148,7 @@ public sealed partial class RegisterCommandsHandler
             .Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
-                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
+                    Name = l.Name?.Truncate(SlashCommandBuilder.MaxNameLength) ?? l.LangCode,
                     Value = l.LangCode
                 })
             .OrderBy(c => c.Name)
