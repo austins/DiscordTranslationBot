@@ -32,6 +32,7 @@ public sealed class TranslateSlashCommandHandlerTests
             LangCode = "fr",
             Name = "French"
         };
+
         var sourceLanguage = new SupportedLanguage
         {
             LangCode = "en",
