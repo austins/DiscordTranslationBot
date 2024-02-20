@@ -20,16 +20,6 @@ await Host.CreateDefaultBuilder(args)
 
             // Set up services.
             services.AddTranslationProviders(builder.Configuration)
-                .AddMediatR(
-                    c =>
-                    {
-                        c.Lifetime = ServiceLifetime.Singleton;
-                        c.NotificationPublisherType = typeof(BackgroundPublisher);
-
-                        c.RegisterServicesFromAssemblyContaining<Program>()
-                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton)
-                            .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
-                    })
                 .AddSingleton<ICountryService, CountryService>()
                 .AddSingleton<IDiscordClient>(
                     new DiscordSocketClient(
@@ -44,6 +34,16 @@ await Host.CreateDefaultBuilder(args)
                             UseInteractionSnowflakeDate = false
                         }))
                 .AddSingleton<DiscordEventListener>()
+                .AddMediatR(
+                    c =>
+                    {
+                        c.Lifetime = ServiceLifetime.Singleton;
+                        c.NotificationPublisherType = typeof(BackgroundPublisher);
+
+                        c.RegisterServicesFromAssemblyContaining<Program>()
+                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton)
+                            .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton);
+                    })
                 .AddHostedService<Worker>();
         })
     .Build()
