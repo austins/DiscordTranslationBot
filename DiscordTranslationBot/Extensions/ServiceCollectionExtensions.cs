@@ -8,7 +8,6 @@ using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Refit;
-using AzureTranslatorProvider = DiscordTranslationBot.Providers.Translation.AzureTranslator.AzureTranslatorProvider;
 
 namespace DiscordTranslationBot.Extensions;
 
@@ -46,21 +45,21 @@ internal static class ServiceCollectionExtensions
         // Register translation providers. They are prioritized in the order added.
         if (options?.AzureTranslator.Enabled == true)
         {
-            services.AddTranslatorProvider<IAzureTranslatorClient, AzureTranslatorProvider>(
+            services.AddTranslationProvider<IAzureTranslatorClient, AzureTranslatorProvider>(
                 options.AzureTranslator.ApiUrl!,
                 [typeof(AzureTranslatorHeadersHandler)]);
         }
 
         if (options?.LibreTranslate.Enabled == true)
         {
-            services.AddTranslatorProvider<ILibreTranslateClient, LibreTranslateProvider>(
+            services.AddTranslationProvider<ILibreTranslateClient, LibreTranslateProvider>(
                 options.AzureTranslator.ApiUrl!);
         }
 
         return services;
     }
 
-    private static void AddTranslatorProvider<TRefitClient, TTranslationProvider>(
+    private static void AddTranslationProvider<TRefitClient, TTranslationProvider>(
         this IServiceCollection services,
         Uri apiUrl,
         IReadOnlyList<Type>? delegatingHandlerTypes = null)
