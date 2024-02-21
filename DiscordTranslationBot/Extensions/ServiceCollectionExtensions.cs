@@ -17,6 +17,16 @@ namespace DiscordTranslationBot.Extensions;
 /// </summary>
 internal static class ServiceCollectionExtensions
 {
+    private static readonly RefitSettings RefitSettings = new()
+    {
+        ContentSerializer = new SystemTextJsonContentSerializer(
+            new JsonSerializerOptions
+            {
+                // Ensure that all unicode characters are serialized correctly.
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+            })
+    };
+
     /// <summary>
     /// Adds translation providers.
     /// </summary>
@@ -34,39 +44,52 @@ internal static class ServiceCollectionExtensions
         var options = section.Get<TranslationProvidersOptions>();
 
         // Register translation providers. They are prioritized in the order added.
-        var refitSettings = new RefitSettings
-        {
-            ContentSerializer = new SystemTextJsonContentSerializer(
-                new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) })
-        };
-
         if (options?.AzureTranslator.Enabled == true)
         {
-            services.AddTransient<AzureTranslatorHeadersHandler>();
-
-            services.AddRefitClient<IAzureTranslatorClient>(refitSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = options.AzureTranslator.ApiUrl)
-                .AddHttpMessageHandler<AzureTranslatorHeadersHandler>()
-                .AddRetryPolicy();
-
-            services.AddSingleton<TranslationProviderBase, AzureTranslatorProvider>();
+            services.AddTranslatorProvider<IAzureTranslatorClient, AzureTranslatorProvider>(
+                options.AzureTranslator.ApiUrl!,
+                [typeof(AzureTranslatorHeadersHandler)]);
         }
 
         if (options?.LibreTranslate.Enabled == true)
         {
-            services.AddRefitClient<ILibreTranslateClient>(refitSettings)
-                .ConfigureHttpClient(c => c.BaseAddress = options.LibreTranslate.ApiUrl)
-                .AddRetryPolicy();
-
-            services.AddSingleton<TranslationProviderBase, LibreTranslateProvider>();
+            services.AddTranslatorProvider<ILibreTranslateClient, LibreTranslateProvider>(
+                options.AzureTranslator.ApiUrl!);
         }
 
         return services;
     }
 
-    private static void AddRetryPolicy(this IHttpClientBuilder builder)
+    private static void AddTranslatorProvider<TRefitClient, TTranslationProvider>(
+        this IServiceCollection services,
+        Uri apiUrl,
+        IReadOnlyList<Type>? delegatingHandlerTypes = null)
+        where TRefitClient : class
+        where TTranslationProvider : TranslationProviderBase
     {
-        builder.AddTransientHttpErrorPolicy(
+        var httpClientBuilder = services.AddRefitClient<TRefitClient>(RefitSettings)
+            .ConfigureHttpClient(c => c.BaseAddress = apiUrl);
+
+        // Add any delegating handlers.
+        if (delegatingHandlerTypes is not null)
+        {
+            foreach (var type in delegatingHandlerTypes)
+            {
+                if (!type.IsAssignableTo(typeof(DelegatingHandler)))
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to add delegating handler for '{typeof(TRefitClient).Name}'. '{type.Name}' does not derive from '{nameof(DelegatingHandler)}'.");
+                }
+
+                services.AddTransient(type);
+                httpClientBuilder.AddHttpMessageHandler(sp => (DelegatingHandler)sp.GetRequiredService(type));
+            }
+        }
+
+        // Add the Polly policy last to ensure it wraps any previous delegating handlers.
+        httpClientBuilder.AddTransientHttpErrorPolicy(
             b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2)));
+
+        services.AddSingleton<TranslationProviderBase, TTranslationProvider>();
     }
 }
