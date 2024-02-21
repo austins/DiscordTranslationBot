@@ -80,7 +80,7 @@ internal sealed partial class Worker : IHostedService
         await _client.StartAsync();
 
         // Initialize the Discord event listener.
-        await _eventListener.InitializeEventsAsync();
+        await _eventListener.InitializeEventsAsync(cancellationToken);
     }
 
     /// <summary>

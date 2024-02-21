@@ -10,7 +10,6 @@ namespace DiscordTranslationBot.Services;
 /// </summary>
 internal sealed partial class DiscordEventListener
 {
-    private readonly CancellationToken _cancellationToken;
     private readonly DiscordSocketClient _client;
     private readonly Log _log;
     private readonly IMediator _mediator;
@@ -25,32 +24,32 @@ internal sealed partial class DiscordEventListener
     {
         _client = (DiscordSocketClient)client;
         _mediator = mediator;
-        _cancellationToken = new CancellationTokenSource().Token;
         _log = new Log(logger);
     }
 
     /// <summary>
     /// Hooks up the events to be published to Mediator handlers.
     /// </summary>
-    public Task InitializeEventsAsync()
+    /// <param name="cancellationToken">Cancellation token to use.</param>
+    public Task InitializeEventsAsync(CancellationToken cancellationToken)
     {
-        _client.Ready += () => _mediator.Publish(new ReadyNotification(), _cancellationToken);
+        _client.Ready += () => _mediator.Publish(new ReadyNotification(), cancellationToken);
 
         _client.JoinedGuild += guild => _mediator.Publish(
             new JoinedGuildNotification { Guild = guild },
-            _cancellationToken);
+            cancellationToken);
 
         _client.Log += logMessage => _mediator.Publish(
             new LogNotification { LogMessage = logMessage },
-            _cancellationToken);
+            cancellationToken);
 
         _client.MessageCommandExecuted += command => _mediator.Publish(
             new MessageCommandExecutedNotification { Command = command },
-            _cancellationToken);
+            cancellationToken);
 
         _client.SlashCommandExecuted += command => _mediator.Publish(
             new SlashCommandExecutedNotification { Command = command },
-            _cancellationToken);
+            cancellationToken);
 
         _client.ReactionAdded += async (message, _, reaction) => await _mediator.Publish(
             new ReactionAddedNotification
@@ -62,7 +61,7 @@ internal sealed partial class DiscordEventListener
                     Emote = reaction.Emote
                 }
             },
-            _cancellationToken);
+            cancellationToken);
 
         _log.EventsInitialized();
         return Task.CompletedTask;
