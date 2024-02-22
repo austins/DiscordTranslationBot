@@ -8,7 +8,7 @@ using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Services;
 
 await Host.CreateDefaultBuilder(args)
-    .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss "))
+    .ConfigureLogging(builder => builder.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff "))
     .ConfigureServices(
         (builder, services) =>
         {
