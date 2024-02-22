@@ -48,10 +48,21 @@ public sealed partial class BackgroundCommandBehavior<TRequest, TResponse> : IPi
             throw new InvalidOperationException("Delay must be greater than zero or null.");
         }
 
-        NextForCommandAsync().SafeFireAndForget(ex => _log.FailureInRequestHandler(ex));
+        ExecuteCommandAsync().SafeFireAndForget(ex => _log.FailureInRequestHandler(ex));
+
+        var commandName = command.GetType().Name;
+        if (command.Delay is null)
+        {
+            _log.BackgroundCommandSent(commandName);
+        }
+        else
+        {
+            _log.BackgroundCommandSentWithDelay(commandName, command.Delay.Value.TotalSeconds);
+        }
+
         return (Unit.Task as Task<TResponse>)!;
 
-        async Task NextForCommandAsync()
+        async Task ExecuteCommandAsync()
         {
             if (command.Delay is not null)
             {
@@ -70,6 +81,14 @@ public sealed partial class BackgroundCommandBehavior<TRequest, TResponse> : IPi
         {
             _logger = logger;
         }
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Sent background command '{commandName}'.")]
+        public partial void BackgroundCommandSent(string commandName);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Sent background command '{commandName}' with {delayinSeconds}s delay.")]
+        public partial void BackgroundCommandSentWithDelay(string commandName, double delayInSeconds);
 
         [LoggerMessage(
             Level = LogLevel.Error,

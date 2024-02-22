@@ -38,11 +38,12 @@ await Host.CreateDefaultBuilder(args)
                     c =>
                     {
                         c.Lifetime = ServiceLifetime.Singleton;
-                        c.NotificationPublisherType = typeof(BackgroundPublisher);
+                        c.NotificationPublisherType = typeof(BackgroundNotificationPublisher);
 
                         c.RegisterServicesFromAssemblyContaining<Program>()
                             .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton)
-                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton);
+                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton)
+                            .AddOpenBehavior(typeof(LogElapsedTimeBehavior<,>), ServiceLifetime.Singleton);
                     })
                 .AddHostedService<Worker>();
         })
