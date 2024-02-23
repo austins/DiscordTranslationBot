@@ -36,19 +36,18 @@ internal sealed partial class NotificationPublisher : INotificationPublisher
                 if (notification is LogNotification)
                 {
                     await handler.HandlerCallback(notification, cancellationToken);
+                    return;
                 }
-                else
-                {
-                    var handlerName = handler.HandlerInstance.GetType().Name;
-                    var notificationName = notification.GetType().Name;
-                    _log.NotificationHandlerExecuting(handlerName, notificationName);
 
-                    var stopwatch = Stopwatch.StartNew();
-                    await handler.HandlerCallback(notification, cancellationToken);
-                    stopwatch.Stop();
+                var handlerName = handler.HandlerInstance.GetType().Name;
+                var notificationName = notification.GetType().Name;
+                _log.NotificationHandlerExecuting(handlerName, notificationName);
 
-                    _log.NotificationHandlerExecuted(handlerName, notificationName, stopwatch.ElapsedMilliseconds);
-                }
+                var stopwatch = Stopwatch.StartNew();
+                await handler.HandlerCallback(notification, cancellationToken);
+                stopwatch.Stop();
+
+                _log.NotificationHandlerExecuted(handlerName, notificationName, stopwatch.ElapsedMilliseconds);
             });
 
         var whenAllTask = Task.WhenAll(tasks);
