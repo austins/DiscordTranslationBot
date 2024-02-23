@@ -9,10 +9,10 @@ COPY . ./$PROJECT_NAME
 # Restore as distinct layers
 RUN dotnet restore $PROJECT_NAME
 # Build and publish a release
-RUN dotnet publish $PROJECT_NAME -c Release -o ./publish
+RUN dotnet publish $PROJECT_NAME -c Release --property:PublishDir=./publish
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 # Install cultures
 RUN apk add --no-cache icu-libs
