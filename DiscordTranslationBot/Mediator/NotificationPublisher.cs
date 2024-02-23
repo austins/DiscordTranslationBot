@@ -33,21 +33,29 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         var tasks = handlerExecutors.Select(
             async handler =>
             {
-                if (notification is LogNotification)
-                {
-                    await handler.HandlerCallback(notification, cancellationToken);
-                    return;
-                }
-
                 var handlerName = handler.HandlerInstance.GetType().Name;
-                var notificationName = notification.GetType().Name;
-                _log.NotificationHandlerExecuting(handlerName, notificationName);
 
-                var stopwatch = Stopwatch.StartNew();
-                await handler.HandlerCallback(notification, cancellationToken);
-                stopwatch.Stop();
+                try
+                {
+                    if (notification is LogNotification)
+                    {
+                        await handler.HandlerCallback(notification, cancellationToken);
+                        return;
+                    }
 
-                _log.NotificationHandlerExecuted(handlerName, notificationName, stopwatch.ElapsedMilliseconds);
+                    var notificationName = notification.GetType().Name;
+                    _log.NotificationHandlerExecuting(handlerName, notificationName);
+
+                    var stopwatch = Stopwatch.StartNew();
+                    await handler.HandlerCallback(notification, cancellationToken);
+                    stopwatch.Stop();
+
+                    _log.NotificationHandlerExecuted(handlerName, notificationName, stopwatch.ElapsedMilliseconds);
+                }
+                catch (Exception ex)
+                {
+                    _log.FailureInNotificationHandler(ex, handlerName);
+                }
             });
 
         var whenAllTask = Task.WhenAll(tasks);
@@ -55,17 +63,10 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         {
             await whenAllTask;
         }
-        catch (Exception)
+        catch (Exception) when (whenAllTask.Status == TaskStatus.Faulted)
         {
-            if (whenAllTask.Exception is null)
-            {
-                throw;
-            }
-
-            foreach (var innerException in whenAllTask.Exception.InnerExceptions)
-            {
-                _log.FailureInNotificationHandler(innerException);
-            }
+            // WhenAll faulted from an exception thrown in a handler.
+            // Exceptions thrown in handlers are handled already, so ensure not to rethrow.
         }
     }
 
@@ -92,7 +93,9 @@ public sealed partial class NotificationPublisher : INotificationPublisher
             string notificationName,
             long elapsedMilliseconds);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "An exception has occurred in a notification handler.")]
-        public partial void FailureInNotificationHandler(Exception ex);
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "An exception has occurred in notification handler '{handlerName}'.")]
+        public partial void FailureInNotificationHandler(Exception ex, string handlerName);
     }
 }

@@ -18,19 +18,17 @@ public sealed class NotificationPublisherTests
     public async Task Publish_SuccessAndLogs()
     {
         // Arrange
-        var notification = Substitute.For<INotification>();
-        var notificationName = notification.GetType().Name;
+        var notification = new NotificationFake();
 
-        var handler1 = Substitute.For<INotificationHandler<INotification>>();
-        var handler2 = Substitute.For<INotificationHandler<INotification>>();
-        var expectedHandlerName = handler1.GetType().Name;
+        var successHandler = new SuccessNotificationHandlerFake();
 
         var expectedException = new InvalidOperationException();
+        var failHandler = new FailNotificationHandlerFake(expectedException);
 
         var handlers = new List<NotificationHandlerExecutor>
         {
-            new(handler1, (_, _) => Task.CompletedTask),
-            new(handler2, (_, _) => throw expectedException)
+            new(successHandler, (_, cancellationToken) => successHandler.Handle(notification, cancellationToken)),
+            new(failHandler, (_, cancellationToken) => failHandler.Handle(notification, cancellationToken))
         };
 
         // Act & Assert
@@ -38,17 +36,50 @@ public sealed class NotificationPublisherTests
 
         _logger.Entries.Should()
             .HaveCount(4)
-            .And.Contain(
+            .And
+            .ContainSingle(
                 x => x.LogLevel == LogLevel.Information
                     && x.Message
-                    == $"Executing notification handler '{expectedHandlerName}' for '{notificationName}'...")
+                    == $"Executing notification handler '{nameof(SuccessNotificationHandlerFake)}' for '{nameof(NotificationFake)}'...")
             .And.ContainSingle(
                 x => x.LogLevel == LogLevel.Information
                     && x.Message.StartsWith(
-                        $"Executed notification handler '{expectedHandlerName}' for '{notificationName}'. Elapsed time:"))
+                        $"Executed notification handler '{nameof(SuccessNotificationHandlerFake)}' for '{nameof(NotificationFake)}'. Elapsed time:"))
+            .And.ContainSingle(
+                x => x.LogLevel == LogLevel.Information
+                    && x.Message
+                    == $"Executing notification handler '{nameof(FailNotificationHandlerFake)}' for '{nameof(NotificationFake)}'...")
             .And.ContainSingle(
                 x => x.LogLevel == LogLevel.Error
                     && x.Exception!.GetType() == expectedException.GetType()
-                    && x.Message == "An exception has occurred in a notification handler.");
+                    && x.Message
+                    == $"An exception has occurred in notification handler '{nameof(FailNotificationHandlerFake)}'.");
+    }
+
+    private sealed class NotificationFake : INotification
+    {
+    }
+
+    private sealed class SuccessNotificationHandlerFake : INotificationHandler<NotificationFake>
+    {
+        public Task Handle(NotificationFake notification, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FailNotificationHandlerFake : INotificationHandler<NotificationFake>
+    {
+        private readonly Exception _expectedException;
+
+        public FailNotificationHandlerFake(Exception expectedException)
+        {
+            _expectedException = expectedException;
+        }
+
+        public Task Handle(NotificationFake notification, CancellationToken cancellationToken)
+        {
+            throw _expectedException;
+        }
     }
 }
