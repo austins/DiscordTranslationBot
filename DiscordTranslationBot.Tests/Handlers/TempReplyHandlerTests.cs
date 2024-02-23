@@ -1,94 +1,51 @@
+using System.Net;
 using Discord;
-using DiscordTranslationBot.Commands.TempReply;
+using Discord.Net;
+using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models.Discord;
-using MediatR;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
 public sealed class TempReplyHandlerTests
 {
-    private readonly IMediator _mediator;
-
     private readonly TempReplyHandler _sut;
 
     public TempReplyHandlerTests()
     {
-        _mediator = Substitute.For<IMediator>();
-
-        _sut = new TempReplyHandler(_mediator, new LoggerFake<TempReplyHandler>());
+        _sut = new TempReplyHandler(new LoggerFake<TempReplyHandler>());
     }
 
-    [Test]
-    public async Task Handle_DeleteTempReply_Success_WithReactionAndSourceMessage()
-    {
-        // Arrange
-        var request = new DeleteTempReply
-        {
-            Reply = Substitute.For<IMessage>(),
-            Reaction = new Reaction
-            {
-                UserId = 1,
-                Emote = Substitute.For<IEmote>()
-            },
-            SourceMessage = Substitute.For<IMessage>()
-        };
-
-        var sourceMessage = Substitute.For<IMessage>();
-        request.Reply.Channel.GetMessageAsync(default).ReturnsForAnyArgs(sourceMessage);
-
-        // Act
-        await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await request.Reply.Channel.Received(1)
-            .GetMessageAsync(
-                Arg.Is<ulong>(x => x == request.SourceMessage.Id),
-                Arg.Any<CacheMode>(),
-                Arg.Any<RequestOptions>());
-
-        await sourceMessage.Received(1)
-            .RemoveReactionAsync(
-                Arg.Is<IEmote>(x => x == request.Reaction.Emote),
-                Arg.Is<ulong>(x => x == request.Reaction.UserId),
-                Arg.Any<RequestOptions>());
-
-        await request.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
-    }
-
-    [Test]
-    public async Task Handle_DeleteTempReply_Success_NoReactionAndSourceMessage()
-    {
-        // Arrange
-        var request = new DeleteTempReply
-        {
-            Reply = Substitute.For<IMessage>(),
-            Reaction = null,
-            SourceMessage = Substitute.For<IMessage>()
-        };
-
-        // Act
-        await _sut.Handle(request, CancellationToken.None);
-
-        // Assert
-        await request.Reply.Channel.DidNotReceiveWithAnyArgs().GetMessageAsync(default);
-
-        await request.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
-    }
-
-    [Test]
-    public async Task Handle_SendTempReply_Success()
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task Handle_SendTempReply_Success(bool hasReaction)
     {
         // Arrange
         var request = new SendTempReply
         {
             Text = "test",
-            Reaction = null,
-            SourceMessage = Substitute.For<IMessage>(),
-            DeletionDelayInSeconds = 10
+            Reaction = hasReaction
+                ? new Reaction
+                {
+                    UserId = 1,
+                    Emote = Substitute.For<IEmote>()
+                }
+                : null,
+            SourceMessage = Substitute.For<IUserMessage>(),
+            DeletionDelay = TimeSpan.FromTicks(1)
         };
 
-        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(Substitute.For<IUserMessage>());
+        var reply = Substitute.For<IUserMessage>();
+        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+
+        if (hasReaction)
+        {
+            reply.Channel.GetMessageAsync(
+                    Arg.Is<ulong>(x => x == request.SourceMessage.Id),
+                    Arg.Any<CacheMode>(),
+                    Arg.Any<RequestOptions>())
+                .Returns(request.SourceMessage);
+        }
 
         // Act
         await _sut.Handle(request, CancellationToken.None);
@@ -98,9 +55,47 @@ public sealed class TempReplyHandlerTests
 
         await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        await _mediator.Received(1)
-            .Send(
-                Arg.Is<DeleteTempReply>(x => x.Delay == TimeSpan.FromSeconds(request.DeletionDelayInSeconds)),
-                Arg.Any<CancellationToken>());
+        await reply.Channel.Received(hasReaction ? 1 : 0)
+            .GetMessageAsync(
+                Arg.Is<ulong>(x => x == request.SourceMessage.Id),
+                Arg.Any<CacheMode>(),
+                Arg.Any<RequestOptions>());
+
+        await request.SourceMessage.Received(hasReaction ? 1 : 0)
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+
+        await reply.ReceivedWithAnyArgs(1).DeleteAsync();
+    }
+
+    [Test]
+    public async Task Handle_SendTempReply_Success_TempReplyAlreadyDeleted()
+    {
+        // Arrange
+        var request = new SendTempReply
+        {
+            Text = "test",
+            Reaction = null,
+            SourceMessage = Substitute.For<IUserMessage>(),
+            DeletionDelay = TimeSpan.FromTicks(1)
+        };
+
+        var reply = Substitute.For<IUserMessage>();
+        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+
+        reply.DeleteAsync(Arg.Any<RequestOptions>())
+            .ThrowsAsync(
+                new HttpException(
+                    HttpStatusCode.NotFound,
+                    Substitute.For<IRequest>(),
+                    DiscordErrorCode.UnknownMessage));
+
+        // Act & Assert
+        await _sut.Invoking(x => x.Handle(request, CancellationToken.None)).Should().NotThrowAsync();
+
+        request.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
+
+        await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
+
+        await reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }
 }

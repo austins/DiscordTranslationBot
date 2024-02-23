@@ -1,21 +1,20 @@
 using System.Diagnostics;
-using AsyncAwaitBestPractices;
 using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Mediator;
 
 /// <summary>
-/// Mediator notification publisher that publishes notifications in the background.
+/// Mediator notification publisher that runs notification handlers concurrently and outputs logs of performance.
 /// </summary>
-internal sealed partial class BackgroundNotificationPublisher : INotificationPublisher
+internal sealed partial class NotificationPublisher : INotificationPublisher
 {
     private readonly Log _log;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="BackgroundNotificationPublisher" /> class.
+    /// Initializes a new instance of the <see cref="NotificationPublisher" /> class.
     /// </summary>
     /// <param name="logger">Logger to use.</param>
-    public BackgroundNotificationPublisher(ILogger<BackgroundNotificationPublisher> logger)
+    public NotificationPublisher(ILogger<NotificationPublisher> logger)
     {
         _log = new Log(logger);
     }
@@ -26,16 +25,13 @@ internal sealed partial class BackgroundNotificationPublisher : INotificationPub
     /// <param name="handlerExecutors">The notification handlers.</param>
     /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public Task Publish(
+    public async Task Publish(
         IEnumerable<NotificationHandlerExecutor> handlerExecutors,
         INotification notification,
         CancellationToken cancellationToken)
     {
-        foreach (var handler in handlerExecutors)
-        {
-            ExecuteNotificationAsync().SafeFireAndForget(ex => _log.FailureInNotificationHandler(ex));
-
-            async Task ExecuteNotificationAsync()
+        var tasks = handlerExecutors.Select(
+            async handler =>
             {
                 if (notification is LogNotification)
                 {
@@ -53,17 +49,32 @@ internal sealed partial class BackgroundNotificationPublisher : INotificationPub
 
                     _log.NotificationHandlerExecuted(handlerName, notificationName, stopwatch.ElapsedMilliseconds);
                 }
+            });
+
+        var whenAllTask = Task.WhenAll(tasks);
+        try
+        {
+            await whenAllTask;
+        }
+        catch (Exception)
+        {
+            if (whenAllTask.Exception is null)
+            {
+                throw;
+            }
+
+            foreach (var innerException in whenAllTask.Exception.InnerExceptions)
+            {
+                _log.FailureInNotificationHandler(innerException);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private sealed partial class Log
     {
-        private readonly ILogger<BackgroundNotificationPublisher> _logger;
+        private readonly ILogger<NotificationPublisher> _logger;
 
-        public Log(ILogger<BackgroundNotificationPublisher> logger)
+        public Log(ILogger<NotificationPublisher> logger)
         {
             _logger = logger;
         }

@@ -1,5 +1,5 @@
 using Discord;
-using DiscordTranslationBot.Commands.TempReply;
+using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Notifications;
@@ -162,7 +162,7 @@ public partial class FlagEmojiReactionHandler : INotificationHandler<ReactionAdd
                 Text = replyText,
                 Reaction = notification.Reaction,
                 SourceMessage = notification.Message,
-                DeletionDelayInSeconds = 20
+                DeletionDelay = TimeSpan.FromSeconds(20)
             },
             cancellationToken);
     }

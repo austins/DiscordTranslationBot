@@ -1,9 +1,9 @@
 using Discord;
-using DiscordTranslationBot.Commands.TempReply;
+using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Models.Discord;
 
-namespace DiscordTranslationBot.Tests.Commands.TempReply;
+namespace DiscordTranslationBot.Tests.Commands.TempReplies;
 
 public sealed class SendTempReplyTests
 {
@@ -19,8 +19,8 @@ public sealed class SendTempReplyTests
                 UserId = 1,
                 Emote = Substitute.For<IEmote>()
             },
-            SourceMessage = Substitute.For<IMessage>(),
-            DeletionDelayInSeconds = 20
+            SourceMessage = Substitute.For<IUserMessage>(),
+            DeletionDelay = TimeSpan.FromSeconds(10)
         };
 
         // Act
@@ -34,7 +34,7 @@ public sealed class SendTempReplyTests
     [TestCase(null)]
     [TestCase("")]
     [TestCase(" ")]
-    public void Invalid_Reply_HasValidationErrors(string? text)
+    public void Invalid_Properties_HasValidationErrors(string? text)
     {
         // Arrange
         var command = new SendTempReply
@@ -54,5 +54,32 @@ public sealed class SendTempReplyTests
             .HaveCount(2)
             .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.Text)))
             .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
+    }
+
+    [Test]
+    public void Invalid_DeletionDelay_HasValidationError()
+    {
+        // Arrange
+        var command = new SendTempReply
+        {
+            Text = "test",
+            Reaction = new Reaction
+            {
+                UserId = 1,
+                Emote = Substitute.For<IEmote>()
+            },
+            SourceMessage = Substitute.For<IUserMessage>(),
+            DeletionDelay = TimeSpan.Zero
+        };
+
+        // Act
+        var isValid = command.TryValidateObject(out var validationResults);
+
+        // Assert
+        isValid.Should().BeFalse();
+
+        validationResults.Should()
+            .HaveCount(1)
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.DeletionDelay)));
     }
 }

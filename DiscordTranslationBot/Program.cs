@@ -33,18 +33,17 @@ await Host.CreateDefaultBuilder(args)
                             MessageCacheSize = 100,
                             UseInteractionSnowflakeDate = false
                         }))
-                .AddSingleton<DiscordEventListener>()
                 .AddMediatR(
                     c =>
                     {
                         c.Lifetime = ServiceLifetime.Singleton;
-                        c.NotificationPublisherType = typeof(BackgroundNotificationPublisher);
+                        c.NotificationPublisherType = typeof(NotificationPublisher);
 
                         c.RegisterServicesFromAssemblyContaining<Program>()
                             .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton)
-                            .AddOpenBehavior(typeof(BackgroundCommandBehavior<,>), ServiceLifetime.Singleton)
                             .AddOpenBehavior(typeof(LogElapsedTimeBehavior<,>), ServiceLifetime.Singleton);
                     })
+                .AddSingleton<DiscordEventListener>()
                 .AddHostedService<Worker>();
         })
     .Build()

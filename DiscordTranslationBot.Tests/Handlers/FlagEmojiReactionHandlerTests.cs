@@ -1,5 +1,5 @@
 using Discord;
-using DiscordTranslationBot.Commands.TempReply;
+using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Exceptions;
 using DiscordTranslationBot.Handlers;
 using DiscordTranslationBot.Models;

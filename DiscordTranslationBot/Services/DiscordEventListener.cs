@@ -1,3 +1,4 @@
+using AsyncAwaitBestPractices;
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Models.Discord;
@@ -33,25 +34,25 @@ internal sealed partial class DiscordEventListener
     /// <param name="cancellationToken">Cancellation token to use.</param>
     public Task InitializeEventsAsync(CancellationToken cancellationToken)
     {
-        _client.Ready += () => _mediator.Publish(new ReadyNotification(), cancellationToken);
+        _client.Ready += () => PublishInBackgroundAsync(new ReadyNotification(), cancellationToken);
 
-        _client.JoinedGuild += guild => _mediator.Publish(
+        _client.JoinedGuild += guild => PublishInBackgroundAsync(
             new JoinedGuildNotification { Guild = guild },
             cancellationToken);
 
-        _client.Log += logMessage => _mediator.Publish(
+        _client.Log += logMessage => PublishInBackgroundAsync(
             new LogNotification { LogMessage = logMessage },
             cancellationToken);
 
-        _client.MessageCommandExecuted += command => _mediator.Publish(
+        _client.MessageCommandExecuted += command => PublishInBackgroundAsync(
             new MessageCommandExecutedNotification { Command = command },
             cancellationToken);
 
-        _client.SlashCommandExecuted += command => _mediator.Publish(
+        _client.SlashCommandExecuted += command => PublishInBackgroundAsync(
             new SlashCommandExecutedNotification { Command = command },
             cancellationToken);
 
-        _client.ReactionAdded += async (message, _, reaction) => await _mediator.Publish(
+        _client.ReactionAdded += async (message, _, reaction) => await PublishInBackgroundAsync(
             new ReactionAddedNotification
             {
                 Message = await message.GetOrDownloadAsync(),
@@ -67,6 +68,14 @@ internal sealed partial class DiscordEventListener
         return Task.CompletedTask;
     }
 
+    private Task PublishInBackgroundAsync(INotification notification, CancellationToken cancellationToken)
+    {
+        _mediator.Publish(notification, cancellationToken)
+            .SafeFireAndForget(ex => _log.FailedToPublishNotification(ex, notification.GetType().Name));
+
+        return Task.CompletedTask;
+    }
+
     private sealed partial class Log
     {
         private readonly ILogger<DiscordEventListener> _logger;
@@ -78,5 +87,8 @@ internal sealed partial class DiscordEventListener
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
         public partial void EventsInitialized();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification '{notificationName}'.")]
+        public partial void FailedToPublishNotification(Exception ex, string notificationName);
     }
 }
