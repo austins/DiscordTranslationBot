@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Discord;
 
 namespace DiscordTranslationBot.Notifications;
@@ -10,5 +11,6 @@ public sealed class SlashCommandExecutedNotification : INotification
     /// <summary>
     /// The slash command.
     /// </summary>
+    [Required]
     public required ISlashCommandInteraction Command { get; init; }
 }

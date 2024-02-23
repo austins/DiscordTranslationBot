@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Discord;
 
 namespace DiscordTranslationBot.Notifications;
@@ -10,5 +11,6 @@ public sealed class JoinedGuildNotification : INotification
     /// <summary>
     /// The guild that the bot joined.
     /// </summary>
+    [Required]
     public required IGuild Guild { get; init; }
 }
