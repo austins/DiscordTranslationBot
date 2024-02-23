@@ -1,25 +1,17 @@
+# Build and publish.
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
 WORKDIR /app
+COPY . .
+RUN dotnet publish DiscordTranslationBot -c Release
 
-ARG PROJECT_NAME=DiscordTranslationBot
-
-# Copy what we need
-COPY . ./Directory.Build.props
-COPY . ./$PROJECT_NAME
-# Restore as distinct layers
-RUN dotnet restore $PROJECT_NAME
-# Build and publish a release
-RUN dotnet publish $PROJECT_NAME -c Release --property:PublishDir=./publish
-
-# Build runtime image
+# Create runtime image.
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
-# Install cultures
+# Install cultures and disable the invariant mode.
 RUN apk add --no-cache icu-libs
-# Disable the invariant mode
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 WORKDIR /app
-COPY --from=build-env /app/publish .
+COPY --from=build-env /app/DiscordTranslationBot/bin/Release/net8.0/publish .
 ENV DOTNET_EnableDiagnostics=0
 ENTRYPOINT ["dotnet", "DiscordTranslationBot.dll"]
