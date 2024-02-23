@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Notifications;
 
 namespace DiscordTranslationBot.Mediator;
@@ -30,6 +31,11 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         INotification notification,
         CancellationToken cancellationToken)
     {
+        if (!notification.TryValidateObject(out var validationResults))
+        {
+            throw new NotificationValidationException(notification.GetType().Name, validationResults);
+        }
+
         var tasks = handlerExecutors.Select(
             async handler =>
             {

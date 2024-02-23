@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Mediator;
+﻿using System.ComponentModel.DataAnnotations;
+using DiscordTranslationBot.Mediator;
 using MediatR;
 
 namespace DiscordTranslationBot.Tests.Mediator;
@@ -12,6 +13,27 @@ public sealed class NotificationPublisherTests
     {
         _logger = new LoggerFake<NotificationPublisher>();
         _sut = new NotificationPublisher(_logger);
+    }
+
+    [Test]
+    public async Task Publish_Invalid_Notification_ValidatesWithError()
+    {
+        // Arrange
+        var notification = new NotificationWithValidationFake { Test = null };
+
+        var successHandler = new SuccessNotificationHandlerFake();
+
+        var handlers = new List<NotificationHandlerExecutor>
+        {
+            new(successHandler, (_, cancellationToken) => successHandler.Handle(notification, cancellationToken))
+        };
+
+        // Act & Assert
+        await _sut.Invoking(x => x.Publish(handlers, notification, CancellationToken.None))
+            .Should()
+            .ThrowAsync<NotificationValidationException>()
+            .Where(
+                x => x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(NotificationWithValidationFake.Test))));
     }
 
     [Test]
@@ -60,9 +82,21 @@ public sealed class NotificationPublisherTests
     {
     }
 
-    private sealed class SuccessNotificationHandlerFake : INotificationHandler<NotificationFake>
+    private sealed class NotificationWithValidationFake : INotification
+    {
+        [Required]
+        public string? Test { get; init; }
+    }
+
+    private sealed class SuccessNotificationHandlerFake
+        : INotificationHandler<NotificationFake>, INotificationHandler<NotificationWithValidationFake>
     {
         public Task Handle(NotificationFake notification, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(NotificationWithValidationFake notification, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }

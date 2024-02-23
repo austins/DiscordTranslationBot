@@ -2,22 +2,25 @@
 
 namespace DiscordTranslationBot.Mediator;
 
-public sealed class RequestValidationException : Exception
+public class RequestValidationException : Exception
 {
     public RequestValidationException(
-        string requestName,
+        string objectName,
         IReadOnlyList<ValidationResult> validationResults,
-        Exception? innerException = null)
-        : base(BuildMessage(requestName, validationResults), innerException)
+        RequestValidationExceptionType type = RequestValidationExceptionType.Request)
+        : base(BuildMessage(type, objectName, validationResults))
     {
         ValidationResults = validationResults;
     }
 
     public IReadOnlyList<ValidationResult> ValidationResults { get; }
 
-    private static string BuildMessage(string requestName, IEnumerable<ValidationResult> validationResults)
+    private static string BuildMessage(
+        RequestValidationExceptionType type,
+        string objectName,
+        IEnumerable<ValidationResult> validationResults)
     {
-        return $"Request validation failed for '{requestName}':{string.Concat(
+        return $"{type.ToStringFast()} validation failed for '{objectName}':{string.Concat(
             validationResults.Select(
                 x =>
                     $"{Environment.NewLine} -- Members: '{string.Join(", ", x.MemberNames)}' with the error: '{x.ErrorMessage}'."))}";
