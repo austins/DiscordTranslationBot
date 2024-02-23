@@ -20,7 +20,7 @@ public sealed partial class NotificationPublisher : INotificationPublisher
     }
 
     /// <summary>
-    /// Publishes a notification to any notification handlers in the background.
+    /// Publishes a notification to any notification handlers concurrently.
     /// </summary>
     /// <param name="handlerExecutors">The notification handlers.</param>
     /// <param name="notification">The notification.</param>
