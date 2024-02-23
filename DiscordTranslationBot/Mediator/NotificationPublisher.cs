@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Mediator;
 /// <summary>
 /// Mediator notification publisher that runs notification handlers concurrently and outputs logs of performance.
 /// </summary>
-internal sealed partial class NotificationPublisher : INotificationPublisher
+public sealed partial class NotificationPublisher : INotificationPublisher
 {
     private readonly Log _log;
 

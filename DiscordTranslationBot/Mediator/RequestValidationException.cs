@@ -15,7 +15,7 @@ public sealed class RequestValidationException : Exception
 
     public IReadOnlyList<ValidationResult> ValidationResults { get; }
 
-    private static string BuildMessage(string requestName, IReadOnlyList<ValidationResult> validationResults)
+    private static string BuildMessage(string requestName, IEnumerable<ValidationResult> validationResults)
     {
         return $"Request validation failed for '{requestName}':{string.Concat(
             validationResults.Select(
