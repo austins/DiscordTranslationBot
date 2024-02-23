@@ -1,8 +1,10 @@
 ﻿{
+    "$schema": "http://json.schemastore.org/launchsettings.json",
     "profiles": {
         "DiscordTranslationBot": {
             "commandName": "Project",
             "dotnetRunMessages": true,
+            "applicationUrl": "http://localhost:8080",
             "environmentVariables": {
                 "DOTNET_ENVIRONMENT": "Development"
             }
