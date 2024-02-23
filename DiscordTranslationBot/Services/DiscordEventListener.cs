@@ -1,4 +1,3 @@
-using AsyncAwaitBestPractices;
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Models.Discord;
@@ -70,8 +69,19 @@ internal sealed partial class DiscordEventListener
 
     private Task PublishInBackgroundAsync(INotification notification, CancellationToken cancellationToken)
     {
-        _mediator.Publish(notification, cancellationToken)
-            .SafeFireAndForget(ex => _log.FailedToPublishNotification(ex, notification.GetType().Name));
+        _ = Task.Run(
+            async () =>
+            {
+                try
+                {
+                    await _mediator.Publish(notification, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _log.FailedToPublishNotification(ex, notification.GetType().Name);
+                }
+            },
+            cancellationToken);
 
         return Task.CompletedTask;
     }
