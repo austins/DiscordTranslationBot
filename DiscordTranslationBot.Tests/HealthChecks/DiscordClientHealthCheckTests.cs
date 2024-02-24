@@ -1,5 +1,5 @@
 ﻿using Discord;
-using DiscordTranslationBot.HealthChecks;
+using DiscordTranslationBot.Discord;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace DiscordTranslationBot.Tests.HealthChecks;

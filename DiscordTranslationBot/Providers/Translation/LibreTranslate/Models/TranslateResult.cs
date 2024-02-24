@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using DiscordTranslationBot.Models.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 

@@ -1,5 +1,7 @@
-using DiscordTranslationBot.Configuration.TranslationProviders;
 using DiscordTranslationBot.Extensions;
+using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.AzureTranslator;
+using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 
 namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
 

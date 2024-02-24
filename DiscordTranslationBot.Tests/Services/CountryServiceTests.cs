@@ -1,4 +1,4 @@
-using DiscordTranslationBot.Services;
+using DiscordTranslationBot.Countries.Services;
 using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Services;

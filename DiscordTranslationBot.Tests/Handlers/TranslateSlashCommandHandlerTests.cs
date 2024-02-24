@@ -1,9 +1,8 @@
 using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -94,7 +93,7 @@ public sealed class TranslateSlashCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var notification = new SlashCommandExecutedNotification { Command = command };
+        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -125,16 +124,16 @@ public sealed class TranslateSlashCommandHandlerTests
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedNotification { Command = command };
+        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _ = notification.Command.Data.Received(1).Name;
-        _ = notification.Command.Data.DidNotReceive().Options;
+        _ = notification.SlashCommand.Data.Received(1).Name;
+        _ = notification.SlashCommand.Data.DidNotReceive().Options;
 
-        await notification.Command.DidNotReceive()
+        await notification.SlashCommand.DidNotReceive()
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
@@ -154,7 +153,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var command = Substitute.For<ISlashCommandInteraction>();
         command.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedNotification { Command = command };
+        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -243,7 +242,7 @@ public sealed class TranslateSlashCommandHandlerTests
                     TranslatedText = text
                 });
 
-        var notification = new SlashCommandExecutedNotification { Command = command };
+        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);

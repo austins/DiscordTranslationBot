@@ -2,13 +2,14 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
-using DiscordTranslationBot.Configuration;
+using DiscordTranslationBot.Countries.Services;
+using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
-using DiscordTranslationBot.HealthChecks;
 using DiscordTranslationBot.Mediator;
-using DiscordTranslationBot.Services;
+using DiscordTranslationBot.Providers.Translation;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.Logging.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff ");
@@ -41,8 +42,8 @@ builder.Services.AddTranslationProviders(builder.Configuration)
             c.NotificationPublisherType = typeof(NotificationPublisher);
 
             c.RegisterServicesFromAssemblyContaining<Program>()
-                .AddOpenBehavior(typeof(ValidationBehavior<,>), ServiceLifetime.Singleton)
-                .AddOpenBehavior(typeof(LogElapsedTimeBehavior<,>), ServiceLifetime.Singleton);
+                .AddOpenBehavior(typeof(RequestValidationBehavior<,>), ServiceLifetime.Singleton)
+                .AddOpenBehavior(typeof(RequestElapsedTimeLoggingBehavior<,>), ServiceLifetime.Singleton);
         })
     .AddSingleton<DiscordEventListener>()
     .AddHostedService<Worker>();

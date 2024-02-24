@@ -1,9 +1,8 @@
 using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -72,7 +71,7 @@ public sealed class TranslateMessageCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -94,16 +93,16 @@ public sealed class TranslateMessageCommandHandlerTests
         // Arrange
         _command.Data.Name.Returns("not_the_translate_command");
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _ = notification.Command.Data.Received(1).Name;
-        _ = notification.Command.Data.Message.Author.DidNotReceive().Id;
+        _ = notification.MessageCommand.Data.Received(1).Name;
+        _ = notification.MessageCommand.Data.Message.Author.DidNotReceive().Id;
 
-        await notification.Command.DidNotReceive()
+        await notification.MessageCommand.DidNotReceive()
             .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
     }
 
@@ -113,7 +112,7 @@ public sealed class TranslateMessageCommandHandlerTests
         // Arrange
         _message.Content.Returns(string.Empty);
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -160,7 +159,7 @@ public sealed class TranslateMessageCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -181,7 +180,7 @@ public sealed class TranslateMessageCommandHandlerTests
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -220,7 +219,7 @@ public sealed class TranslateMessageCommandHandlerTests
                 .ThrowsAsync(new InvalidOperationException("test"));
         }
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -263,7 +262,7 @@ public sealed class TranslateMessageCommandHandlerTests
                     TranslatedText = text
                 });
 
-        var notification = new MessageCommandExecutedNotification { Command = _command };
+        var notification = new MessageCommandExecutedEvent { MessageCommand = _command };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);

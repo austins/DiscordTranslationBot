@@ -1,5 +1,5 @@
-using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 
@@ -73,10 +73,14 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure("Languages endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
+            _log.ResponseFailure(
+                "Languages endpoint returned unsuccessful status code.",
+                response.StatusCode,
+                response.Error);
 
             throw new InvalidOperationException(
-                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
+                $"Languages endpoint returned unsuccessful status code {response.StatusCode}.",
+                response.Error);
         }
 
         if (response.Content?.LangCodes?.Any() != true)
@@ -121,14 +125,18 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             result.TargetLanguageCode,
             new List<TranslateRequest> { new() { Text = text } },
             cancellationToken,
-            sourceLangCode: sourceLanguage?.LangCode);
+            sourceLanguage?.LangCode);
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure("Translate endpoint returned unsuccessful status code.", response.StatusCode, response.Error);
+            _log.ResponseFailure(
+                "Translate endpoint returned unsuccessful status code.",
+                response.StatusCode,
+                response.Error);
 
             throw new InvalidOperationException(
-                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.", response.Error);
+                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.",
+                response.Error);
         }
 
         var translation = response.Content?.FirstOrDefault();

@@ -2,18 +2,17 @@ using System.Net;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Commands.TempReplies;
-using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Models.Discord;
+using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
-public sealed class TempReplyHandlerTests
+public sealed class SendTempReplyHandlerTests
 {
-    private readonly TempReplyHandler _sut;
+    private readonly SendTempReplyHandler _sut;
 
-    public TempReplyHandlerTests()
+    public SendTempReplyHandlerTests()
     {
-        _sut = new TempReplyHandler(new LoggerFake<TempReplyHandler>());
+        _sut = new SendTempReplyHandler(new LoggerFake<SendTempReplyHandler>());
     }
 
     [TestCase(true)]
@@ -24,8 +23,8 @@ public sealed class TempReplyHandlerTests
         var request = new SendTempReply
         {
             Text = "test",
-            Reaction = hasReaction
-                ? new Reaction
+            ReactionMetadata = hasReaction
+                ? new ReactionMetadata
                 {
                     UserId = 1,
                     Emote = Substitute.For<IEmote>()
@@ -74,7 +73,7 @@ public sealed class TempReplyHandlerTests
         var request = new SendTempReply
         {
             Text = "test",
-            Reaction = null,
+            ReactionMetadata = null,
             SourceMessage = Substitute.For<IUserMessage>(),
             DeletionDelay = TimeSpan.FromTicks(1)
         };

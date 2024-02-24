@@ -1,8 +1,8 @@
 using System.Net;
-using DiscordTranslationBot.Models;
-using DiscordTranslationBot.Models.Providers.Translation;
+using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
+using DiscordTranslationBot.Providers.Translation.Models;
 using NeoSmart.Unicode;
 using Refit;
 using Languages = DiscordTranslationBot.Providers.Translation.AzureTranslator.Models.Languages;

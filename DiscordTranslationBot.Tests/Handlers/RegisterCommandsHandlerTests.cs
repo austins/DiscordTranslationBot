@@ -1,8 +1,7 @@
 using Discord;
-using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -52,7 +51,7 @@ public sealed class RegisterCommandsHandlerTests
                 }
             });
 
-        var notification = new ReadyNotification();
+        var notification = new ReadyEvent();
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -74,7 +73,7 @@ public sealed class RegisterCommandsHandlerTests
         // Arrange
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(new List<IGuild>());
 
-        var notification = new ReadyNotification();
+        var notification = new ReadyEvent();
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -99,7 +98,7 @@ public sealed class RegisterCommandsHandlerTests
                 }
             });
 
-        var notification = new JoinedGuildNotification { Guild = Substitute.For<IGuild>() };
+        var notification = new JoinedGuildEvent { Guild = Substitute.For<IGuild>() };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);

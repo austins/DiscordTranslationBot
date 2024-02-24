@@ -1,9 +1,10 @@
 using Discord;
 using Discord.WebSocket;
-using DiscordTranslationBot.Configuration;
+using DiscordTranslationBot.Countries.Services;
+using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Services;
 using Microsoft.Extensions.Options;
+using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
 
 namespace DiscordTranslationBot;
 

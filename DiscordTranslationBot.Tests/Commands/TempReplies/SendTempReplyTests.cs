@@ -1,7 +1,7 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Extensions;
-using DiscordTranslationBot.Models.Discord;
+using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReplies;
 
@@ -14,7 +14,7 @@ public sealed class SendTempReplyTests
         var command = new SendTempReply
         {
             Text = "test",
-            Reaction = new Reaction
+            ReactionMetadata = new ReactionMetadata
             {
                 UserId = 1,
                 Emote = Substitute.For<IEmote>()
@@ -40,7 +40,7 @@ public sealed class SendTempReplyTests
         var command = new SendTempReply
         {
             Text = text!,
-            Reaction = null,
+            ReactionMetadata = null,
             SourceMessage = null!
         };
 
@@ -63,7 +63,7 @@ public sealed class SendTempReplyTests
         var command = new SendTempReply
         {
             Text = "test",
-            Reaction = new Reaction
+            ReactionMetadata = new ReactionMetadata
             {
                 UserId = 1,
                 Emote = Substitute.For<IEmote>()

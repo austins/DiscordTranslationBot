@@ -1,4 +1,4 @@
-using DiscordTranslationBot.Configuration;
+using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Tests.Configuration;

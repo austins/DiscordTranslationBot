@@ -1,14 +1,13 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
-using DiscordTranslationBot.Exceptions;
-using DiscordTranslationBot.Handlers;
-using DiscordTranslationBot.Models;
-using DiscordTranslationBot.Models.Discord;
-using DiscordTranslationBot.Models.Providers.Translation;
-using DiscordTranslationBot.Notifications;
+using DiscordTranslationBot.Countries.Exceptions;
+using DiscordTranslationBot.Countries.Models;
+using DiscordTranslationBot.Countries.Services;
+using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Services;
+using DiscordTranslationBot.Providers.Translation.Models;
 using MediatR;
+using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Tests.Handlers;
 
@@ -72,10 +71,10 @@ test
     public async Task Handle_ReactionAddedNotification_Returns_IfNotEmoji()
     {
         // Arrange
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji("not_an_emoji")
@@ -98,10 +97,10 @@ test
     public async Task Handle_ReactionAddedNotification_Returns_IfCountryNotFound()
     {
         // Arrange
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -141,10 +140,10 @@ test
                     return true;
                 });
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -189,10 +188,10 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -231,10 +230,10 @@ test
 
         _message.Content.Returns(string.Empty);
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -272,10 +271,10 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -315,10 +314,10 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
@@ -363,10 +362,10 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var notification = new ReactionAddedNotification
+        var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new Reaction
+            Reaction = new ReactionMetadata
             {
                 UserId = 1UL,
                 Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
