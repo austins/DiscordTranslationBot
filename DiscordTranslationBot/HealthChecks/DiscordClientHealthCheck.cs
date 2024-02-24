@@ -25,6 +25,7 @@ public sealed class DiscordClientHealthCheck : IHealthCheck
 
         if (_client.ConnectionState is ConnectionState.Connected)
         {
+            // The guilds list should already be cached by now.
             data.Add(
                 "GuildCount",
                 (await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })).Count);

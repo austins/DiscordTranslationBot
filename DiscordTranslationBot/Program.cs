@@ -47,12 +47,15 @@ builder.Services.AddTranslationProviders(builder.Configuration)
     .AddSingleton<DiscordEventListener>()
     .AddHostedService<Worker>();
 
-builder.Services.AddHealthChecks().AddCheck<DiscordClientHealthCheck>(DiscordClientHealthCheck.HealthCheckName);
+builder.Services.AddRateLimiting()
+    .AddHealthChecks()
+    .AddCheck<DiscordClientHealthCheck>(DiscordClientHealthCheck.HealthCheckName);
 
 var app = builder.Build();
 
-app.MapHealthChecks(
-    "/_health",
-    new HealthCheckOptions { ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse });
+app.UseRateLimiter();
+
+app.MapHealthChecks("/_health", new HealthCheckOptions { ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse })
+    .RequireRateLimiting(RateLimitingExtensions.HealthCheckRateLimiterPolicyName);
 
 await app.RunAsync();
