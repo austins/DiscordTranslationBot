@@ -80,6 +80,7 @@ public sealed partial class TempReplyHandler : IRequestHandler<SendTempReply>
             try
             {
                 await reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+                _log.DeletedTempMessage(reply.Id);
             }
             catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
             {
@@ -103,16 +104,19 @@ public sealed partial class TempReplyHandler : IRequestHandler<SendTempReply>
         }
 
         [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}")]
+        public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
+
+        [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Temp message with message ID {replyId} will be deleted in {totalSeconds}s.")]
         public partial void WaitingToDeleteTempMessage(ulong replyId, double totalSeconds);
 
+        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp message with message ID {replyId}.")]
+        public partial void DeletedTempMessage(ulong replyId);
+
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp message with message ID {replyId}.")]
         public partial void FailedToDeleteTempMessage(Exception ex, ulong replyId);
-
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}")]
-        public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
     }
 }
