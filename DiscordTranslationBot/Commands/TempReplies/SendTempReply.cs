@@ -65,12 +65,12 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
     /// <param name="cancellationToken">The cancellation token.</param>
     public async Task Handle(SendTempReply request, CancellationToken cancellationToken)
     {
+        var typingState =
+            request.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
+
         IUserMessage reply;
         try
         {
-            using var _ =
-                request.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
-
             // Send reply message.
             reply = await request.SourceMessage.Channel.SendMessageAsync(
                 request.Text,
@@ -81,6 +81,10 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
         {
             _log.FailedToSendTempMessage(ex, request.SourceMessage.Id, request.Text);
             throw;
+        }
+        finally
+        {
+            typingState.Dispose();
         }
 
         _log.WaitingToDeleteTempMessage(reply.Id, request.DeletionDelay.TotalSeconds);
