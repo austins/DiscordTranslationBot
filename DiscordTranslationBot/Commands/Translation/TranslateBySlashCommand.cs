@@ -41,6 +41,11 @@ public sealed partial class TranslateBySlashCommandHandler
 
     public Task Handle(SlashCommandExecutedEvent notification, CancellationToken cancellationToken)
     {
+        if (notification.SlashCommand.Data.Name != SlashCommandConstants.TranslateCommandName)
+        {
+            return Task.CompletedTask;
+        }
+
         return _mediator.Send(
             new TranslateBySlashCommand { SlashCommand = notification.SlashCommand },
             cancellationToken);
@@ -53,11 +58,6 @@ public sealed partial class TranslateBySlashCommandHandler
     /// <param name="cancellationToken">The cancellation token.</param>
     public async Task Handle(TranslateBySlashCommand request, CancellationToken cancellationToken)
     {
-        if (request.SlashCommand.Data.Name != SlashCommandConstants.TranslateCommandName)
-        {
-            return;
-        }
-
         // Get the input values.
         var options = request.SlashCommand.Data.Options;
 

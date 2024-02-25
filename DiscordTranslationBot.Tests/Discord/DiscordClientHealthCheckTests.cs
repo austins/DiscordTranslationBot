@@ -2,7 +2,7 @@
 using DiscordTranslationBot.Discord;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace DiscordTranslationBot.Tests.HealthChecks;
+namespace DiscordTranslationBot.Tests.Discord;
 
 public sealed class DiscordClientHealthCheckTests
 {

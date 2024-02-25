@@ -1,55 +1,56 @@
-using Discord;
+﻿using Discord;
+using DiscordTranslationBot.Commands.DiscordCommands;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using MediatR;
 
-namespace DiscordTranslationBot.Tests.Handlers;
+namespace DiscordTranslationBot.Tests.Commands.DiscordCommands;
 
-public sealed class RegisterCommandsHandlerTests
+public sealed class RegisterDiscordCommandsHandlerTests
 {
     private const string ProviderName = "Test Provider";
 #pragma warning disable NUnit1032
     private readonly IDiscordClient _client;
 #pragma warning restore NUnit1032
-    private readonly RegisterCommandsHandler _sut;
+    private readonly IMediator _mediator;
+    private readonly RegisterDiscordCommandsHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public RegisterCommandsHandlerTests()
+    public RegisterDiscordCommandsHandlerTests()
     {
         _client = Substitute.For<IDiscordClient>();
 
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns(ProviderName);
 
-        _sut = new RegisterCommandsHandler(
+        _mediator = Substitute.For<IMediator>();
+
+        _sut = new RegisterDiscordCommandsHandler(
             _client,
             new[] { _translationProvider },
-            new LoggerFake<RegisterCommandsHandler>());
+            _mediator,
+            new LoggerFake<RegisterDiscordCommandsHandler>());
     }
 
     [Test]
-    public async Task Handle_ReadyNotification_Success()
+    public async Task Handle_JoinedGuildEvent_Success()
     {
         // Arrange
-        IReadOnlyCollection<IGuild> guilds = new List<IGuild>
-        {
-            Substitute.For<IGuild>(),
-            Substitute.For<IGuild>()
-        };
+        var notification = new JoinedGuildEvent { Guild = Substitute.For<IGuild>() };
 
-        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(guilds);
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
 
-        _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
+        // Assert
+        await _mediator.Received(1).Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
+    }
 
-        _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
-            {
-                new()
-                {
-                    LangCode = "en",
-                    Name = "English"
-                }
-            });
+    [Test]
+    public async Task Handle_ReadyEvent_Success()
+    {
+        // Arrange
+        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns([Substitute.For<IGuild>()]);
 
         var notification = new ReadyEvent();
 
@@ -57,18 +58,11 @@ public sealed class RegisterCommandsHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        foreach (var guild in guilds)
-        {
-            await guild.Received(1)
-                .CreateApplicationCommandAsync(Arg.Any<MessageCommandProperties>(), Arg.Any<RequestOptions>());
-
-            await guild.Received(1)
-                .CreateApplicationCommandAsync(Arg.Any<SlashCommandProperties>(), Arg.Any<RequestOptions>());
-        }
+        await _mediator.Received(1).Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_ReadyNotification_NoGuilds_Returns()
+    public async Task Handle_ReadyEvent_NoGuilds_Returns()
     {
         // Arrange
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(new List<IGuild>());
@@ -79,11 +73,11 @@ public sealed class RegisterCommandsHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;
+        await _mediator.DidNotReceive().Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_JoinedGuildNotification_Success()
+    public async Task Handle_RegisterDiscordCommands_Success()
     {
         // Arrange
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
@@ -98,18 +92,19 @@ public sealed class RegisterCommandsHandlerTests
                 }
             });
 
-        var notification = new JoinedGuildEvent { Guild = Substitute.For<IGuild>() };
+        var guild = Substitute.For<IGuild>();
+        var request = new RegisterDiscordCommands { Guilds = [guild] };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
 
-        await notification.Guild.Received(1)
+        await guild.Received(1)
             .CreateApplicationCommandAsync(Arg.Any<MessageCommandProperties>(), Arg.Any<RequestOptions>());
 
-        await notification.Guild.Received(1)
+        await guild.Received(1)
             .CreateApplicationCommandAsync(Arg.Any<SlashCommandProperties>(), Arg.Any<RequestOptions>());
     }
 }

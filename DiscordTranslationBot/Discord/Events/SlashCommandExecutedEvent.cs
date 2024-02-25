@@ -1,4 +1,4 @@
-using Discord.WebSocket;
+using Discord;
 
 namespace DiscordTranslationBot.Discord.Events;
 
@@ -10,5 +10,5 @@ public sealed class SlashCommandExecutedEvent : INotification
     /// <summary>
     /// The slash command.
     /// </summary>
-    public required SocketSlashCommand SlashCommand { get; init; }
+    public required ISlashCommandInteraction SlashCommand { get; init; }
 }

@@ -2,6 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Commands.Logging;
 using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Discord.Models;
 
 namespace DiscordTranslationBot.Discord;
 
@@ -51,16 +52,17 @@ internal sealed partial class DiscordEventListener
             new SlashCommandExecutedEvent { SlashCommand = slashCommand },
             cancellationToken);
 
-        _client.ReactionAdded += (message, channel, reaction) => PublishInBackgroundAsync(
+        _client.ReactionAdded += async (message, channel, reaction) => await PublishInBackgroundAsync(
             new ReactionAddedEvent
             {
-                Message = message,
-                Channel = channel,
-                Reaction = reaction
+                Message = await message.GetOrDownloadAsync(),
+                Channel = await channel.GetOrDownloadAsync(),
+                ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
             },
             cancellationToken);
 
         _log.EventsInitialized();
+
         return Task.CompletedTask;
     }
 
@@ -75,7 +77,7 @@ internal sealed partial class DiscordEventListener
                 }
                 catch (Exception ex)
                 {
-                    _log.FailedToPublishNotification(ex, notification.GetType().Name);
+                    _log.FailedToPublishNotification(ex);
                 }
             },
             cancellationToken);
@@ -95,7 +97,7 @@ internal sealed partial class DiscordEventListener
         [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
         public partial void EventsInitialized();
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification '{notificationName}'.")]
-        public partial void FailedToPublishNotification(Exception ex, string notificationName);
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification in background.")]
+        public partial void FailedToPublishNotification(Exception ex);
     }
 }

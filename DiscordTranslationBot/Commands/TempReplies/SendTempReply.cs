@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Discord;
 using Discord.Net;
+using DiscordTranslationBot.Discord.Models;
 using IRequest = MediatR.IRequest;
-using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
@@ -20,7 +20,7 @@ public sealed class SendTempReply : IRequest, IValidatableObject
     /// <summary>
     /// The reaction associated with the source message, if any.
     /// </summary>
-    public ReactionMetadata? ReactionMetadata { get; init; }
+    public ReactionInfo? ReactionInfo { get; init; }
 
     /// <summary>
     /// The reply text.
@@ -99,7 +99,7 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
         try
         {
             // If there is also a reaction and the source message still exists, remove the reaction from it.
-            if (request.ReactionMetadata is not null)
+            if (request.ReactionInfo is not null)
             {
                 var sourceMessage = await reply.Channel.GetMessageAsync(
                     request.SourceMessage.Id,
@@ -108,8 +108,8 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
                 if (sourceMessage is not null)
                 {
                     await sourceMessage.RemoveReactionAsync(
-                        request.ReactionMetadata.Emote,
-                        request.ReactionMetadata.UserId,
+                        request.ReactionInfo.Emote,
+                        request.ReactionInfo.UserId,
                         new RequestOptions { CancelToken = cancellationToken });
                 }
             }

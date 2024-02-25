@@ -16,34 +16,32 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         _logger = logger;
     }
 
-    public async Task Publish(
+    public Task Publish(
         IEnumerable<NotificationHandlerExecutor> handlerExecutors,
         INotification notification,
         CancellationToken cancellationToken)
     {
-        var tasks = handlerExecutors.Select(handler => handler.HandlerCallback(notification, cancellationToken));
-
-        var whenAllTask = Task.WhenAll(tasks);
-        try
-        {
-            await whenAllTask;
-        }
-        catch (Exception)
-        {
-            if (whenAllTask.Exception is null)
+        var tasks = handlerExecutors.Select(
+            async handler =>
             {
-                throw;
-            }
+                try
+                {
+                    await handler.HandlerCallback(notification, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    LogFailureInNotificationHandler(
+                        ex,
+                        handler.HandlerInstance.GetType().Name,
+                        notification.GetType().Name);
+                }
+            });
 
-            foreach (var innerException in whenAllTask.Exception.InnerExceptions)
-            {
-                LogFailureInNotificationHandler(innerException, notification.GetType().Name);
-            }
-        }
+        return Task.WhenAll(tasks);
     }
 
     [LoggerMessage(
         Level = LogLevel.Error,
-        Message = "An exception has occurred in notification handler '{handlerName}'.")]
-    private partial void LogFailureInNotificationHandler(Exception ex, string handlerName);
+        Message = "An exception has occurred in handler '{handlerName}' for notification '{notificationName}'.")]
+    private partial void LogFailureInNotificationHandler(Exception ex, string handlerName, string notificationName);
 }

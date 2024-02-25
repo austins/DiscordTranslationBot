@@ -1,29 +1,35 @@
-using Discord;
+﻿using Discord;
+using DiscordTranslationBot.Commands.Translation;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using MediatR;
 
-namespace DiscordTranslationBot.Tests.Handlers;
+namespace DiscordTranslationBot.Tests.Commands.Translation;
 
-public sealed class TranslateSlashCommandHandlerTests
+public sealed class TranslateBySlashCommandHandlerTests
 {
     private const string ProviderName = "Test Provider";
-    private readonly TranslateSlashCommandHandler _sut;
+    private readonly IMediator _mediator;
+    private readonly TranslateBySlashCommandHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public TranslateSlashCommandHandlerTests()
+    public TranslateBySlashCommandHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns(ProviderName);
 
-        _sut = new TranslateSlashCommandHandler(
+        _mediator = Substitute.For<IMediator>();
+
+        _sut = new TranslateBySlashCommandHandler(
             new[] { _translationProvider },
-            new LoggerFake<TranslateSlashCommandHandler>());
+            _mediator,
+            new LoggerFake<TranslateBySlashCommandHandler>());
     }
 
     [Test]
-    public async Task Handle_SlashCommandExecutedNotification_Success()
+    public async Task Handle_TranslateBySlashCommand_Success()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage
@@ -63,12 +69,12 @@ public sealed class TranslateSlashCommandHandlerTests
                 fromOption
             });
 
-        var command = Substitute.For<ISlashCommandInteraction>();
-        command.Data.Returns(data);
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
 
         var user = Substitute.For<IUser>();
         user.Id.Returns(1UL);
-        command.User.Returns(user);
+        slashCommand.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
             new HashSet<SupportedLanguage>
@@ -93,10 +99,10 @@ public sealed class TranslateSlashCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
+        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.Received(1)
@@ -106,39 +112,58 @@ public sealed class TranslateSlashCommandHandlerTests
                 Arg.Any<CancellationToken>(),
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
-        await command.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
+        await slashCommand.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
 
-        await command.Received(1)
+        await slashCommand.Received(1)
             .FollowupAsync(
                 Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
                 options: Arg.Any<RequestOptions>());
     }
 
     [Test]
-    public async Task Handle_SlashCommandExecutedNotification_NotTranslateCommand_Returns()
+    public async Task Handle_SlashCommandExecutedEvent_SendsCommand()
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns("not_the_translate_command");
+        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
 
-        var command = Substitute.For<ISlashCommandInteraction>();
-        command.Data.Returns(data);
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
+        var notification = new SlashCommandExecutedEvent { SlashCommand = slashCommand };
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
         _ = notification.SlashCommand.Data.Received(1).Name;
-        _ = notification.SlashCommand.Data.DidNotReceive().Options;
 
-        await notification.SlashCommand.DidNotReceive()
-            .FollowupAsync(Arg.Any<string>(), ephemeral: Arg.Any<bool>(), options: Arg.Any<RequestOptions>());
+        await _mediator.Received(1).Send(Arg.Any<TranslateBySlashCommand>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_SlashCommandExecutedNotification_Returns_SourceTextIsEmpty()
+    public async Task Handle_SlashCommandExecutedEvent_NotTranslateCommand_Returns()
+    {
+        // Arrange
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+        data.Name.Returns("not_the_translate_command");
+
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
+
+        var notification = new SlashCommandExecutedEvent { SlashCommand = slashCommand };
+
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        _ = notification.SlashCommand.Data.Received(1).Name;
+
+        await _mediator.DidNotReceive().Send(Arg.Any<TranslateBySlashCommand>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_TranslateBySlashCommand_Returns_SourceTextIsEmpty()
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
@@ -150,18 +175,18 @@ public sealed class TranslateSlashCommandHandlerTests
 
         data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { textOption });
 
-        var command = Substitute.For<ISlashCommandInteraction>();
-        command.Data.Returns(data);
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
 
-        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
+        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await command.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
+        await slashCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
 
-        await command.Received(1)
+        await slashCommand.Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProvider.DidNotReceive()
@@ -173,7 +198,7 @@ public sealed class TranslateSlashCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_SlashCommandExecutedNotification_Returns_OnFailureToDetectSourceLanguage()
+    public async Task Handle_TranslateBySlashCommand_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage
@@ -212,12 +237,12 @@ public sealed class TranslateSlashCommandHandlerTests
                 fromOption
             });
 
-        var command = Substitute.For<ISlashCommandInteraction>();
-        command.Data.Returns(data);
+        var slashCommand = Substitute.For<ISlashCommandInteraction>();
+        slashCommand.Data.Returns(data);
 
         var user = Substitute.For<IUser>();
         user.Id.Returns(1UL);
-        command.User.Returns(user);
+        slashCommand.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
             new HashSet<SupportedLanguage>
@@ -242,10 +267,10 @@ public sealed class TranslateSlashCommandHandlerTests
                     TranslatedText = text
                 });
 
-        var notification = new SlashCommandExecutedEvent { SlashCommand = command };
+        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.Received(1)
@@ -255,7 +280,7 @@ public sealed class TranslateSlashCommandHandlerTests
                 Arg.Any<CancellationToken>(),
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
-        await command.Received(1)
+        await slashCommand.Received(1)
             .FollowupAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 options: Arg.Any<RequestOptions>());

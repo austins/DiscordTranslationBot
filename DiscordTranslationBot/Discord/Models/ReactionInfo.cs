@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Discord.Models;
 /// <remarks>
 /// Helps with mocking reactions in tests.
 /// </remarks>
-public sealed class ReactionMetadata
+public sealed class ReactionInfo
 {
     /// <summary>
     /// The ID of the user who initiated the reaction.
@@ -20,4 +20,13 @@ public sealed class ReactionMetadata
     /// The emote of the reaction.
     /// </summary>
     public required IEmote Emote { get; init; }
+
+    public static ReactionInfo FromSocketReaction(SocketReaction socketReaction)
+    {
+        return new()
+        {
+            UserId = socketReaction.UserId,
+            Emote = socketReaction.Emote
+        };
+    }
 }

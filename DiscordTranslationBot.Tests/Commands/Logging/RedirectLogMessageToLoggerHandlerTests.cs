@@ -1,7 +1,7 @@
 using Discord;
-using DiscordTranslationBot.Handlers;
+using DiscordTranslationBot.Commands.Logging;
 
-namespace DiscordTranslationBot.Tests.Handlers;
+namespace DiscordTranslationBot.Tests.Commands.Logging;
 
 public sealed class RedirectLogMessageToLoggerHandlerTests
 {
@@ -20,10 +20,10 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
     [TestCase(LogSeverity.Warning, LogLevel.Warning)]
     [TestCase(LogSeverity.Error, LogLevel.Error)]
     [TestCase(LogSeverity.Critical, LogLevel.Critical)]
-    public async Task Handle_LogNotification_Success(LogSeverity severity, LogLevel expectedLevel)
+    public async Task Handle_RedirectLogMessageToLogger_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
-        var request = new LogEvent
+        var request = new RedirectLogMessageToLogger
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
         };

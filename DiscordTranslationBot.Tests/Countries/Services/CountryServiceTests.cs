@@ -1,7 +1,7 @@
 using DiscordTranslationBot.Countries.Services;
 using NeoSmart.Unicode;
 
-namespace DiscordTranslationBot.Tests.Services;
+namespace DiscordTranslationBot.Tests.Countries.Services;
 
 public sealed class CountryServiceTests
 {

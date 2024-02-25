@@ -1,7 +1,7 @@
 using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 
-namespace DiscordTranslationBot.Tests.Configuration;
+namespace DiscordTranslationBot.Tests.Discord;
 
 public sealed class DiscordOptionsTests
 {

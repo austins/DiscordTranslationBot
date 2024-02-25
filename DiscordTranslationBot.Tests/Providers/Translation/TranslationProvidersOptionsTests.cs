@@ -3,7 +3,7 @@ using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 
-namespace DiscordTranslationBot.Tests.Configuration.TranslationProviders;
+namespace DiscordTranslationBot.Tests.Providers.Translation;
 
 public sealed class TranslationProvidersOptionsTests
 {

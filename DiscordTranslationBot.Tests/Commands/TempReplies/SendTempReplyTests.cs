@@ -1,7 +1,7 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
+using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Extensions;
-using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Tests.Commands.TempReplies;
 
@@ -11,10 +11,10 @@ public sealed class SendTempReplyTests
     public void Valid_ValidatesWithoutErrors()
     {
         // Arrange
-        var command = new SendTempReply
+        var request = new SendTempReply
         {
             Text = "test",
-            ReactionMetadata = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1,
                 Emote = Substitute.For<IEmote>()
@@ -24,7 +24,7 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var isValid = request.TryValidateObject(out var validationResults);
 
         // Assert
         isValid.Should().BeTrue();
@@ -37,33 +37,33 @@ public sealed class SendTempReplyTests
     public void Invalid_Properties_HasValidationErrors(string? text)
     {
         // Arrange
-        var command = new SendTempReply
+        var request = new SendTempReply
         {
             Text = text!,
-            ReactionMetadata = null,
+            ReactionInfo = null,
             SourceMessage = null!
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var isValid = request.TryValidateObject(out var validationResults);
 
         // Assert
         isValid.Should().BeFalse();
 
         validationResults.Should()
             .HaveCount(2)
-            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.Text)))
-            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(request.Text)))
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(request.SourceMessage)));
     }
 
     [Test]
     public void Invalid_DeletionDelay_HasValidationError()
     {
         // Arrange
-        var command = new SendTempReply
+        var request = new SendTempReply
         {
             Text = "test",
-            ReactionMetadata = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1,
                 Emote = Substitute.For<IEmote>()
@@ -73,13 +73,13 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var isValid = request.TryValidateObject(out var validationResults);
 
         // Assert
         isValid.Should().BeFalse();
 
         validationResults.Should()
             .HaveCount(1)
-            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(command.DeletionDelay)));
+            .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(request.DeletionDelay)));
     }
 }

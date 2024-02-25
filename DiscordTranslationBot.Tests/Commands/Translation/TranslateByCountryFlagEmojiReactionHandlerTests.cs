@@ -1,17 +1,19 @@
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
+using DiscordTranslationBot.Commands.Translation;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Countries.Services;
 using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using MediatR;
-using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
+using Emoji = NeoSmart.Unicode.Emoji;
 
-namespace DiscordTranslationBot.Tests.Handlers;
+namespace DiscordTranslationBot.Tests.Commands.Translation;
 
-public sealed class FlagEmojiReactionHandlerTests
+public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 {
     private const string Content = """
 👍 test<:disdainsam:630009232128868353> _test_*test*
@@ -31,10 +33,10 @@ test
     private readonly ICountryService _countryService;
     private readonly IMediator _mediator;
     private readonly IUserMessage _message;
-    private readonly FlagEmojiReactionHandler _sut;
+    private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
-    public FlagEmojiReactionHandlerTests()
+    public TranslateByCountryFlagEmojiReactionHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
         _translationProvider.ProviderName.Returns("Test Provider");
@@ -59,51 +61,26 @@ test
 
         _mediator = Substitute.For<IMediator>();
 
-        _sut = Substitute.For<FlagEmojiReactionHandler>(
+        _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
             new[] { _translationProvider },
             _countryService,
             _mediator,
-            new LoggerFake<FlagEmojiReactionHandler>());
+            new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_Returns_IfNotEmoji()
+    public async Task Handle_ReactionAddedEvent_Returns_GetCountryByEmojiFalse()
     {
         // Arrange
         var notification = new ReactionAddedEvent
         {
             Message = _message,
-            Reaction = new ReactionMetadata
+            Channel = Substitute.For<IMessageChannel>(),
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji("not_an_emoji")
-            }
-        };
-
-        // Act
-        await _sut.Handle(notification, CancellationToken.None);
-
-        // Assert
-        _countryService.Received(1).TryGetCountryByEmoji(notification.Reaction.Emote.Name, out Arg.Any<Country?>());
-
-        await _message.DidNotReceive()
-            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
-
-        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task Handle_ReactionAddedNotification_Returns_IfCountryNotFound()
-    {
-        // Arrange
-        var notification = new ReactionAddedEvent
-        {
-            Message = _message,
-            Reaction = new ReactionMetadata
-            {
-                UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.Name)
             }
         };
 
@@ -113,45 +90,58 @@ test
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        _countryService.Received(1).TryGetCountryByEmoji(notification.Reaction.Emote.Name, out Arg.Any<Country?>());
-
-        await _message.DidNotReceive()
-            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
-
-        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
+        await _mediator.DidNotReceive()
+            .Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_Returns_WhenTranslatingBotMessage()
+    public async Task Handle_ReactionAddedEvent_SendsCommand_GetCountryByEmojiTrue()
+    {
+        // Arrange
+        var notification = new ReactionAddedEvent
+        {
+            Message = _message,
+            Channel = Substitute.For<IMessageChannel>(),
+            ReactionInfo = new ReactionInfo
+            {
+                UserId = 1UL,
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.Name)
+            }
+        };
+
+        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(true);
+
+        // Act
+        await _sut.Handle(notification, CancellationToken.None);
+
+        // Assert
+        await _mediator.Received(1).Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
-
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -161,21 +151,13 @@ test
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_Success()
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_Success()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
 
         var translationResult = new TranslationResult
         {
@@ -188,18 +170,19 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.Received(1)
@@ -212,36 +195,29 @@ test
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_Returns_SanitizesMessageEmpty()
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_SanitizesMessageEmpty()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
-
         _message.Content.Returns(string.Empty);
 
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.DidNotReceive()
@@ -251,38 +227,31 @@ test
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_NoTranslationResult()
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_NoTranslationResult()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
 
         _translationProvider
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
@@ -292,21 +261,13 @@ test
 
     [Test]
     public async Task
-        Handle_ReactionAddedNotification_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
+        Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
 
         const string exMessage = "exception message";
 
@@ -314,18 +275,19 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.Received(1)
@@ -335,21 +297,13 @@ test
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_TempReplySent_OnFailureToDetectSourceLanguage()
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_OnFailureToDetectSourceLanguage()
     {
         // Arrange
-        var country = new Country(NeoSmart.Unicode.Emoji.FlagFrance.ToString()!, "France")
+        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
         {
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>())
-            .Returns(
-                x =>
-                {
-                    x[1] = country;
-                    return true;
-                });
 
         var translationResult = new TranslationResult
         {
@@ -362,18 +316,19 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var notification = new ReactionAddedEvent
+        var request = new TranslateByCountryFlagEmojiReaction
         {
+            Country = country,
             Message = _message,
-            Reaction = new ReactionMetadata
+            ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new Emoji(NeoSmart.Unicode.Emoji.FlagUnitedStates.ToString())
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
             }
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(request, CancellationToken.None);
 
         // Assert
         await _translationProvider.Received(1)

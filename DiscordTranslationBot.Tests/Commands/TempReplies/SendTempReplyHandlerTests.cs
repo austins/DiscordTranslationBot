@@ -1,10 +1,10 @@
-using System.Net;
+﻿using System.Net;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Commands.TempReplies;
-using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
+using DiscordTranslationBot.Discord.Models;
 
-namespace DiscordTranslationBot.Tests.Handlers;
+namespace DiscordTranslationBot.Tests.Commands.TempReplies;
 
 public sealed class SendTempReplyHandlerTests
 {
@@ -23,8 +23,8 @@ public sealed class SendTempReplyHandlerTests
         var request = new SendTempReply
         {
             Text = "test",
-            ReactionMetadata = hasReaction
-                ? new ReactionMetadata
+            ReactionInfo = hasReaction
+                ? new ReactionInfo
                 {
                     UserId = 1,
                     Emote = Substitute.For<IEmote>()
@@ -73,7 +73,7 @@ public sealed class SendTempReplyHandlerTests
         var request = new SendTempReply
         {
             Text = "test",
-            ReactionMetadata = null,
+            ReactionInfo = null,
             SourceMessage = Substitute.For<IUserMessage>(),
             DeletionDelay = TimeSpan.FromTicks(1)
         };

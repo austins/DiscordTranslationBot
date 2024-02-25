@@ -5,14 +5,14 @@ using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Countries.Services;
 using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
-using ReactionMetadata = DiscordTranslationBot.Discord.Models.ReactionMetadata;
 
 namespace DiscordTranslationBot.Commands.Translation;
 
-public sealed class TranslateByFlagEmojiReaction : IRequest
+public sealed class TranslateByCountryFlagEmojiReaction : IRequest
 {
     [Required]
     public required Country Country { get; init; }
@@ -27,14 +27,14 @@ public sealed class TranslateByFlagEmojiReaction : IRequest
     /// The reaction.
     /// </summary>
     [Required]
-    public required ReactionMetadata ReactionMetadata { get; init; }
+    public required ReactionInfo ReactionInfo { get; init; }
 }
 
 /// <summary>
 /// Handler for translating by a flag emoji reaction.
 /// </summary>
-public sealed partial class TranslateByFlagEmojiReactionHandler
-    : IRequestHandler<TranslateByFlagEmojiReaction>, INotificationHandler<ReactionAddedEvent>
+public sealed partial class TranslateByCountryFlagEmojiReactionHandler
+    : IRequestHandler<TranslateByCountryFlagEmojiReaction>, INotificationHandler<ReactionAddedEvent>
 {
     private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;
@@ -43,19 +43,19 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
     private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslateByFlagEmojiReactionHandler" /> class.
+    /// Initializes a new instance of the <see cref="TranslateByCountryFlagEmojiReactionHandler" /> class.
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
     /// <param name="countryService">Country service to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public TranslateByFlagEmojiReactionHandler(
+    public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
         ICountryService countryService,
         IMediator mediator,
-        ILogger<TranslateByFlagEmojiReactionHandler> logger)
+        ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
@@ -66,39 +66,35 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
 
     public async Task Handle(ReactionAddedEvent notification, CancellationToken cancellationToken)
     {
-        if (!_countryService.TryGetCountryByEmoji(notification.Reaction.Emote.Name, out var country))
+        if (!_countryService.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
         {
             return;
         }
 
         await _mediator.Send(
-            new TranslateByFlagEmojiReaction
+            new TranslateByCountryFlagEmojiReaction
             {
                 Country = country,
-                Message = await notification.Message.GetOrDownloadAsync(),
-                ReactionMetadata = new ReactionMetadata
-                {
-                    UserId = notification.Reaction.UserId,
-                    Emote = notification.Reaction.Emote
-                }
+                Message = notification.Message,
+                ReactionInfo = notification.ReactionInfo
             },
             cancellationToken);
     }
 
     /// <summary>
-    /// Translates any message that got a flag emoji reaction on it.
+    /// Translates any message that got a country flag emoji reaction on it.
     /// </summary>
     /// <param name="request">The request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task Handle(TranslateByFlagEmojiReaction request, CancellationToken cancellationToken)
+    public async Task Handle(TranslateByCountryFlagEmojiReaction request, CancellationToken cancellationToken)
     {
         if (request.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
             await request.Message.RemoveReactionAsync(
-                request.ReactionMetadata.Emote,
-                request.ReactionMetadata.UserId,
+                request.ReactionInfo.Emote,
+                request.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
             return;
@@ -110,8 +106,8 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
             _log.EmptySourceMessage();
 
             await request.Message.RemoveReactionAsync(
-                request.ReactionMetadata.Emote,
-                request.ReactionMetadata.UserId,
+                request.ReactionInfo.Emote,
+                request.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
             return;
@@ -143,7 +139,7 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
                         new SendTempReply
                         {
                             Text = ex.Message,
-                            ReactionMetadata = request.ReactionMetadata,
+                            ReactionInfo = request.ReactionInfo,
                             SourceMessage = request.Message
                         },
                         cancellationToken);
@@ -160,8 +156,8 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
         if (translationResult is null)
         {
             await request.Message.RemoveReactionAsync(
-                request.ReactionMetadata.Emote,
-                request.ReactionMetadata.UserId,
+                request.ReactionInfo.Emote,
+                request.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
             return;
@@ -175,7 +171,7 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
                 new SendTempReply
                 {
                     Text = "Couldn't detect the source language to translate from or the result is the same.",
-                    ReactionMetadata = request.ReactionMetadata,
+                    ReactionInfo = request.ReactionInfo,
                     SourceMessage = request.Message
                 },
                 cancellationToken);
@@ -198,7 +194,7 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
             new SendTempReply
             {
                 Text = replyText,
-                ReactionMetadata = request.ReactionMetadata,
+                ReactionInfo = request.ReactionInfo,
                 SourceMessage = request.Message,
                 DeletionDelay = TimeSpan.FromSeconds(20)
             },
@@ -207,9 +203,9 @@ public sealed partial class TranslateByFlagEmojiReactionHandler
 
     private sealed partial class Log
     {
-        private readonly ILogger<TranslateByFlagEmojiReactionHandler> _logger;
+        private readonly ILogger<TranslateByCountryFlagEmojiReactionHandler> _logger;
 
-        public Log(ILogger<TranslateByFlagEmojiReactionHandler> logger)
+        public Log(ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
         {
             _logger = logger;
         }
