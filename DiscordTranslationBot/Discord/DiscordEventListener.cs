@@ -34,14 +34,17 @@ internal sealed partial class DiscordEventListener
     /// <param name="cancellationToken">Cancellation token to use.</param>
     public Task InitializeEventsAsync(CancellationToken cancellationToken)
     {
-        _client.Ready += () => PublishInBackgroundAsync(new ReadyEvent(), cancellationToken);
-
-        _client.JoinedGuild += guild => PublishInBackgroundAsync(
-            new JoinedGuildEvent { Guild = guild },
-            cancellationToken);
+        // Discord client initiated events can run on its gateway thread.
+        _client.Ready += () => _mediator.Publish(new ReadyEvent(), cancellationToken);
 
         _client.Log += logMessage => _mediator.Send(
             new RedirectLogMessageToLogger { LogMessage = logMessage },
+            cancellationToken);
+
+        // User initiated events should run on a new thread to not block the gateway thread.
+        // Each event published can act within a per-request scope.
+        _client.JoinedGuild += guild => PublishInBackgroundAsync(
+            new JoinedGuildEvent { Guild = guild },
             cancellationToken);
 
         _client.MessageCommandExecuted += messageCommand => PublishInBackgroundAsync(

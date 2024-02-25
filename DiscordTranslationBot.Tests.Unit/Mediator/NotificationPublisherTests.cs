@@ -35,7 +35,10 @@ public sealed class NotificationPublisherTests
         await _sut.Invoking(x => x.Publish(handlers, notification, CancellationToken.None)).Should().NotThrowAsync();
 
         _logger.Entries.Should()
-            .HaveCount(1)
+            .HaveCount(3)
+            .And.Contain(
+                x => x.LogLevel == LogLevel.Information
+                    && x.Message == $"Publishing notification '{nameof(NotificationFake)}'...")
             .And.ContainSingle(
                 x => x.LogLevel == LogLevel.Error
                     && x.Exception!.GetType() == expectedException.GetType()

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using DiscordTranslationBot.Commands.Logging;
 
 namespace DiscordTranslationBot.Mediator;
 
@@ -37,6 +38,12 @@ public sealed partial class RequestElapsedTimeLoggingBehavior<TRequest, TRespons
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
+        // If this is the log command, skip logging elapsed time as it pollutes the logs
+        if (request is RedirectLogMessageToLogger)
+        {
+            return await next();
+        }
+
         var requestName = request.GetType().Name;
         _log.RequestExecuting(requestName);
 

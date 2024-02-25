@@ -5,7 +5,7 @@
 /// </summary>
 public sealed partial class NotificationPublisher : INotificationPublisher
 {
-    private readonly ILogger<NotificationPublisher> _logger;
+    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationPublisher" /> class.
@@ -13,7 +13,7 @@ public sealed partial class NotificationPublisher : INotificationPublisher
     /// <param name="logger">Logger to use.</param>
     public NotificationPublisher(ILogger<NotificationPublisher> logger)
     {
-        _logger = logger;
+        _log = new Log(logger);
     }
 
     public Task Publish(
@@ -21,27 +21,40 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         INotification notification,
         CancellationToken cancellationToken)
     {
+        var notificationName = notification.GetType().Name;
+
         var tasks = handlerExecutors.Select(
             async handler =>
             {
                 try
                 {
+                    _log.PublishingNotification(notificationName);
                     await handler.HandlerCallback(notification, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    LogFailureInNotificationHandler(
-                        ex,
-                        handler.HandlerInstance.GetType().Name,
-                        notification.GetType().Name);
+                    _log.FailureInNotificationHandler(ex, handler.HandlerInstance.GetType().Name, notificationName);
                 }
             });
 
         return Task.WhenAll(tasks);
     }
 
-    [LoggerMessage(
-        Level = LogLevel.Error,
-        Message = "An exception has occurred in handler '{handlerName}' for notification '{notificationName}'.")]
-    private partial void LogFailureInNotificationHandler(Exception ex, string handlerName, string notificationName);
+    private sealed partial class Log
+    {
+        private readonly ILogger<NotificationPublisher> _logger;
+
+        public Log(ILogger<NotificationPublisher> logger)
+        {
+            _logger = logger;
+        }
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Publishing notification '{eventName}'...")]
+        public partial void PublishingNotification(string eventName);
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "An exception has occurred in handler '{handlerName}' for notification '{notificationName}'.")]
+        public partial void FailureInNotificationHandler(Exception ex, string handlerName, string notificationName);
+    }
 }
