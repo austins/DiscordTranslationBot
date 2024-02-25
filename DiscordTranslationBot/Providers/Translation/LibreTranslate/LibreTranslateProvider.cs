@@ -1,5 +1,5 @@
-using DiscordTranslationBot.Models.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 

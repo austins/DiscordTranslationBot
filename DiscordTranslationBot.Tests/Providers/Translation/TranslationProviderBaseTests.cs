@@ -1,5 +1,5 @@
-using DiscordTranslationBot.Exceptions;
-using DiscordTranslationBot.Models;
+using DiscordTranslationBot.Countries.Exceptions;
+using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation;
 using NeoSmart.Unicode;
 
