@@ -24,7 +24,15 @@ internal class LoggerFake : ILogger
             return;
         }
 
-        _entries.Add(new LogEntry(logLevel, eventId, state, exception, formatter(state, exception)));
+        _entries.Add(
+            new LogEntry
+            {
+                LogLevel = logLevel,
+                EventId = eventId,
+                State = state,
+                Exception = exception,
+                Message = formatter(state, exception)
+            });
     }
 
     public bool IsEnabled(LogLevel logLevel)
@@ -43,9 +51,15 @@ internal sealed class LoggerFake<TCategoryName>(bool logTrace = false) : LoggerF
 {
 }
 
-internal sealed record LogEntry(
-    LogLevel LogLevel,
-    EventId EventId,
-    object? State,
-    Exception? Exception,
-    string Message);
+internal sealed class LogEntry
+{
+    public required LogLevel LogLevel { get; init; }
+
+    public required EventId EventId { get; init; }
+
+    public required object? State { get; init; }
+
+    public required Exception? Exception { get; init; }
+
+    public required string Message { get; init; }
+}
