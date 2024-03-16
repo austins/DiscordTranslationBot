@@ -11,6 +11,3 @@ dotnet_diagnostic.VSTHRD200.severity = none
 
 # AsyncFixer01: Unnecessary async/await usage
 dotnet_diagnostic.AsyncFixer01.severity = none
-
-# VSTHRD003: Avoid awaiting foreign Tasks
-dotnet_diagnostic.VSTHRD003.severity = none
