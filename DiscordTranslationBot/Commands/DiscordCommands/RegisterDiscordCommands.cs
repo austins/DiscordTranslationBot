@@ -125,7 +125,8 @@ public sealed partial class RegisterDiscordCommandsHandler
         {
             // If no lang codes are specified, take the first up to the max options limit.
             supportedLangChoices = translationProvider
-                .SupportedLanguages.Take(SlashCommandBuilder.MaxOptionsCount)
+                .SupportedLanguages
+                .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
         }
         else
@@ -144,7 +145,8 @@ public sealed partial class RegisterDiscordCommandsHandler
             {
                 supportedLangChoices.AddRange(
                     translationProvider
-                        .SupportedLanguages.Where(l => !supportedLangChoices.Contains(l))
+                        .SupportedLanguages
+                        .Where(l => !supportedLangChoices.Contains(l))
                         .Take(SlashCommandBuilder.MaxOptionsCount - supportedLangChoices.Count)
                         .ToList());
             }

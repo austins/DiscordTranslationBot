@@ -175,7 +175,8 @@ public partial class TranslateByMessageCommandHandler
                            """;
 
         await request.MessageCommand.FollowupAsync(
-            embed: new EmbedBuilder().WithTitle("Translated Message")
+            embed: new EmbedBuilder()
+                .WithTitle("Translated Message")
                 .WithUrl(GetJumpUrl(request.MessageCommand.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),

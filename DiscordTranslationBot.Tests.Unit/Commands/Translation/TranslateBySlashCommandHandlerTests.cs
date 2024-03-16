@@ -105,7 +105,8 @@ public sealed class TranslateBySlashCommandHandlerTests
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await _translationProvider.Received(1)
+        await _translationProvider
+            .Received(1)
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
@@ -114,7 +115,8 @@ public sealed class TranslateBySlashCommandHandlerTests
 
         await slashCommand.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
 
-        await slashCommand.Received(1)
+        await slashCommand
+            .Received(1)
             .FollowupAsync(
                 Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
                 options: Arg.Any<RequestOptions>());
@@ -186,10 +188,12 @@ public sealed class TranslateBySlashCommandHandlerTests
         // Assert
         await slashCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
 
-        await slashCommand.Received(1)
+        await slashCommand
+            .Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceive()
+        await _translationProvider
+            .DidNotReceive()
             .TranslateAsync(
                 Arg.Any<SupportedLanguage>(),
                 Arg.Any<string>(),
@@ -273,14 +277,16 @@ public sealed class TranslateBySlashCommandHandlerTests
         await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        await _translationProvider.Received(1)
+        await _translationProvider
+            .Received(1)
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
                 Arg.Any<CancellationToken>(),
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
-        await slashCommand.Received(1)
+        await slashCommand
+            .Received(1)
             .FollowupAsync(
                 "Couldn't detect the source language to translate from or the result is the same.",
                 options: Arg.Any<RequestOptions>());

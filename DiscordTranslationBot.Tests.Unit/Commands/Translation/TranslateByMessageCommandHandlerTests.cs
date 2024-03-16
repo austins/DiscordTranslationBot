@@ -87,7 +87,8 @@ public sealed class TranslateByMessageCommandHandlerTests
 
         await _messageCommand.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
                 options: Arg.Any<RequestOptions>());
@@ -124,7 +125,8 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Assert
         await _messageCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
@@ -172,7 +174,8 @@ public sealed class TranslateByMessageCommandHandlerTests
         _ = _translationProviders[0].Received(1).SupportedLanguages;
         _ = _translationProviders[1].Received(1).SupportedLanguages;
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .FollowupAsync(
                 embed: Arg.Is<Embed>(x => x.Title == "Translated Message"),
                 options: Arg.Any<RequestOptions>());
@@ -192,7 +195,8 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Assert
         await _messageCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
@@ -231,7 +235,8 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 options: Arg.Any<RequestOptions>());
@@ -274,7 +279,8 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
 
-        await _messageCommand.Received(1)
+        await _messageCommand
+            .Received(1)
             .FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 options: Arg.Any<RequestOptions>());

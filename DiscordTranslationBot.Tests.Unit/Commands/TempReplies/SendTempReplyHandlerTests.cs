@@ -40,7 +40,9 @@ public sealed class SendTempReplyHandlerTests
 
         if (hasReaction)
         {
-            reply.Channel.GetMessageAsync(
+            reply
+                .Channel
+                .GetMessageAsync(
                     Arg.Is<ulong>(x => x == request.SourceMessage.Id),
                     Arg.Any<CacheMode>(),
                     Arg.Any<RequestOptions>())
@@ -55,13 +57,17 @@ public sealed class SendTempReplyHandlerTests
 
         await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        await reply.Channel.Received(hasReaction ? 1 : 0)
+        await reply
+            .Channel
+            .Received(hasReaction ? 1 : 0)
             .GetMessageAsync(
                 Arg.Is<ulong>(x => x == request.SourceMessage.Id),
                 Arg.Any<CacheMode>(),
                 Arg.Any<RequestOptions>());
 
-        await request.SourceMessage.Received(hasReaction ? 1 : 0)
+        await request
+            .SourceMessage
+            .Received(hasReaction ? 1 : 0)
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
         await reply.ReceivedWithAnyArgs(1).DeleteAsync();
@@ -82,7 +88,8 @@ public sealed class SendTempReplyHandlerTests
         var reply = Substitute.For<IUserMessage>();
         request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
 
-        reply.DeleteAsync(Arg.Any<RequestOptions>())
+        reply
+            .DeleteAsync(Arg.Any<RequestOptions>())
             .ThrowsAsync(
                 new HttpException(
                     HttpStatusCode.NotFound,

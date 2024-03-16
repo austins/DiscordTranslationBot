@@ -72,7 +72,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         response.IsSuccessStatusCode.Returns(true);
         response.Content.Returns(new TranslateResult { TranslatedText = expected.TranslatedText });
 
-        _client.TranslateAsync(
+        _client
+            .TranslateAsync(
                 Arg.Is<TranslateRequest>(
                     x => x.SourceLangCode == sourceLanguage.LangCode
                          && x.TargetLangCode == targetLanguage.LangCode
@@ -118,7 +119,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 TranslatedText = expected.TranslatedText
             });
 
-        _client.TranslateAsync(
+        _client
+            .TranslateAsync(
                 Arg.Is<TranslateRequest>(
                     x => x.SourceLangCode == "auto" && x.TargetLangCode == targetLanguageCode && x.Text == text),
                 Arg.Any<CancellationToken>())
@@ -147,7 +149,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var sut = new LibreTranslateProvider(_client, _logger);
 
         // Act & Assert
-        await sut.Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
+        await sut
+            .Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("Languages endpoint returned no language codes.");
@@ -173,14 +176,16 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         response.IsSuccessStatusCode.Returns(false);
         response.StatusCode.Returns(statusCode);
 
-        _client.TranslateAsync(
+        _client
+            .TranslateAsync(
                 Arg.Is<TranslateRequest>(
                     x => x.SourceLangCode == "auto" && x.TargetLangCode == country.LangCodes.First() && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+        await Sut
+            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 
@@ -208,14 +213,16 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
                 TranslatedText = string.Empty
             });
 
-        _client.TranslateAsync(
+        _client
+            .TranslateAsync(
                 Arg.Is<TranslateRequest>(
                     x => x.SourceLangCode == "auto" && x.TargetLangCode == country.LangCodes.First() && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
-        await Sut.Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+        await Sut
+            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 

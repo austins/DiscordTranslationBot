@@ -35,7 +35,9 @@ public sealed partial class CountryService : ICountryService
         }
 
         // Get all flag emojis and map to countries.
-        _countries = Emoji.All.Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
+        _countries = Emoji
+            .All
+            .Where(e => e is { Group: "Flags", Subgroup: "country-flag" })
             .Select(e => new Country(e.ToString()!, e.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal)))
             .ToList();
 

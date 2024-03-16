@@ -24,10 +24,12 @@ public sealed class AzureTranslatorOptionsValidator : AbstractValidator<AzureTra
     {
         Include(new TranslationProviderOptionsBaseValidator());
 
-        When(x => x.Enabled, () =>
-        {
-            RuleFor(x => x.SecretKey).NotEmpty();
-            RuleFor(x => x.Region).NotEmpty();
-        });
+        When(
+            x => x.Enabled,
+            () =>
+            {
+                RuleFor(x => x.SecretKey).NotEmpty();
+                RuleFor(x => x.Region).NotEmpty();
+            });
     }
 }

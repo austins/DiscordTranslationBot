@@ -23,7 +23,7 @@ public sealed class ReactionInfo
 
     public static ReactionInfo FromSocketReaction(SocketReaction socketReaction)
     {
-        return new()
+        return new ReactionInfo
         {
             UserId = socketReaction.UserId,
             Emote = socketReaction.Emote

@@ -89,7 +89,10 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = response.Content.LangCodes.Select(
+        SupportedLanguages = response
+            .Content
+            .LangCodes
+            .Select(
                 lc => new SupportedLanguage
                 {
                     LangCode = lc.Key,

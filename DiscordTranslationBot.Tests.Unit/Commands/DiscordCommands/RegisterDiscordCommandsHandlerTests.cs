@@ -99,10 +99,12 @@ public sealed class RegisterDiscordCommandsHandlerTests
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
 
-        await guild.Received(1)
+        await guild
+            .Received(1)
             .CreateApplicationCommandAsync(Arg.Any<MessageCommandProperties>(), Arg.Any<RequestOptions>());
 
-        await guild.Received(1)
+        await guild
+            .Received(1)
             .CreateApplicationCommandAsync(Arg.Any<SlashCommandProperties>(), Arg.Any<RequestOptions>());
     }
 }

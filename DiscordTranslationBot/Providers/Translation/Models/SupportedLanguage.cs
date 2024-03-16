@@ -23,7 +23,7 @@ public sealed class SupportedLanguage : IEquatable<SupportedLanguage>
     public bool Equals(SupportedLanguage? other)
     {
         return other is not null
-            && (ReferenceEquals(this, other) || LangCode.Equals(other.LangCode, StringComparison.OrdinalIgnoreCase));
+               && (ReferenceEquals(this, other) || LangCode.Equals(other.LangCode, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
