@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Polly;
@@ -36,7 +37,7 @@ internal static class TranslationProviderExtensions
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
-        services.AddOptions<TranslationProvidersOptions>().Bind(section).ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptionsWithFluentValidation<TranslationProvidersOptions>(section);
 
         var options = section.Get<TranslationProvidersOptions>();
 

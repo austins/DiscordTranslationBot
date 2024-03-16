@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using FluentValidation;
 using Humanizer;
 using IRequest = MediatR.IRequest;
 
@@ -16,9 +16,15 @@ public sealed class RegisterDiscordCommands : IRequest
     /// <summary>
     /// The guilds to register Discord commands for.
     /// </summary>
-    [Required]
-    [MinLength(1)]
     public required IEnumerable<IGuild> Guilds { get; init; }
+}
+
+public sealed class RegisterDiscordCommandsValidator : AbstractValidator<RegisterDiscordCommands>
+{
+    public RegisterDiscordCommandsValidator()
+    {
+        RuleFor(x => x.Guilds).NotEmpty();
+    }
 }
 
 public sealed partial class RegisterDiscordCommandsHandler
@@ -118,13 +124,15 @@ public sealed partial class RegisterDiscordCommandsHandler
         if (translationProvider.TranslateCommandLangCodes is null)
         {
             // If no lang codes are specified, take the first up to the max options limit.
-            supportedLangChoices = translationProvider.SupportedLanguages.Take(SlashCommandBuilder.MaxOptionsCount)
+            supportedLangChoices = translationProvider
+                .SupportedLanguages.Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
         }
         else
         {
             // Get valid specified lang codes up to the limit.
-            supportedLangChoices = translationProvider.SupportedLanguages
+            supportedLangChoices = translationProvider
+                .SupportedLanguages
                 .Where(l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
                 .Take(SlashCommandBuilder.MaxOptionsCount)
                 .ToList();
@@ -135,7 +143,8 @@ public sealed partial class RegisterDiscordCommandsHandler
                 && translationProvider.SupportedLanguages.Count > supportedLangChoices.Count)
             {
                 supportedLangChoices.AddRange(
-                    translationProvider.SupportedLanguages.Where(l => !supportedLangChoices.Contains(l))
+                    translationProvider
+                        .SupportedLanguages.Where(l => !supportedLangChoices.Contains(l))
                         .Take(SlashCommandBuilder.MaxOptionsCount - supportedLangChoices.Count)
                         .ToList());
             }
@@ -168,12 +177,14 @@ public sealed partial class RegisterDiscordCommandsHandler
         translateToOption.Choices = langChoices;
 
         commandsToRegister.Add(
-            new SlashCommandBuilder().WithName(SlashCommandConstants.TranslateCommandName)
+            new SlashCommandBuilder()
+                .WithName(SlashCommandConstants.TranslateCommandName)
                 .WithDescription("Translate text from one language to another.")
                 .AddOption(translateFromOption)
                 .AddOption(translateToOption)
                 .AddOption(
-                    new SlashCommandOptionBuilder().WithName(SlashCommandConstants.TranslateCommandTextOptionName)
+                    new SlashCommandOptionBuilder()
+                        .WithName(SlashCommandConstants.TranslateCommandTextOptionName)
                         .WithDescription("The text to be translated.")
                         .WithType(ApplicationCommandOptionType.String)
                         .WithRequired(true))

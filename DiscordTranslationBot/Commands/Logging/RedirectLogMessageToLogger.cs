@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Discord;
+﻿using Discord;
 
 namespace DiscordTranslationBot.Commands.Logging;
 
@@ -8,7 +7,6 @@ public sealed class RedirectLogMessageToLogger : IRequest
     /// <summary>
     /// The Discord log message.
     /// </summary>
-    [Required]
     public required LogMessage LogMessage { get; init; }
 }
 
