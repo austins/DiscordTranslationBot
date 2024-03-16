@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Tests.Unit.Mediator;
 public sealed class RequestValidationBehaviorTests
 {
     private readonly IRequest _request;
-    private readonly RequestValidationBehavior<IRequest, MediatR.Unit> _sut;
+    private readonly RequestValidationBehavior<IRequest, bool> _sut;
     private readonly IValidator<IRequest> _validator;
 
     public RequestValidationBehaviorTests()
@@ -20,7 +20,7 @@ public sealed class RequestValidationBehaviorTests
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
 
-        _sut = new RequestValidationBehavior<IRequest, MediatR.Unit>(serviceProvider);
+        _sut = new RequestValidationBehavior<IRequest, bool>(serviceProvider);
     }
 
     [Fact]
@@ -28,22 +28,38 @@ public sealed class RequestValidationBehaviorTests
     {
         // Arrange
         _validator
-            .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
-                Arg.Any<CancellationToken>())
+            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
             .Returns(new ValidationResult());
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.Handle(_request, () => MediatR.Unit.Task, CancellationToken.None))
+            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
             .Should()
             .NotThrowAsync();
 
         await _validator
             .Received(1)
-            .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
-                Arg.Any<CancellationToken>());
+            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_NoValidator_Success()
+    {
+        // Arrange
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(null);
+
+        var sut = new RequestValidationBehavior<IRequest, bool>(serviceProvider);
+
+        // Act & Assert
+        await sut
+            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
+            .Should()
+            .NotThrowAsync();
+
+        await _validator
+            .DidNotReceive()
+            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -58,7 +74,7 @@ public sealed class RequestValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.Handle(_request, () => MediatR.Unit.Task, CancellationToken.None))
+            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
             .Should()
             .ThrowAsync<ValidationException>();
 

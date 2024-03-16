@@ -5,13 +5,13 @@ namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
 public sealed class RequestElapsedTimeLoggingBehaviorTests
 {
-    private readonly LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, MediatR.Unit>> _logger;
-    private readonly RequestElapsedTimeLoggingBehavior<IRequest, MediatR.Unit> _sut;
+    private readonly LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, bool>> _logger;
+    private readonly RequestElapsedTimeLoggingBehavior<IRequest, bool> _sut;
 
     public RequestElapsedTimeLoggingBehaviorTests()
     {
-        _logger = new LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, MediatR.Unit>>();
-        _sut = new RequestElapsedTimeLoggingBehavior<IRequest, MediatR.Unit>(_logger);
+        _logger = new LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, bool>>();
+        _sut = new RequestElapsedTimeLoggingBehavior<IRequest, bool>(_logger);
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public sealed class RequestElapsedTimeLoggingBehaviorTests
         var request = Substitute.For<IRequest>();
 
         // Act
-        await _sut.Handle(request, () => MediatR.Unit.Task, CancellationToken.None);
+        await _sut.Handle(request, () => Task.FromResult(true), CancellationToken.None);
 
         // Assert
         _logger.Entries.Should().HaveCount(2);
