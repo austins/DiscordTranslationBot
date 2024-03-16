@@ -6,9 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Discord;
 
 public sealed class DiscordClientHealthCheckTests
 {
-#pragma warning disable NUnit1032
     private readonly IDiscordClient _client;
-#pragma warning restore NUnit1032
     private readonly DiscordClientHealthCheck _sut;
 
     public DiscordClientHealthCheckTests()
@@ -17,7 +15,7 @@ public sealed class DiscordClientHealthCheckTests
         _sut = new DiscordClientHealthCheck(_client);
     }
 
-    [Test]
+    [Fact]
     public async Task CheckHealthAsync_Returns_Healthy()
     {
         // Arrange
@@ -40,8 +38,9 @@ public sealed class DiscordClientHealthCheckTests
         result.Data.Should().BeEquivalentTo(expectedData);
     }
 
-    [TestCase(ConnectionState.Connecting)]
-    [TestCase(ConnectionState.Disconnecting)]
+    [Theory]
+    [InlineData(ConnectionState.Connecting)]
+    [InlineData(ConnectionState.Disconnecting)]
     public async Task CheckHealthAsync_Returns_Degraded(ConnectionState state)
     {
         // Arrange
@@ -62,7 +61,7 @@ public sealed class DiscordClientHealthCheckTests
         await _client.DidNotReceiveWithAnyArgs().GetGuildsAsync();
     }
 
-    [Test]
+    [Fact]
     public async Task CheckHealthAsync_Returns_Unhealthy()
     {
         // Arrange

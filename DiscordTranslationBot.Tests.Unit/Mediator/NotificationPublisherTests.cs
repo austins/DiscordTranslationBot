@@ -14,7 +14,7 @@ public sealed class NotificationPublisherTests
         _sut = new NotificationPublisher(_logger);
     }
 
-    [Test]
+    [Fact]
     public async Task Publish_SuccessAndLogs()
     {
         // Arrange
@@ -38,12 +38,13 @@ public sealed class NotificationPublisherTests
             .HaveCount(3)
             .And.Contain(
                 x => x.LogLevel == LogLevel.Information
-                    && x.Message == $"Publishing notification '{nameof(NotificationFake)}'...")
+                     && x.Message == $"Publishing notification '{nameof(NotificationFake)}'...")
             .And.ContainSingle(
                 x => x.LogLevel == LogLevel.Error
-                    && x.Exception!.GetType() == expectedException.GetType()
-                    && x.Message
-                    == $"An exception has occurred in handler '{nameof(FailNotificationHandlerFake)}' for notification '{nameof(NotificationFake)}'.");
+                     && x.Exception!.GetType() == expectedException.GetType()
+                     && x.Message
+                     ==
+                     $"An exception has occurred in handler '{nameof(FailNotificationHandlerFake)}' for notification '{nameof(NotificationFake)}'.");
     }
 
     private sealed class NotificationFake : INotification

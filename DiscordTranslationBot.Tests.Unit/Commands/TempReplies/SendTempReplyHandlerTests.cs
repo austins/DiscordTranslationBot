@@ -15,8 +15,9 @@ public sealed class SendTempReplyHandlerTests
         _sut = new SendTempReplyHandler(new LoggerFake<SendTempReplyHandler>());
     }
 
-    [TestCase(true)]
-    [TestCase(false)]
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task Handle_SendTempReply_Success(bool hasReaction)
     {
         // Arrange
@@ -66,7 +67,7 @@ public sealed class SendTempReplyHandlerTests
         await reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_SendTempReply_Success_TempReplyAlreadyDeleted()
     {
         // Arrange

@@ -37,7 +37,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         Sut = new AzureTranslatorProvider(_client, _logger);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
@@ -86,7 +86,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
@@ -133,7 +133,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Test]
+    [Fact]
     public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
@@ -157,7 +157,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         await _client.Received(1).GetLanguagesAsync(default);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
     {
         // Arrange
@@ -176,11 +176,12 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
     }
 
-    [TestCase(HttpStatusCode.Unauthorized)]
-    [TestCase(HttpStatusCode.Forbidden)]
-    [TestCase(HttpStatusCode.TooManyRequests)]
-    [TestCase(HttpStatusCode.InternalServerError)]
-    [TestCase(HttpStatusCode.ServiceUnavailable)]
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
         HttpStatusCode statusCode)
     {
@@ -206,7 +207,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, default);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations()
     {
         // Arrange

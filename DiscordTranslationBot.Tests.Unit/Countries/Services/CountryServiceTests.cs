@@ -13,24 +13,24 @@ public sealed class CountryServiceTests
         _sut.Initialize();
     }
 
-    public static IReadOnlyCollection<(string EmojiUnicode, string ExpectedCountryName)> TryGetCountryByEmojiTestData =>
-        new List<(string, string)>
+    public static TheoryData<string, string> TryGetCountryByEmojiData =>
+        new()
         {
-            (Emoji.FlagUnitedStates.ToString(), "United States"),
-            (Emoji.FlagFrance.ToString(), "France"),
-            ("🇯🇵", "Japan")
+            { Emoji.FlagUnitedStates.ToString(), "United States" },
+            { Emoji.FlagFrance.ToString(), "France" },
+            { "🇯🇵", "Japan" }
         };
 
-    [TestCaseSource(nameof(TryGetCountryByEmojiTestData))]
-    public void TryGetCountryByEmoji_WithValidEmoji_Returns_Expected(
-        (string EmojiUnicode, string ExpectedCountryName) data)
+    [Theory]
+    [MemberData(nameof(TryGetCountryByEmojiData))]
+    public void TryGetCountryByEmoji_WithValidEmoji_Returns_Expected(string emojiUnicode, string expectedCountryName)
     {
         // Act & Assert
-        _sut.TryGetCountryByEmoji(data.EmojiUnicode, out var result).Should().BeTrue();
-        result!.Name.Should().Be(data.ExpectedCountryName);
+        _sut.TryGetCountryByEmoji(emojiUnicode, out var result).Should().BeTrue();
+        result!.Name.Should().Be(expectedCountryName);
     }
 
-    [Test]
+    [Fact]
     public void TryGetCountryByEmoji_WithInvalidEmoji_Returns_Expected()
     {
         // Act & Assert

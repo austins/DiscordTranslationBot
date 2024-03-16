@@ -13,7 +13,7 @@ public sealed class RequestValidationBehaviorTests
         _sut = new RequestValidationBehavior<IRequest, MediatR.Unit>();
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_ValidRequest_Success()
     {
         // Arrange
@@ -24,10 +24,11 @@ public sealed class RequestValidationBehaviorTests
         };
 
         // Act & Assert
-        await _sut.Invoking(x => x.Handle(request, () => MediatR.Unit.Task, CancellationToken.None)).Should().NotThrowAsync();
+        await _sut.Invoking(x => x.Handle(request, () => MediatR.Unit.Task, CancellationToken.None)).Should()
+            .NotThrowAsync();
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_InvalidRequest_Throws()
     {
         // Arrange
@@ -43,7 +44,7 @@ public sealed class RequestValidationBehaviorTests
             .ThrowAsync<RequestValidationException>()
             .Where(
                 x => x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(RequestFake.Name)))
-                    && x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(RequestFake.Value))));
+                     && x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(RequestFake.Value))));
     }
 
     private sealed class RequestFake : IRequest
@@ -51,7 +52,7 @@ public sealed class RequestValidationBehaviorTests
         [Required]
         public string? Name { get; init; }
 
-        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, MinimumIsExclusive = true)]
+        [Range(0, int.MaxValue, MinimumIsExclusive = true)]
         public required int Value { get; init; }
     }
 }

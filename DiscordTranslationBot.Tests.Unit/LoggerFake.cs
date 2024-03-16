@@ -2,14 +2,12 @@
 
 internal class LoggerFake : ILogger
 {
-    private readonly string? _categoryName;
     private readonly IList<LogEntry> _entries = [];
     private readonly bool _logTrace;
 
-    protected LoggerFake(bool logTrace = false, string? categoryName = null)
+    protected LoggerFake(bool logTrace = false)
     {
         _logTrace = logTrace;
-        _categoryName = categoryName;
     }
 
     public IReadOnlyCollection<LogEntry> Entries => _entries.AsReadOnly();
@@ -21,21 +19,12 @@ internal class LoggerFake : ILogger
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        if (IsEnabled(logLevel))
+        if (!IsEnabled(logLevel))
         {
-            var entry = new LogEntry(logLevel, eventId, state, exception, formatter(state, exception));
-            _entries.Add(entry);
-
-            var output =
-                $"Logger output at {DateTime.Now:HH:mm:ss}, {entry.LogLevel}, {_categoryName}[{entry.EventId}]:\n  Message: {entry.Message}";
-
-            if (exception is not null)
-            {
-                output += $"\n  Exception: {exception}";
-            }
-
-            TestContext.Progress.WriteLine(output);
+            return;
         }
+
+        _entries.Add(new LogEntry(logLevel, eventId, state, exception, formatter(state, exception)));
     }
 
     public bool IsEnabled(LogLevel logLevel)
@@ -50,12 +39,8 @@ internal class LoggerFake : ILogger
     }
 }
 
-internal sealed class LoggerFake<TCategoryName> : LoggerFake, ILogger<TCategoryName>
+internal sealed class LoggerFake<TCategoryName>(bool logTrace = false) : LoggerFake(logTrace), ILogger<TCategoryName>
 {
-    public LoggerFake(bool logTrace = false)
-        : base(logTrace, typeof(TCategoryName).FullName)
-    {
-    }
 }
 
 internal sealed record LogEntry(

@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.Logging;
 
 public sealed class RedirectLogMessageToLoggerTests
 {
-    [Test]
+    [Fact]
     public void Valid_Command_Validates_WithNoErrors()
     {
         // Arrange

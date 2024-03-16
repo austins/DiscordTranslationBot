@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
 
 public sealed class TranslateByCountryFlagEmojiReactionTests
 {
-    [Test]
+    [Fact]
     public void Valid_Command_Validates_WithNoErrors()
     {
         // Arrange

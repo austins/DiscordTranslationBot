@@ -50,7 +50,7 @@ public sealed class TranslateByMessageCommandHandlerTests
         _sut.Configure().GetJumpUrl(_message).Returns(new Uri("http://localhost/test"));
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_Success()
     {
         // Arrange
@@ -93,7 +93,7 @@ public sealed class TranslateByMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_MessageCommandExecutedEvent_NotTranslateCommand_Returns()
     {
         // Arrange
@@ -110,7 +110,7 @@ public sealed class TranslateByMessageCommandHandlerTests
         await _mediator.DidNotReceive().Send(Arg.Any<TranslateByMessageCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_Returns_WhenSanitizedMessageIsEmpty()
     {
         // Arrange
@@ -130,7 +130,7 @@ public sealed class TranslateByMessageCommandHandlerTests
         _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_UsesNextTranslationProvider_Success()
     {
         // Arrange
@@ -178,7 +178,7 @@ public sealed class TranslateByMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
@@ -199,7 +199,7 @@ public sealed class TranslateByMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_Returns_IfNoProviderSupportsLocale()
     {
         // Arrange
@@ -237,7 +237,7 @@ public sealed class TranslateByMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByMessageCommand_Returns_WhenTranslatedTextIsSame()
     {
         // Arrange

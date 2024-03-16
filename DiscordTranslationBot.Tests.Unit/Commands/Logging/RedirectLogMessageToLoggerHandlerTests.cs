@@ -14,12 +14,13 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
-    [TestCase(LogSeverity.Debug, LogLevel.Trace)]
-    [TestCase(LogSeverity.Verbose, LogLevel.Debug)]
-    [TestCase(LogSeverity.Info, LogLevel.Information)]
-    [TestCase(LogSeverity.Warning, LogLevel.Warning)]
-    [TestCase(LogSeverity.Error, LogLevel.Error)]
-    [TestCase(LogSeverity.Critical, LogLevel.Critical)]
+    [Theory]
+    [InlineData(LogSeverity.Debug, LogLevel.Trace)]
+    [InlineData(LogSeverity.Verbose, LogLevel.Debug)]
+    [InlineData(LogSeverity.Info, LogLevel.Information)]
+    [InlineData(LogSeverity.Warning, LogLevel.Warning)]
+    [InlineData(LogSeverity.Error, LogLevel.Error)]
+    [InlineData(LogSeverity.Critical, LogLevel.Critical)]
     public async Task Handle_RedirectLogMessageToLogger_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange

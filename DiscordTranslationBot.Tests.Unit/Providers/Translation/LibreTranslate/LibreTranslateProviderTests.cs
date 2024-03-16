@@ -41,7 +41,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         Sut = new LibreTranslateProvider(_client, _logger);
     }
 
-    [Test]
+    [Fact]
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
@@ -75,8 +75,8 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _client.TranslateAsync(
                 Arg.Is<TranslateRequest>(
                     x => x.SourceLangCode == sourceLanguage.LangCode
-                        && x.TargetLangCode == targetLanguage.LangCode
-                        && x.Text == text),
+                         && x.TargetLangCode == targetLanguage.LangCode
+                         && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
@@ -87,7 +87,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
@@ -131,7 +131,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         result.Should().BeEquivalentTo(expected);
     }
 
-    [Test]
+    [Fact]
     public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
     {
         // Arrange
@@ -155,8 +155,9 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.Received(1).GetLanguagesAsync(default);
     }
 
-    [TestCase(HttpStatusCode.InternalServerError)]
-    [TestCase(HttpStatusCode.ServiceUnavailable)]
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
         HttpStatusCode statusCode)
     {
@@ -186,7 +187,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
 
-    [Test]
+    [Fact]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange

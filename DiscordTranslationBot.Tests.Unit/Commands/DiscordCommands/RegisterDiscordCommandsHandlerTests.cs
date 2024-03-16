@@ -10,9 +10,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.DiscordCommands;
 public sealed class RegisterDiscordCommandsHandlerTests
 {
     private const string ProviderName = "Test Provider";
-#pragma warning disable NUnit1032
     private readonly IDiscordClient _client;
-#pragma warning restore NUnit1032
     private readonly IMediator _mediator;
     private readonly RegisterDiscordCommandsHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
@@ -33,7 +31,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
             new LoggerFake<RegisterDiscordCommandsHandler>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_JoinedGuildEvent_Success()
     {
         // Arrange
@@ -46,7 +44,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         await _mediator.Received(1).Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_ReadyEvent_Success()
     {
         // Arrange
@@ -61,7 +59,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         await _mediator.Received(1).Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_ReadyEvent_NoGuilds_Returns()
     {
         // Arrange
@@ -76,7 +74,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         await _mediator.DidNotReceive().Send(Arg.Any<RegisterDiscordCommands>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_RegisterDiscordCommands_Success()
     {
         // Arrange

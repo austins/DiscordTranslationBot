@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.DiscordCommands;
 
 public sealed class RegisterDiscordCommandsTests
 {
-    [Test]
+    [Fact]
     public void Valid_Command_Validates_WithNoErrors()
     {
         // Arrange
@@ -20,8 +20,9 @@ public sealed class RegisterDiscordCommandsTests
         validationResults.Should().BeEmpty();
     }
 
-    [TestCase(false)]
-    [TestCase(true)]
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void Invalid_Command_Guilds_Validates_WithErrors(bool isNull)
     {
         // Arrange

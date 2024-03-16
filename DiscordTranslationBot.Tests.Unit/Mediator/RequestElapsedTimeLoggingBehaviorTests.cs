@@ -14,7 +14,7 @@ public sealed class RequestElapsedTimeLoggingBehaviorTests
         _sut = new RequestElapsedTimeLoggingBehavior<IRequest, MediatR.Unit>(_logger);
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_Success_Logs()
     {
         // Arrange

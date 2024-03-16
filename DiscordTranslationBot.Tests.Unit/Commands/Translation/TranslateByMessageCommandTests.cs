@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
 
 public sealed class TranslateByMessageCommandTests
 {
-    [Test]
+    [Fact]
     public void Valid_ValidatesWithoutErrors()
     {
         // Arrange
@@ -20,7 +20,7 @@ public sealed class TranslateByMessageCommandTests
         validationResults.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Invalid_ValidatesWithErrors()
     {
         // Arrange

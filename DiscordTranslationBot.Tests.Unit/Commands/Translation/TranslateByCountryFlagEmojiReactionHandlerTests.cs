@@ -16,16 +16,16 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
 public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 {
     private const string Content = """
-👍 test<:disdainsam:630009232128868353> _test_*test*
-> test
-__test__
-""";
+                                   👍 test<:disdainsam:630009232128868353> _test_*test*
+                                   > test
+                                   __test__
+                                   """;
 
     private const string ExpectedSanitizedMessage = """
-test testtest
-test
-test
-""";
+                                                    test testtest
+                                                    test
+                                                    test
+                                                    """;
 
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
@@ -69,7 +69,7 @@ test
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_ReactionAddedEvent_Returns_GetCountryByEmojiFalse()
     {
         // Arrange
@@ -94,7 +94,7 @@ test
             .Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_ReactionAddedEvent_SendsCommand_GetCountryByEmojiTrue()
     {
         // Arrange
@@ -118,7 +118,7 @@ test
         await _mediator.Received(1).Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_WhenTranslatingBotMessage()
     {
         // Arrange
@@ -150,7 +150,7 @@ test
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Success()
     {
         // Arrange
@@ -194,7 +194,7 @@ test
                 Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_SanitizesMessageEmpty()
     {
         // Arrange
@@ -226,7 +226,7 @@ test
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_NoTranslationResult()
     {
         // Arrange
@@ -259,7 +259,7 @@ test
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task
         Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
@@ -296,7 +296,7 @@ test
         await _mediator.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_OnFailureToDetectSourceLanguage()
     {
         // Arrange

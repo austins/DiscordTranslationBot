@@ -28,7 +28,7 @@ public sealed class TranslateBySlashCommandHandlerTests
             new LoggerFake<TranslateBySlashCommandHandler>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateBySlashCommand_Success()
     {
         // Arrange
@@ -120,7 +120,7 @@ public sealed class TranslateBySlashCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_SlashCommandExecutedEvent_SendsCommand()
     {
         // Arrange
@@ -141,7 +141,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         await _mediator.Received(1).Send(Arg.Any<TranslateBySlashCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_SlashCommandExecutedEvent_NotTranslateCommand_Returns()
     {
         // Arrange
@@ -162,7 +162,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         await _mediator.DidNotReceive().Send(Arg.Any<TranslateBySlashCommand>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateBySlashCommand_Returns_SourceTextIsEmpty()
     {
         // Arrange
@@ -197,7 +197,7 @@ public sealed class TranslateBySlashCommandHandlerTests
                 Arg.Any<SupportedLanguage>());
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_TranslateBySlashCommand_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange

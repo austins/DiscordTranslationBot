@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class SendTempReplyTests
 {
-    [Test]
+    [Fact]
     public void Valid_ValidatesWithoutErrors()
     {
         // Arrange
@@ -31,9 +31,10 @@ public sealed class SendTempReplyTests
         validationResults.Should().BeEmpty();
     }
 
-    [TestCase(null)]
-    [TestCase("")]
-    [TestCase(" ")]
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
     public void Invalid_Properties_HasValidationErrors(string? text)
     {
         // Arrange
@@ -56,7 +57,7 @@ public sealed class SendTempReplyTests
             .And.ContainSingle(x => x.MemberNames.All(y => y == nameof(request.SourceMessage)));
     }
 
-    [Test]
+    [Fact]
     public void Invalid_DeletionDelay_HasValidationError()
     {
         // Arrange
