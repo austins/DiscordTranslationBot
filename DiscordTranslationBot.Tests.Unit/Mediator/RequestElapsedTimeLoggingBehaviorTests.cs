@@ -24,15 +24,15 @@ public sealed class RequestElapsedTimeLoggingBehaviorTests
         await _sut.Handle(request, () => Task.FromResult(true), CancellationToken.None);
 
         // Assert
-        _logger.Entries.Should().HaveCount(2);
+        _logger.Entries.Count.Should().Be(2);
 
         var requestName = request.GetType().Name;
 
-        var executingLog = _logger.Entries.ElementAt(0);
+        var executingLog = _logger.Entries[0];
         executingLog.LogLevel.Should().Be(LogLevel.Information);
         executingLog.Message.Should().Be($"Executing request '{requestName}'...");
 
-        var executedLog = _logger.Entries.ElementAt(1);
+        var executedLog = _logger.Entries[1];
         executedLog.LogLevel.Should().Be(LogLevel.Information);
         executedLog.Message.Should().StartWith($"Executed request '{requestName}'. Elapsed time:");
     }

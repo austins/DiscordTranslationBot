@@ -10,7 +10,7 @@ internal class LoggerFake : ILogger
         _logTrace = logTrace;
     }
 
-    public IReadOnlyCollection<LogEntry> Entries => _entries.AsReadOnly();
+    public IReadOnlyList<LogEntry> Entries => _entries.AsReadOnly();
 
     public void Log<TState>(
         LogLevel logLevel,
