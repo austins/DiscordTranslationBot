@@ -20,7 +20,8 @@ public sealed class TranslateByMessageCommand : IRequest
 /// Handler for the translate message command.
 /// </summary>
 public partial class TranslateByMessageCommandHandler
-    : IRequestHandler<TranslateByMessageCommand>, INotificationHandler<MessageCommandExecutedEvent>
+    : IRequestHandler<TranslateByMessageCommand>,
+        INotificationHandler<MessageCommandExecutedEvent>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;

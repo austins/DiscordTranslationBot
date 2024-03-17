@@ -28,7 +28,9 @@ public sealed class RegisterDiscordCommandsValidator : AbstractValidator<Registe
 }
 
 public sealed partial class RegisterDiscordCommandsHandler
-    : IRequestHandler<RegisterDiscordCommands>, INotificationHandler<ReadyEvent>, INotificationHandler<JoinedGuildEvent>
+    : IRequestHandler<RegisterDiscordCommands>,
+        INotificationHandler<ReadyEvent>,
+        INotificationHandler<JoinedGuildEvent>
 {
     private readonly IDiscordClient _client;
     private readonly ILogger<RegisterDiscordCommandsHandler> _logger;

@@ -15,7 +15,8 @@ public sealed class TranslateBySlashCommand : IRequest
 }
 
 public sealed partial class TranslateBySlashCommandHandler
-    : IRequestHandler<TranslateBySlashCommand>, INotificationHandler<SlashCommandExecutedEvent>
+    : IRequestHandler<TranslateBySlashCommand>,
+        INotificationHandler<SlashCommandExecutedEvent>
 {
     private readonly Log _log;
     private readonly IMediator _mediator;

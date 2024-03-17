@@ -30,7 +30,8 @@ public sealed class TranslateByCountryFlagEmojiReaction : IRequest
 /// Handler for translating by a flag emoji reaction.
 /// </summary>
 public sealed partial class TranslateByCountryFlagEmojiReactionHandler
-    : IRequestHandler<TranslateByCountryFlagEmojiReaction>, INotificationHandler<ReactionAddedEvent>
+    : IRequestHandler<TranslateByCountryFlagEmojiReaction>,
+        INotificationHandler<ReactionAddedEvent>
 {
     private readonly IDiscordClient _client;
     private readonly ICountryService _countryService;

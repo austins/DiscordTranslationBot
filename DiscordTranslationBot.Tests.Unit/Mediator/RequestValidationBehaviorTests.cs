@@ -37,9 +37,7 @@ public sealed class RequestValidationBehaviorTests
             .Should()
             .NotThrowAsync();
 
-        await _validator
-            .Received(1)
-            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+        await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -57,9 +55,7 @@ public sealed class RequestValidationBehaviorTests
             .Should()
             .NotThrowAsync();
 
-        await _validator
-            .DidNotReceive()
-            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+        await _validator.DidNotReceive().ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

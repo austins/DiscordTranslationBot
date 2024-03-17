@@ -47,7 +47,8 @@ internal class LoggerFake : ILogger
     }
 }
 
-internal sealed class LoggerFake<TCategoryName>(bool logTrace = false) : LoggerFake(logTrace), ILogger<TCategoryName>
+internal sealed class LoggerFake<TCategoryName>(bool logTrace = false) : LoggerFake(logTrace),
+    ILogger<TCategoryName>
 {
 }
 
