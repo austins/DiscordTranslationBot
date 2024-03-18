@@ -1,3 +1,4 @@
+#pragma warning disable CA1034 // Nested types should not be visible
 namespace DiscordTranslationBot.Constants;
 
 /// <summary>
@@ -6,22 +7,28 @@ namespace DiscordTranslationBot.Constants;
 public static class SlashCommandConstants
 {
     /// <summary>
-    /// The name of the translate slash command.
+    /// Translate slash command constants.
     /// </summary>
-    public const string TranslateCommandName = "translate";
+    public static class Translate
+    {
+        /// <summary>
+        /// The name of the translate slash command.
+        /// </summary>
+        public const string CommandName = "translate";
 
-    /// <summary>
-    /// The to option name of the translate slash command.
-    /// </summary>
-    public const string TranslateCommandToOptionName = "to";
+        /// <summary>
+        /// The to option name of the translate slash command.
+        /// </summary>
+        public const string CommandToOptionName = "to";
 
-    /// <summary>
-    /// The text option name of the translate slash command.
-    /// </summary>
-    public const string TranslateCommandTextOptionName = "text";
+        /// <summary>
+        /// The text option name of the translate slash command.
+        /// </summary>
+        public const string CommandTextOptionName = "text";
 
-    /// <summary>
-    /// The from option name of the translate slash command.
-    /// </summary>
-    public const string TranslateCommandFromOptionName = "from";
+        /// <summary>
+        /// The from option name of the translate slash command.
+        /// </summary>
+        public const string CommandFromOptionName = "from";
+    }
 }

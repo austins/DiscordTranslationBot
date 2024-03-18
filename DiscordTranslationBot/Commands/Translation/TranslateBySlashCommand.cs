@@ -40,7 +40,7 @@ public sealed partial class TranslateBySlashCommandHandler
 
     public Task Handle(SlashCommandExecutedEvent notification, CancellationToken cancellationToken)
     {
-        if (notification.SlashCommand.Data.Name != SlashCommandConstants.TranslateCommandName)
+        if (notification.SlashCommand.Data.Name != SlashCommandConstants.Translate.CommandName)
         {
             return Task.CompletedTask;
         }
@@ -60,7 +60,7 @@ public sealed partial class TranslateBySlashCommandHandler
         // Get the input values.
         var options = request.SlashCommand.Data.Options;
 
-        var text = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandTextOptionName).Value;
+        var text = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandTextOptionName).Value;
 
         // Parse the input text.
         var sanitizedText = FormatUtility.SanitizeText(text);
@@ -78,9 +78,9 @@ public sealed partial class TranslateBySlashCommandHandler
 
         await request.SlashCommand.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
 
-        var to = (string)options.First(o => o.Name == SlashCommandConstants.TranslateCommandToOptionName).Value;
+        var to = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandToOptionName).Value;
 
-        var from = (string?)options.FirstOrDefault(o => o.Name == SlashCommandConstants.TranslateCommandFromOptionName)
+        var from = (string?)options.FirstOrDefault(o => o.Name == SlashCommandConstants.Translate.CommandFromOptionName)
             ?.Value;
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.

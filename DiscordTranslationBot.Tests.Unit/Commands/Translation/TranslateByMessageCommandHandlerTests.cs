@@ -41,7 +41,7 @@ public sealed class TranslateByMessageCommandHandlerTests
         _message.Channel.Returns(Substitute.For<IMessageChannel>());
 
         var data = Substitute.For<IMessageCommandInteractionData>();
-        data.Name.Returns(MessageCommandConstants.TranslateCommandName);
+        data.Name.Returns(MessageCommandConstants.Translate.CommandName);
         data.Message.Returns(_message);
 
         _messageCommand = Substitute.For<IMessageCommandInteraction>();

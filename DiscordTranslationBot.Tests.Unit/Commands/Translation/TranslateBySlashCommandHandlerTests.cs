@@ -47,18 +47,18 @@ public sealed class TranslateBySlashCommandHandlerTests
         const string text = "text";
 
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
 
         var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
+        toOption.Name.Returns(SlashCommandConstants.Translate.CommandToOptionName);
         toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
         textOption.Value.Returns(text);
 
         var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
+        fromOption.Name.Returns(SlashCommandConstants.Translate.CommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
         data.Options.Returns(
@@ -127,7 +127,7 @@ public sealed class TranslateBySlashCommandHandlerTests
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -169,10 +169,10 @@ public sealed class TranslateBySlashCommandHandlerTests
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
         textOption.Value.Returns(string.Empty);
 
         data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { textOption });
@@ -219,18 +219,18 @@ public sealed class TranslateBySlashCommandHandlerTests
         const string text = "text";
 
         var data = Substitute.For<IApplicationCommandInteractionData>();
-        data.Name.Returns(SlashCommandConstants.TranslateCommandName);
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
 
         var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        toOption.Name.Returns(SlashCommandConstants.TranslateCommandToOptionName);
+        toOption.Name.Returns(SlashCommandConstants.Translate.CommandToOptionName);
         toOption.Value.Returns(targetLanguage.LangCode);
 
         var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        textOption.Name.Returns(SlashCommandConstants.TranslateCommandTextOptionName);
+        textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
         textOption.Value.Returns(text);
 
         var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
-        fromOption.Name.Returns(SlashCommandConstants.TranslateCommandFromOptionName);
+        fromOption.Name.Returns(SlashCommandConstants.Translate.CommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
         data.Options.Returns(

@@ -49,7 +49,7 @@ public partial class TranslateByMessageCommandHandler
 
     public Task Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
     {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateCommandName)
+        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
         {
             return Task.CompletedTask;
         }

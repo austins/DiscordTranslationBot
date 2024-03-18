@@ -108,7 +108,7 @@ public sealed partial class RegisterDiscordCommandsHandler
     private static void GetMessageCommands(List<ApplicationCommandProperties> commandsToRegister)
     {
         commandsToRegister.Add(
-            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateCommandName).Build());
+            new MessageCommandBuilder().WithName(MessageCommandConstants.Translate.CommandName).Build());
     }
 
     /// <summary>
@@ -166,14 +166,14 @@ public sealed partial class RegisterDiscordCommandsHandler
             .ToList();
 
         var translateFromOption = new SlashCommandOptionBuilder()
-            .WithName(SlashCommandConstants.TranslateCommandFromOptionName)
+            .WithName(SlashCommandConstants.Translate.CommandFromOptionName)
             .WithDescription("The language to translate from.")
             .WithType(ApplicationCommandOptionType.String);
 
         translateFromOption.Choices = langChoices;
 
         var translateToOption = new SlashCommandOptionBuilder()
-            .WithName(SlashCommandConstants.TranslateCommandToOptionName)
+            .WithName(SlashCommandConstants.Translate.CommandToOptionName)
             .WithDescription("The language to translate to.")
             .WithType(ApplicationCommandOptionType.String)
             .WithRequired(true);
@@ -182,13 +182,13 @@ public sealed partial class RegisterDiscordCommandsHandler
 
         commandsToRegister.Add(
             new SlashCommandBuilder()
-                .WithName(SlashCommandConstants.TranslateCommandName)
+                .WithName(SlashCommandConstants.Translate.CommandName)
                 .WithDescription("Translate text from one language to another.")
                 .AddOption(translateFromOption)
                 .AddOption(translateToOption)
                 .AddOption(
                     new SlashCommandOptionBuilder()
-                        .WithName(SlashCommandConstants.TranslateCommandTextOptionName)
+                        .WithName(SlashCommandConstants.Translate.CommandTextOptionName)
                         .WithDescription("The text to be translated.")
                         .WithType(ApplicationCommandOptionType.String)
                         .WithRequired(true))
