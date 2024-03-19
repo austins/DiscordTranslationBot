@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0"/>
-        <PackageReference Include="Discord.Net" Version="3.13.1"/>
+        <PackageReference Include="Discord.Net" Version="3.14.1"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0"/>
         <PackageReference Include="Humanizer.Core" Version="2.14.1"/>
         <PackageReference Include="Markdig.Signed" Version="0.36.2"/>
