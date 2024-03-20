@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 public sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly ILibreTranslateClient _client;
-    private readonly Log<LibreTranslateProvider> _log;
+    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider" /> class.
@@ -116,13 +116,5 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         result.TranslatedText = response.Content.TranslatedText;
 
         return result;
-    }
-
-    private sealed class Log : Log<LibreTranslateProvider>
-    {
-        public Log(ILogger<LibreTranslateProvider> logger)
-            : base(logger)
-        {
-        }
     }
 }

@@ -90,9 +90,9 @@ internal sealed partial class DiscordEventListener
 
     private sealed partial class Log
     {
-        private readonly ILogger<DiscordEventListener> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<DiscordEventListener> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

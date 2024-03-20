@@ -96,9 +96,9 @@ internal sealed partial class Worker : IHostedService
 
     private sealed partial class Log
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<Worker> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

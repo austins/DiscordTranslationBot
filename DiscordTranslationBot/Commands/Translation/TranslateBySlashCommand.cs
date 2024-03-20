@@ -128,9 +128,9 @@ public sealed partial class TranslateBySlashCommandHandler
 
     private sealed partial class Log
     {
-        private readonly ILogger<TranslateBySlashCommandHandler> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<TranslateBySlashCommandHandler> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

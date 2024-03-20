@@ -85,9 +85,9 @@ public sealed partial class CountryService : ICountryService
 
     private sealed partial class Log
     {
-        private readonly ILogger<CountryService> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<CountryService> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

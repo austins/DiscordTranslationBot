@@ -160,11 +160,11 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         return result;
     }
 
-    private sealed partial class Log : Log<AzureTranslatorProvider>
+    private new sealed partial class Log : TranslationProviderBase.Log
     {
-        private readonly ILogger<AzureTranslatorProvider> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<AzureTranslatorProvider> logger)
+        public Log(ILogger logger)
             : base(logger)
         {
             _logger = logger;

@@ -137,9 +137,9 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
 
     private sealed partial class Log
     {
-        private readonly ILogger<SendTempReplyHandler> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<SendTempReplyHandler> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

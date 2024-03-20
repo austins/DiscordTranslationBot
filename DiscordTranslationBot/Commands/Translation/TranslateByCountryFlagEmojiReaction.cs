@@ -200,9 +200,9 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
     private sealed partial class Log
     {
-        private readonly ILogger<TranslateByCountryFlagEmojiReactionHandler> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

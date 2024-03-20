@@ -58,9 +58,9 @@ public sealed partial class RequestElapsedTimeLoggingBehavior<TRequest, TRespons
 
     private sealed partial class Log
     {
-        private readonly ILogger<RequestElapsedTimeLoggingBehavior<TRequest, TResponse>> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<RequestElapsedTimeLoggingBehavior<TRequest, TResponse>> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

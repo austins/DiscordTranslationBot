@@ -71,12 +71,11 @@ public abstract partial class TranslationProviderBase
         return TranslateAsync(targetLanguage, text, cancellationToken);
     }
 
-    protected abstract partial class Log<TTranslationProvider>
-        where TTranslationProvider : TranslationProviderBase
+    protected partial class Log
     {
-        private readonly ILogger<TTranslationProvider> _logger;
+        private readonly ILogger _logger;
 
-        protected Log(ILogger<TTranslationProvider> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

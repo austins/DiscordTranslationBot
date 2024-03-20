@@ -42,9 +42,9 @@ public sealed partial class NotificationPublisher : INotificationPublisher
 
     private sealed partial class Log
     {
-        private readonly ILogger<NotificationPublisher> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<NotificationPublisher> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }

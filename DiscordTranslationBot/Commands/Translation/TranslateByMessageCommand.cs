@@ -196,9 +196,9 @@ public partial class TranslateByMessageCommandHandler
 
     private sealed partial class Log
     {
-        private readonly ILogger<TranslateByMessageCommandHandler> _logger;
+        private readonly ILogger _logger;
 
-        public Log(ILogger<TranslateByMessageCommandHandler> logger)
+        public Log(ILogger logger)
         {
             _logger = logger;
         }
