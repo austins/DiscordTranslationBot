@@ -17,10 +17,10 @@ env:
     IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-    #analyze:
-    #uses: ./.github/workflows/analyze.yml
+    analyze:
+        uses: ./.github/workflows/analyze.yml
     test:
-        #needs: analyze
+        needs: analyze
         uses: ./.github/workflows/test.yml
     docker:
         needs: test
