@@ -9,10 +9,7 @@ on:
             - 'LICENSE'
 
 jobs:
-    #analyze:
-    #    uses: ./.github/workflows/analyze.yml
     test:
-        #needs: analyze
         uses: ./.github/workflows/test.yml
     automerge:
         if: ${{ github.actor == 'dependabot[bot]' }}
