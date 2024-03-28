@@ -3,10 +3,6 @@ name: Build
 on:
     pull_request:
         branches: [ master ]
-        paths-ignore:
-            - '.github/dependabot.yml'
-            - 'README.md'
-            - 'LICENSE'
 
 jobs:
     test:
