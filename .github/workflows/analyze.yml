@@ -14,15 +14,20 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                language: [ 'csharp' ]
+                include:
+                    -   language: csharp
+                        builder-mode: manual
         steps:
             -   name: Checkout repository
-                uses: actions/checkout@v2
+                uses: actions/checkout@v4
             -   name: Initialize CodeQL
                 uses: github/codeql-action/init@v3
                 with:
                     languages: ${{ matrix.language }}
-            -   name: Autobuild
-                uses: github/codeql-action/autobuild@v3
+                    build-mode: ${{ matrix.build-mode }}
+            -   if: ${{ matrix.language == 'csharp' && matrix.build-mode == 'manual' }}
+                run: dotnet build
             -   name: Perform CodeQL Analysis
                 uses: github/codeql-action/analyze@v3
+                with:
+                    category: "/language:${{matrix.language}}"
