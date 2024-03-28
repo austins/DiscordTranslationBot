@@ -3,10 +3,6 @@ name: Deploy
 on:
     push:
         branches: [ master ]
-        paths-ignore:
-            - '.github/dependabot.yml'
-            - 'README.md'
-            - 'LICENSE'
 
 concurrency:
     group: deploy
