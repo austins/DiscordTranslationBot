@@ -24,18 +24,18 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
     public async Task Handle_RedirectLogMessageToLogger_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
-        var request = new RedirectLogMessageToLogger
+        var command = new RedirectLogMessageToLogger
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         var entry = _logger.Entries[0];
         entry.LogLevel.Should().Be(expectedLevel);
-        entry.Message.Should().Be($"Discord {request.LogMessage.Source}: {request.LogMessage.Message}");
-        entry.Exception.Should().Be(request.LogMessage.Exception);
+        entry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
+        entry.Exception.Should().Be(command.LogMessage.Exception);
     }
 }

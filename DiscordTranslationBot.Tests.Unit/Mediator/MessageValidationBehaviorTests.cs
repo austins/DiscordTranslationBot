@@ -1,30 +1,29 @@
 using DiscordTranslationBot.Mediator;
 using FluentValidation;
 using FluentValidation.Results;
-using MediatR;
-using ValidationException = FluentValidation.ValidationException;
+using Mediator;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
-public sealed class RequestValidationBehaviorTests
+public sealed class MessageValidationBehaviorTests
 {
-    private readonly IRequest _request;
-    private readonly RequestValidationBehavior<IRequest, bool> _sut;
-    private readonly IValidator<IRequest> _validator;
+    private readonly IMessage _message;
+    private readonly MessageValidationBehavior<IMessage, bool> _sut;
+    private readonly IValidator<IMessage> _validator;
 
-    public RequestValidationBehaviorTests()
+    public MessageValidationBehaviorTests()
     {
-        _request = Substitute.For<IRequest>();
-        _validator = Substitute.For<IValidator<IRequest>>();
+        _message = Substitute.For<IMessage>();
+        _validator = Substitute.For<IValidator<IMessage>>();
 
         var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(_validator);
+        serviceProvider.GetService(typeof(IValidator<IMessage>)).Returns(_validator);
 
-        _sut = new RequestValidationBehavior<IRequest, bool>(serviceProvider);
+        _sut = new MessageValidationBehavior<IMessage, bool>(serviceProvider);
     }
 
     [Fact]
-    public async Task Handle_ValidRequest_Success()
+    public async Task Handle_ValidMessage_Success()
     {
         // Arrange
         _validator
@@ -33,7 +32,7 @@ public sealed class RequestValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
             .Should()
             .NotThrowAsync();
 
@@ -41,17 +40,17 @@ public sealed class RequestValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_ValidRequest_NoValidator_Success()
+    public async Task Handle_ValidMessage_NoValidator_Success()
     {
         // Arrange
         var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IRequest>)).Returns(null);
+        serviceProvider.GetService(typeof(IValidator<IMessage>)).Returns(null);
 
-        var sut = new RequestValidationBehavior<IRequest, bool>(serviceProvider);
+        var sut = new MessageValidationBehavior<IMessage, bool>(serviceProvider);
 
         // Act & Assert
         await sut
-            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
             .Should()
             .NotThrowAsync();
 
@@ -59,25 +58,25 @@ public sealed class RequestValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_InvalidRequest_Throws()
+    public async Task Handle_InvalidMessage_Throws()
     {
         // Arrange
         _validator
             .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
+                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
                 Arg.Any<CancellationToken>())
             .ThrowsAsync(new ValidationException(new[] { new ValidationFailure("test", "test") }));
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.Handle(_request, () => Task.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
             .Should()
             .ThrowAsync<ValidationException>();
 
         await _validator
             .Received(1)
             .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _request),
+                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
                 Arg.Any<CancellationToken>());
     }
 }

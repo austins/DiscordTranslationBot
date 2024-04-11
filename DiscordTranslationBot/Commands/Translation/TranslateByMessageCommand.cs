@@ -5,10 +5,11 @@ using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
+using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Commands.Translation;
 
-public sealed class TranslateByMessageCommand : IRequest
+public sealed class TranslateByMessageCommand : ICommand
 {
     /// <summary>
     /// The slash command.
@@ -20,7 +21,7 @@ public sealed class TranslateByMessageCommand : IRequest
 /// Handler for the translate message command.
 /// </summary>
 public partial class TranslateByMessageCommandHandler
-    : IRequestHandler<TranslateByMessageCommand>,
+    : ICommandHandler<TranslateByMessageCommand>,
         INotificationHandler<MessageCommandExecutedEvent>
 {
     private readonly IDiscordClient _client;
@@ -47,53 +48,41 @@ public partial class TranslateByMessageCommandHandler
         _log = new Log(logger);
     }
 
-    public Task Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
-    {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
-        {
-            return Task.CompletedTask;
-        }
-
-        return _mediator.Send(
-            new TranslateByMessageCommand { MessageCommand = notification.MessageCommand },
-            cancellationToken);
-    }
-
     /// <summary>
     /// Translates the message interacted with to the user's locale.
     /// </summary>
-    /// <param name="request">The request.</param>
+    /// <param name="command">The Mediator command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(TranslateByMessageCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(TranslateByMessageCommand command, CancellationToken cancellationToken)
     {
-        if (request.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
+        if (command.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await request.MessageCommand.RespondAsync(
+            await command.MessageCommand.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return;
+            return Unit.Value;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(request.MessageCommand.Data.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(command.MessageCommand.Data.Message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await request.MessageCommand.RespondAsync(
+            await command.MessageCommand.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return;
+            return Unit.Value;
         }
 
-        await request.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        await command.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
-        var userLocale = request.MessageCommand.UserLocale;
+        var userLocale = command.MessageCommand.UserLocale;
 
         string? providerName = null;
         TranslationResult? translationResult = null;
@@ -139,25 +128,25 @@ public partial class TranslateByMessageCommandHandler
         if (translationResult is null)
         {
             // Send message if no translation providers support the locale.
-            await request.MessageCommand.FollowupAsync(
+            await command.MessageCommand.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return;
+            return Unit.Value;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
         {
             _log.FailureToDetectSourceLanguage();
 
-            await request.MessageCommand.FollowupAsync(
+            await command.MessageCommand.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return;
+            return Unit.Value;
         }
 
-        var fromHeading = $"By {MentionUtils.MentionUser(request.MessageCommand.Data.Message.Author.Id)}";
+        var fromHeading = $"By {MentionUtils.MentionUser(command.MessageCommand.Data.Message.Author.Id)}";
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
             fromHeading +=
@@ -175,13 +164,27 @@ public partial class TranslateByMessageCommandHandler
                            {translationResult.TranslatedText}
                            """;
 
-        await request.MessageCommand.FollowupAsync(
+        await command.MessageCommand.FollowupAsync(
             embed: new EmbedBuilder()
                 .WithTitle("Translated Message")
-                .WithUrl(GetJumpUrl(request.MessageCommand.Data.Message).AbsoluteUri)
+                .WithUrl(GetJumpUrl(command.MessageCommand.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
             options: new RequestOptions { CancelToken = cancellationToken });
+
+        return Unit.Value;
+    }
+
+    public async ValueTask Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
+    {
+        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
+        {
+            return;
+        }
+
+        await _mediator.Send(
+            new TranslateByMessageCommand { MessageCommand = notification.MessageCommand },
+            cancellationToken);
     }
 
     /// <summary>

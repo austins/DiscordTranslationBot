@@ -8,7 +8,7 @@ using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
-using MediatR;
+using Mediator;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
@@ -64,7 +64,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
-            new[] { _translationProvider },
+            [_translationProvider],
             _countryService,
             _mediator,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
@@ -131,7 +131,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
         };
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -143,7 +143,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -173,7 +173,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -185,7 +185,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -210,7 +210,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         _message.Content.Returns(string.Empty);
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -222,7 +222,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -245,7 +245,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -257,7 +257,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
@@ -281,7 +281,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -293,7 +293,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -323,7 +323,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var request = new TranslateByCountryFlagEmojiReaction
+        var command = new TranslateByCountryFlagEmojiReaction
         {
             Country = country,
             Message = _message,
@@ -335,7 +335,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider

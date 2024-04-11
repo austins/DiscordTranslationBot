@@ -12,10 +12,10 @@ public sealed class RegisterDiscordCommandsValidatorTests
     public void Valid_Command_Validates_WithNoErrors()
     {
         // Arrange
-        var request = new RegisterDiscordCommands { Guilds = [Substitute.For<IGuild>()] };
+        var command = new RegisterDiscordCommands { Guilds = [Substitute.For<IGuild>()] };
 
         // Act
-        var result = _sut.TestValidate(request);
+        var result = _sut.TestValidate(command);
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
@@ -27,10 +27,10 @@ public sealed class RegisterDiscordCommandsValidatorTests
     public async Task Invalid_Command_Guilds_Validates_WithErrors(bool isEmpty)
     {
         // Arrange
-        var request = new RegisterDiscordCommands { Guilds = isEmpty ? [] : [Substitute.For<IGuild>()] };
+        var command = new RegisterDiscordCommands { Guilds = isEmpty ? [] : [Substitute.For<IGuild>()] };
 
         // Act
-        var result = await _sut.TestValidateAsync(request);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
         if (isEmpty)

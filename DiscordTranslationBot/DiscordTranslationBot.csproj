@@ -10,7 +10,11 @@
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0"/>
         <PackageReference Include="Humanizer.Core" Version="2.14.1"/>
         <PackageReference Include="Markdig.Signed" Version="0.37.0"/>
-        <PackageReference Include="MediatR" Version="12.2.0"/>
+        <PackageReference Include="Mediator.Abstractions" Version="3.0.0-preview.27"/>
+        <PackageReference Include="Mediator.SourceGenerator" Version="3.0.0-preview.27">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.4"/>
         <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta08"/>
         <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1"/>

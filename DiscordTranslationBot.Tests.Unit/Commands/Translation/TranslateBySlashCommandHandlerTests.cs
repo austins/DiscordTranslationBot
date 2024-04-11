@@ -4,7 +4,7 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
 
@@ -23,7 +23,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         _mediator = Substitute.For<IMediator>();
 
         _sut = new TranslateBySlashCommandHandler(
-            new[] { _translationProvider },
+            [_translationProvider],
             _mediator,
             new LoggerFake<TranslateBySlashCommandHandler>());
     }
@@ -61,13 +61,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.Translate.CommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(
-            new List<IApplicationCommandInteractionDataOption>
-            {
-                toOption,
-                textOption,
-                fromOption
-            });
+        data.Options.Returns([toOption, textOption, fromOption]);
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -99,10 +93,10 @@ public sealed class TranslateBySlashCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
+        var command = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -118,7 +112,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         await slashCommand
             .Received(1)
             .FollowupAsync(
-                Arg.Is<string>(text => text.Contains($"translated text using {ProviderName} from")),
+                Arg.Is<string>(textSent => textSent.Contains($"translated text using {ProviderName} from")),
                 options: Arg.Any<RequestOptions>());
     }
 
@@ -175,15 +169,15 @@ public sealed class TranslateBySlashCommandHandlerTests
         textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
         textOption.Value.Returns(string.Empty);
 
-        data.Options.Returns(new List<IApplicationCommandInteractionDataOption> { textOption });
+        data.Options.Returns([textOption]);
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
 
-        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
+        var command = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await slashCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
@@ -233,13 +227,7 @@ public sealed class TranslateBySlashCommandHandlerTests
         fromOption.Name.Returns(SlashCommandConstants.Translate.CommandFromOptionName);
         fromOption.Value.Returns(sourceLanguage.LangCode);
 
-        data.Options.Returns(
-            new List<IApplicationCommandInteractionDataOption>
-            {
-                toOption,
-                textOption,
-                fromOption
-            });
+        data.Options.Returns([toOption, textOption, fromOption]);
 
         var slashCommand = Substitute.For<ISlashCommandInteraction>();
         slashCommand.Data.Returns(data);
@@ -271,10 +259,10 @@ public sealed class TranslateBySlashCommandHandlerTests
                     TranslatedText = text
                 });
 
-        var request = new TranslateBySlashCommand { SlashCommand = slashCommand };
+        var command = new TranslateBySlashCommand { SlashCommand = slashCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _translationProvider

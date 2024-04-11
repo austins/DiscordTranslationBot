@@ -7,11 +7,10 @@ using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using FluentValidation;
 using Humanizer;
-using IRequest = MediatR.IRequest;
 
 namespace DiscordTranslationBot.Commands.DiscordCommands;
 
-public sealed class RegisterDiscordCommands : IRequest
+public sealed class RegisterDiscordCommands : ICommand
 {
     /// <summary>
     /// The guilds to register Discord commands for.
@@ -28,7 +27,7 @@ public sealed class RegisterDiscordCommandsValidator : AbstractValidator<Registe
 }
 
 public sealed partial class RegisterDiscordCommandsHandler
-    : IRequestHandler<RegisterDiscordCommands>,
+    : ICommandHandler<RegisterDiscordCommands>,
         INotificationHandler<ReadyEvent>,
         INotificationHandler<JoinedGuildEvent>
 {
@@ -56,12 +55,45 @@ public sealed partial class RegisterDiscordCommandsHandler
         _logger = logger;
     }
 
-    public Task Handle(JoinedGuildEvent notification, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(RegisterDiscordCommands command, CancellationToken cancellationToken)
     {
-        return _mediator.Send(new RegisterDiscordCommands { Guilds = [notification.Guild] }, cancellationToken);
+        var discordCommandsToRegister = new List<ApplicationCommandProperties>();
+        GetMessageCommands(discordCommandsToRegister);
+        GetSlashCommands(discordCommandsToRegister);
+
+        if (discordCommandsToRegister.Count == 0)
+        {
+            return Unit.Value;
+        }
+
+        foreach (var guild in command.Guilds)
+        {
+            foreach (var discordCommand in discordCommandsToRegister)
+            {
+                try
+                {
+                    await guild.CreateApplicationCommandAsync(
+                        discordCommand,
+                        new RequestOptions { CancelToken = cancellationToken });
+                }
+                catch (HttpException exception)
+                {
+                    LogFailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
+                }
+            }
+        }
+
+        return Unit.Value;
     }
 
-    public async Task Handle(ReadyEvent notification, CancellationToken cancellationToken)
+#pragma warning disable AsyncFixer01
+    public async ValueTask Handle(JoinedGuildEvent notification, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new RegisterDiscordCommands { Guilds = [notification.Guild] }, cancellationToken);
+    }
+#pragma warning restore AsyncFixer01
+
+    public async ValueTask Handle(ReadyEvent notification, CancellationToken cancellationToken)
     {
         var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
         if (guilds.Count == 0)
@@ -72,50 +104,21 @@ public sealed partial class RegisterDiscordCommandsHandler
         await _mediator.Send(new RegisterDiscordCommands { Guilds = guilds }, cancellationToken);
     }
 
-    public async Task Handle(RegisterDiscordCommands request, CancellationToken cancellationToken)
-    {
-        var commandsToRegister = new List<ApplicationCommandProperties>();
-        GetMessageCommands(commandsToRegister);
-        GetSlashCommands(commandsToRegister);
-
-        if (commandsToRegister.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var guild in request.Guilds)
-        {
-            foreach (var command in commandsToRegister)
-            {
-                try
-                {
-                    await guild.CreateApplicationCommandAsync(
-                        command,
-                        new RequestOptions { CancelToken = cancellationToken });
-                }
-                catch (HttpException exception)
-                {
-                    LogFailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// Gets message commands to register.
     /// </summary>
-    /// <param name="commandsToRegister">Commands to register.</param>
-    private static void GetMessageCommands(List<ApplicationCommandProperties> commandsToRegister)
+    /// <param name="discordCommandsToRegister">Discord commands to register.</param>
+    private static void GetMessageCommands(List<ApplicationCommandProperties> discordCommandsToRegister)
     {
-        commandsToRegister.Add(
+        discordCommandsToRegister.Add(
             new MessageCommandBuilder().WithName(MessageCommandConstants.Translate.CommandName).Build());
     }
 
     /// <summary>
     /// Gets slash commands to register.
     /// </summary>
-    /// <param name="commandsToRegister">Commands to register.</param>
-    private void GetSlashCommands(List<ApplicationCommandProperties> commandsToRegister)
+    /// <param name="discordCommandsToRegister">Discord commands to register.</param>
+    private void GetSlashCommands(List<ApplicationCommandProperties> discordCommandsToRegister)
     {
         // Translate command.
         // Only the first translation provider is supported as the slash command options can only be registered with one provider's supported languages.
@@ -180,7 +183,7 @@ public sealed partial class RegisterDiscordCommandsHandler
 
         translateToOption.Choices = langChoices;
 
-        commandsToRegister.Add(
+        discordCommandsToRegister.Add(
             new SlashCommandBuilder()
                 .WithName(SlashCommandConstants.Translate.CommandName)
                 .WithDescription("Translate text from one language to another.")

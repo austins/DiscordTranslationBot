@@ -4,7 +4,8 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
-using MediatR;
+using Mediator;
+using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
 
@@ -22,11 +23,7 @@ public sealed class TranslateByMessageCommandHandlerTests
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
 
-        _translationProviders = new List<TranslationProviderBase>
-        {
-            Substitute.For<TranslationProviderBase>(),
-            Substitute.For<TranslationProviderBase>()
-        };
+        _translationProviders = [Substitute.For<TranslationProviderBase>(), Substitute.For<TranslationProviderBase>()];
 
         _mediator = Substitute.For<IMediator>();
 
@@ -77,10 +74,10 @@ public sealed class TranslateByMessageCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
@@ -117,10 +114,10 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Arrange
         _message.Content.Returns(string.Empty);
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _messageCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
@@ -165,10 +162,10 @@ public sealed class TranslateByMessageCommandHandlerTests
                     TranslatedText = "translated text"
                 });
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(1).SupportedLanguages;
@@ -187,10 +184,10 @@ public sealed class TranslateByMessageCommandHandlerTests
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _messageCommand.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
@@ -227,10 +224,10 @@ public sealed class TranslateByMessageCommandHandlerTests
                 .ThrowsAsync(new InvalidOperationException("test"));
         }
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;
@@ -271,10 +268,10 @@ public sealed class TranslateByMessageCommandHandlerTests
                     TranslatedText = text
                 });
 
-        var request = new TranslateByMessageCommand { MessageCommand = _messageCommand };
+        var command = new TranslateByMessageCommand { MessageCommand = _messageCommand };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         _ = _translationProviders[0].Received(2).SupportedLanguages;

@@ -6,7 +6,7 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Commands.Translation;
 
-public sealed class TranslateBySlashCommand : IRequest
+public sealed class TranslateBySlashCommand : ICommand
 {
     /// <summary>
     /// The slash command.
@@ -15,7 +15,7 @@ public sealed class TranslateBySlashCommand : IRequest
 }
 
 public sealed partial class TranslateBySlashCommandHandler
-    : IRequestHandler<TranslateBySlashCommand>,
+    : ICommandHandler<TranslateBySlashCommand>,
         INotificationHandler<SlashCommandExecutedEvent>
 {
     private readonly Log _log;
@@ -38,27 +38,15 @@ public sealed partial class TranslateBySlashCommandHandler
         _log = new Log(logger);
     }
 
-    public Task Handle(SlashCommandExecutedEvent notification, CancellationToken cancellationToken)
-    {
-        if (notification.SlashCommand.Data.Name != SlashCommandConstants.Translate.CommandName)
-        {
-            return Task.CompletedTask;
-        }
-
-        return _mediator.Send(
-            new TranslateBySlashCommand { SlashCommand = notification.SlashCommand },
-            cancellationToken);
-    }
-
     /// <summary>
     /// Processes the translate slash command interaction.
     /// </summary>
-    /// <param name="request">The request.</param>
+    /// <param name="command">The Mediator command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(TranslateBySlashCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(TranslateBySlashCommand command, CancellationToken cancellationToken)
     {
         // Get the input values.
-        var options = request.SlashCommand.Data.Options;
+        var options = command.SlashCommand.Data.Options;
 
         var text = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandTextOptionName).Value;
 
@@ -68,15 +56,15 @@ public sealed partial class TranslateBySlashCommandHandler
         {
             _log.EmptySourceText();
 
-            await request.SlashCommand.RespondAsync(
+            await command.SlashCommand.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return;
+            return Unit.Value;
         }
 
-        await request.SlashCommand.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
+        await command.SlashCommand.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
 
         var to = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandToOptionName).Value;
 
@@ -104,16 +92,16 @@ public sealed partial class TranslateBySlashCommandHandler
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await request.SlashCommand.FollowupAsync(
+                await command.SlashCommand.FollowupAsync(
                     "Couldn't detect the source language to translate from or the result is the same.",
                     options: new RequestOptions { CancelToken = cancellationToken });
 
-                return;
+                return Unit.Value;
             }
 
-            await request.SlashCommand.FollowupAsync(
+            await command.SlashCommand.FollowupAsync(
                 $"""
-                 {MentionUtils.MentionUser(request.SlashCommand.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {MentionUtils.MentionUser(command.SlashCommand.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
@@ -124,6 +112,20 @@ public sealed partial class TranslateBySlashCommandHandler
         {
             _log.TranslationFailure(ex, translationProvider.GetType());
         }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask Handle(SlashCommandExecutedEvent notification, CancellationToken cancellationToken)
+    {
+        if (notification.SlashCommand.Data.Name != SlashCommandConstants.Translate.CommandName)
+        {
+            return;
+        }
+
+        await _mediator.Send(
+            new TranslateBySlashCommand { SlashCommand = notification.SlashCommand },
+            cancellationToken);
     }
 
     private sealed partial class Log

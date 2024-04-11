@@ -13,7 +13,7 @@ public sealed class SendTempReplyValidatorTests
     public async Task Valid_ValidatesWithoutErrors()
     {
         // Arrange
-        var request = new SendTempReply
+        var command = new SendTempReply
         {
             Text = "test",
             ReactionInfo = new ReactionInfo
@@ -26,7 +26,7 @@ public sealed class SendTempReplyValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(request);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
@@ -39,7 +39,7 @@ public sealed class SendTempReplyValidatorTests
     public async Task Invalid_Text_HasValidationError(string? text)
     {
         // Arrange
-        var request = new SendTempReply
+        var command = new SendTempReply
         {
             Text = text!,
             ReactionInfo = null,
@@ -47,7 +47,7 @@ public sealed class SendTempReplyValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(request);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Text);
@@ -57,7 +57,7 @@ public sealed class SendTempReplyValidatorTests
     public async Task Invalid_DeletionDelay_HasValidationError()
     {
         // Arrange
-        var request = new SendTempReply
+        var command = new SendTempReply
         {
             Text = "test",
             ReactionInfo = new ReactionInfo
@@ -70,7 +70,7 @@ public sealed class SendTempReplyValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(request);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.DeletionDelay);

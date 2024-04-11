@@ -13,7 +13,7 @@ internal sealed partial class DiscordEventListener
 {
     private readonly DiscordSocketClient _client;
     private readonly Log _log;
-    private readonly IMediator _mediator;
+    private readonly global::Mediator.Mediator _mediator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DiscordEventListener" /> class.
@@ -21,7 +21,10 @@ internal sealed partial class DiscordEventListener
     /// <param name="client">Discord client to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public DiscordEventListener(IDiscordClient client, IMediator mediator, ILogger<DiscordEventListener> logger)
+    public DiscordEventListener(
+        IDiscordClient client,
+        global::Mediator.Mediator mediator,
+        ILogger<DiscordEventListener> logger)
     {
         _client = (DiscordSocketClient)client;
         _mediator = mediator;
@@ -35,9 +38,9 @@ internal sealed partial class DiscordEventListener
     public Task InitializeEventsAsync(CancellationToken cancellationToken)
     {
         // Discord client initiated events can run on its gateway thread.
-        _client.Ready += () => _mediator.Publish(new ReadyEvent(), cancellationToken);
+        _client.Ready += async () => await _mediator.Publish(new ReadyEvent(), cancellationToken);
 
-        _client.Log += logMessage => _mediator.Send(
+        _client.Log += async logMessage => await _mediator.Send(
             new RedirectLogMessageToLogger { LogMessage = logMessage },
             cancellationToken);
 
@@ -71,16 +74,19 @@ internal sealed partial class DiscordEventListener
 
     private Task PublishInBackgroundAsync(INotification notification, CancellationToken cancellationToken)
     {
+        var notificationName = notification.GetType().Name;
+
         _ = Task.Run(
             async () =>
             {
                 try
                 {
+                    _log.PublishingNotification(notificationName);
                     await _mediator.Publish(notification, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    _log.FailedToPublishNotification(ex);
+                    _log.FailedToPublishNotification(ex, notificationName);
                 }
             },
             cancellationToken);
@@ -100,7 +106,12 @@ internal sealed partial class DiscordEventListener
         [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
         public partial void EventsInitialized();
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification in background.")]
-        public partial void FailedToPublishNotification(Exception ex);
+        [LoggerMessage(Level = LogLevel.Information, Message = "Publishing notification '{notificationName}'...")]
+        public partial void PublishingNotification(string notificationName);
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to publish notification '{notificationName}' in background.")]
+        public partial void FailedToPublishNotification(Exception ex, string notificationName);
     }
 }

@@ -37,20 +37,17 @@ builder
                 MessageCacheSize = 100,
                 UseInteractionSnowflakeDate = false
             }))
-    .AddMediatR(
-        c =>
-        {
-            c.Lifetime = ServiceLifetime.Singleton;
-            c.NotificationPublisherType = typeof(NotificationPublisher);
-
-            c
-                .RegisterServicesFromAssemblyContaining<Program>()
-                .AddOpenBehavior(typeof(RequestValidationBehavior<,>), ServiceLifetime.Singleton)
-                .AddOpenBehavior(typeof(RequestElapsedTimeLoggingBehavior<,>), ServiceLifetime.Singleton);
-        })
     .AddSingleton<DiscordEventListener>()
     .AddHostedService<Worker>();
 
+// Mediator
+builder
+    .Services
+    .AddMediator(c => c.NotificationPublisherType = typeof(TaskWhenAllPublisher))
+    .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageValidationBehavior<,>))
+    .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageElapsedTimeLoggingBehavior<,>));
+
+// Health checks.
 builder
     .Services
     .AddRateLimiting()

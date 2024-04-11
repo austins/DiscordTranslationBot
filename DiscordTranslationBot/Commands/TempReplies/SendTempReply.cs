@@ -2,14 +2,14 @@ using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Discord.Models;
 using FluentValidation;
-using IRequest = MediatR.IRequest;
+using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
 /// <summary>
 /// Sends a temp reply.
 /// </summary>
-public sealed class SendTempReply : IRequest
+public sealed class SendTempReply : ICommand
 {
     /// <summary>
     /// The source message.
@@ -44,7 +44,7 @@ public sealed class SendTempReplyValidator : AbstractValidator<SendTempReply>
 /// <summary>
 /// Handler for temp replies.
 /// </summary>
-public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply>
+public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
 {
     private readonly Log _log;
 
@@ -60,25 +60,25 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
     /// <summary>
     /// Sends a temp reply to another message.
     /// </summary>
-    /// <param name="request">The request.</param>
+    /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async Task Handle(SendTempReply request, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(SendTempReply command, CancellationToken cancellationToken)
     {
         var typingState =
-            request.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
+            command.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
 
         IUserMessage reply;
         try
         {
             // Send reply message.
-            reply = await request.SourceMessage.Channel.SendMessageAsync(
-                request.Text,
-                messageReference: new MessageReference(request.SourceMessage.Id),
+            reply = await command.SourceMessage.Channel.SendMessageAsync(
+                command.Text,
+                messageReference: new MessageReference(command.SourceMessage.Id),
                 options: new RequestOptions { CancelToken = cancellationToken });
         }
         catch (Exception ex)
         {
-            _log.FailedToSendTempMessage(ex, request.SourceMessage.Id, request.Text);
+            _log.FailedToSendTempMessage(ex, command.SourceMessage.Id, command.Text);
             throw;
         }
         finally
@@ -86,33 +86,35 @@ public sealed partial class SendTempReplyHandler : IRequestHandler<SendTempReply
             typingState.Dispose();
         }
 
-        _log.WaitingToDeleteTempMessage(reply.Id, request.DeletionDelay.TotalSeconds);
-        await Task.Delay(request.DeletionDelay, cancellationToken);
-        await DeleteTempReplyAsync(reply, request, cancellationToken);
+        _log.WaitingToDeleteTempMessage(reply.Id, command.DeletionDelay.TotalSeconds);
+        await Task.Delay(command.DeletionDelay, cancellationToken);
+        await DeleteTempReplyAsync(reply, command, cancellationToken);
+
+        return Unit.Value;
     }
 
     /// <summary>
     /// Deletes a temp reply. If there is a reaction associated with the source message, it will be cleared, too.
     /// </summary>
     /// <param name="reply">The reply to delete.</param>
-    /// <param name="request">The request.</param>
+    /// <param name="command">The command.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task DeleteTempReplyAsync(IMessage reply, SendTempReply request, CancellationToken cancellationToken)
+    private async Task DeleteTempReplyAsync(IMessage reply, SendTempReply command, CancellationToken cancellationToken)
     {
         try
         {
             // If there is also a reaction and the source message still exists, remove the reaction from it.
-            if (request.ReactionInfo is not null)
+            if (command.ReactionInfo is not null)
             {
                 var sourceMessage = await reply.Channel.GetMessageAsync(
-                    request.SourceMessage.Id,
+                    command.SourceMessage.Id,
                     options: new RequestOptions { CancelToken = cancellationToken });
 
                 if (sourceMessage is not null)
                 {
                     await sourceMessage.RemoveReactionAsync(
-                        request.ReactionInfo.Emote,
-                        request.ReactionInfo.UserId,
+                        command.ReactionInfo.Emote,
+                        command.ReactionInfo.UserId,
                         new RequestOptions { CancelToken = cancellationToken });
                 }
             }

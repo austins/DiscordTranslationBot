@@ -8,12 +8,7 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class SendTempReplyHandlerTests
 {
-    private readonly SendTempReplyHandler _sut;
-
-    public SendTempReplyHandlerTests()
-    {
-        _sut = new SendTempReplyHandler(new LoggerFake<SendTempReplyHandler>());
-    }
+    private readonly SendTempReplyHandler _sut = new(new LoggerFake<SendTempReplyHandler>());
 
     [Theory]
     [InlineData(true)]
@@ -21,7 +16,7 @@ public sealed class SendTempReplyHandlerTests
     public async Task Handle_SendTempReply_Success(bool hasReaction)
     {
         // Arrange
-        var request = new SendTempReply
+        var command = new SendTempReply
         {
             Text = "test",
             ReactionInfo = hasReaction
@@ -36,36 +31,36 @@ public sealed class SendTempReplyHandlerTests
         };
 
         var reply = Substitute.For<IUserMessage>();
-        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+        command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
 
         if (hasReaction)
         {
             reply
                 .Channel
                 .GetMessageAsync(
-                    Arg.Is<ulong>(x => x == request.SourceMessage.Id),
+                    Arg.Is<ulong>(x => x == command.SourceMessage.Id),
                     Arg.Any<CacheMode>(),
                     Arg.Any<RequestOptions>())
-                .Returns(request.SourceMessage);
+                .Returns(command.SourceMessage);
         }
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        request.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
+        command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
 
-        await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
+        await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
         await reply
             .Channel
             .Received(hasReaction ? 1 : 0)
             .GetMessageAsync(
-                Arg.Is<ulong>(x => x == request.SourceMessage.Id),
+                Arg.Is<ulong>(x => x == command.SourceMessage.Id),
                 Arg.Any<CacheMode>(),
                 Arg.Any<RequestOptions>());
 
-        await request
+        await command
             .SourceMessage
             .Received(hasReaction ? 1 : 0)
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
@@ -77,7 +72,7 @@ public sealed class SendTempReplyHandlerTests
     public async Task Handle_SendTempReply_Success_TempReplyAlreadyDeleted()
     {
         // Arrange
-        var request = new SendTempReply
+        var command = new SendTempReply
         {
             Text = "test",
             ReactionInfo = null,
@@ -86,7 +81,7 @@ public sealed class SendTempReplyHandlerTests
         };
 
         var reply = Substitute.For<IUserMessage>();
-        request.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+        command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
 
         reply
             .DeleteAsync(Arg.Any<RequestOptions>())
@@ -97,11 +92,11 @@ public sealed class SendTempReplyHandlerTests
                     DiscordErrorCode.UnknownMessage));
 
         // Act & Assert
-        await _sut.Invoking(x => x.Handle(request, CancellationToken.None)).Should().NotThrowAsync();
+        await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().NotThrowAsync();
 
-        request.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
+        command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
 
-        await request.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
+        await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
         await reply.ReceivedWithAnyArgs(1).DeleteAsync();
     }

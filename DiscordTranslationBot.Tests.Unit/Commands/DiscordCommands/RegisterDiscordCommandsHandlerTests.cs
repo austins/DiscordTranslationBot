@@ -3,7 +3,7 @@ using DiscordTranslationBot.Commands.DiscordCommands;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.DiscordCommands;
 
@@ -63,7 +63,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
     public async Task Handle_ReadyEvent_NoGuilds_Returns()
     {
         // Arrange
-        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns(new List<IGuild>());
+        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns([]);
 
         var notification = new ReadyEvent();
 
@@ -91,10 +91,10 @@ public sealed class RegisterDiscordCommandsHandlerTests
             });
 
         var guild = Substitute.For<IGuild>();
-        var request = new RegisterDiscordCommands { Guilds = [guild] };
+        var command = new RegisterDiscordCommands { Guilds = [guild] };
 
         // Act
-        await _sut.Handle(request, CancellationToken.None);
+        await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());

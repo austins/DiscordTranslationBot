@@ -20,19 +20,18 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         var languagesResponse = Substitute.For<IApiResponse<IList<Language>>>();
         languagesResponse.IsSuccessStatusCode.Returns(true);
         languagesResponse.Content.Returns(
-            new List<Language>
+        [
+            new Language
             {
-                new()
-                {
-                    LangCode = "en",
-                    Name = "English"
-                },
-                new()
-                {
-                    LangCode = "fr",
-                    Name = "French"
-                }
-            });
+                LangCode = "en",
+                Name = "English"
+            },
+            new Language
+            {
+                LangCode = "fr",
+                Name = "French"
+            }
+        ]);
 
         _client.GetLanguagesAsync(default).ReturnsForAnyArgs(languagesResponse);
 
@@ -141,7 +140,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         var response = Substitute.For<IApiResponse<IList<Language>>>();
         response.IsSuccessStatusCode.Returns(true);
-        response.Content.Returns(new List<Language>());
+        response.Content.Returns([]);
 
         _client.GetLanguagesAsync(default).ReturnsForAnyArgs(response);
 

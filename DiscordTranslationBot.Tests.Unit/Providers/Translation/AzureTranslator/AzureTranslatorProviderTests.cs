@@ -67,10 +67,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         response.IsSuccessStatusCode.Returns(true);
 
         response.Content.Returns(
-            new List<TranslateResult>
-            {
-                new() { Translations = new List<TranslationData> { new() { Text = expected.TranslatedText } } }
-            });
+            [new TranslateResult { Translations = [new TranslationData { Text = expected.TranslatedText }] }]);
 
         _client
             .TranslateAsync(
@@ -111,14 +108,13 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         response.IsSuccessStatusCode.Returns(true);
 
         response.Content.Returns(
-            new List<TranslateResult>
+        [
+            new TranslateResult
             {
-                new()
-                {
-                    DetectedLanguage = new DetectedLanguage { LanguageCode = expected.DetectedLanguageCode },
-                    Translations = new List<TranslationData> { new() { Text = expected.TranslatedText } }
-                }
-            });
+                DetectedLanguage = new DetectedLanguage { LanguageCode = expected.DetectedLanguageCode },
+                Translations = [new TranslationData { Text = expected.TranslatedText }]
+            }
+        ]);
 
         _client
             .TranslateAsync(
@@ -226,14 +222,13 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         var response = Substitute.For<IApiResponse<IList<TranslateResult>>>();
         response.IsSuccessStatusCode.Returns(true);
         response.Content.Returns(
-            new List<TranslateResult>
+        [
+            new TranslateResult
             {
-                new()
-                {
-                    DetectedLanguage = new DetectedLanguage { LanguageCode = "en" },
-                    Translations = new List<TranslationData>()
-                }
-            });
+                DetectedLanguage = new DetectedLanguage { LanguageCode = "en" },
+                Translations = []
+            }
+        ]);
 
         _client.TranslateAsync(default!, default!, default).ReturnsForAnyArgs(response);
 

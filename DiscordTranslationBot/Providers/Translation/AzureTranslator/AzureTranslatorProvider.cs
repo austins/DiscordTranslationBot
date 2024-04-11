@@ -126,7 +126,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         var response = await _client.TranslateAsync(
             result.TargetLanguageCode,
-            new List<TranslateRequest> { new() { Text = text } },
+            [new TranslateRequest { Text = text }],
             cancellationToken,
             sourceLanguage?.LangCode);
 

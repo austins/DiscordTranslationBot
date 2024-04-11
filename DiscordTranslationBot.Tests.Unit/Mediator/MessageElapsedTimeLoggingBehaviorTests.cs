@@ -1,27 +1,27 @@
 ﻿using DiscordTranslationBot.Mediator;
-using MediatR;
+using Mediator;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
-public sealed class RequestElapsedTimeLoggingBehaviorTests
+public sealed class MessageElapsedTimeLoggingBehaviorTests
 {
-    private readonly LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, bool>> _logger;
-    private readonly RequestElapsedTimeLoggingBehavior<IRequest, bool> _sut;
+    private readonly LoggerFake<MessageElapsedTimeLoggingBehavior<IMessage, bool>> _logger;
+    private readonly MessageElapsedTimeLoggingBehavior<IMessage, bool> _sut;
 
-    public RequestElapsedTimeLoggingBehaviorTests()
+    public MessageElapsedTimeLoggingBehaviorTests()
     {
-        _logger = new LoggerFake<RequestElapsedTimeLoggingBehavior<IRequest, bool>>();
-        _sut = new RequestElapsedTimeLoggingBehavior<IRequest, bool>(_logger);
+        _logger = new LoggerFake<MessageElapsedTimeLoggingBehavior<IMessage, bool>>();
+        _sut = new MessageElapsedTimeLoggingBehavior<IMessage, bool>(_logger);
     }
 
     [Fact]
     public async Task Handle_Success_Logs()
     {
         // Arrange
-        var request = Substitute.For<IRequest>();
+        var request = Substitute.For<IMessage>();
 
         // Act
-        await _sut.Handle(request, () => Task.FromResult(true), CancellationToken.None);
+        await _sut.Handle(request, (_, _) => ValueTask.FromResult(true), CancellationToken.None);
 
         // Assert
         _logger.Entries.Count.Should().Be(2);

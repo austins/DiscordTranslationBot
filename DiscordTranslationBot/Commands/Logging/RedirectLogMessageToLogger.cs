@@ -2,7 +2,7 @@
 
 namespace DiscordTranslationBot.Commands.Logging;
 
-public sealed class RedirectLogMessageToLogger : IRequest
+public sealed class RedirectLogMessageToLogger : ICommand
 {
     /// <summary>
     /// The Discord log message.
@@ -13,7 +13,7 @@ public sealed class RedirectLogMessageToLogger : IRequest
 /// <summary>
 /// Handler for redirecting Discord log messages to the logger.
 /// </summary>
-public sealed partial class RedirectLogMessageToLoggerHandler : IRequestHandler<RedirectLogMessageToLogger>
+public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<RedirectLogMessageToLogger>
 {
     private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
 
@@ -29,12 +29,12 @@ public sealed partial class RedirectLogMessageToLoggerHandler : IRequestHandler<
     /// <summary>
     /// Redirect Discord log messages to the app's logger.
     /// </summary>
-    /// <param name="request">The request.</param>
+    /// <param name="command">The command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public Task Handle(RedirectLogMessageToLogger request, CancellationToken cancellationToken)
+    public ValueTask<Unit> Handle(RedirectLogMessageToLogger command, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = request.LogMessage.Severity switch
+        var logLevel = command.LogMessage.Severity switch
         {
             LogSeverity.Debug => LogLevel.Trace,
             LogSeverity.Verbose => LogLevel.Debug,
@@ -47,11 +47,11 @@ public sealed partial class RedirectLogMessageToLoggerHandler : IRequestHandler<
 
         LogDiscordMessage(
             logLevel,
-            request.LogMessage.Exception,
-            request.LogMessage.Source,
-            request.LogMessage.Message);
+            command.LogMessage.Exception,
+            command.LogMessage.Source,
+            command.LogMessage.Message);
 
-        return Task.CompletedTask;
+        return Unit.ValueTask;
     }
 
     [LoggerMessage(Message = "Discord {source}: {message}")]
