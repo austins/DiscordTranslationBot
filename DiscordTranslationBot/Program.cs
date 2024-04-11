@@ -40,7 +40,7 @@ builder
     .AddSingleton<DiscordEventListener>()
     .AddHostedService<Worker>();
 
-// Mediator
+// Mediator.
 builder
     .Services
     .AddMediator(c => c.NotificationPublisherType = typeof(TaskWhenAllPublisher))
