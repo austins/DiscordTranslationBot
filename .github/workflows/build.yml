@@ -11,9 +11,11 @@ jobs:
         if: ${{ github.actor == 'dependabot[bot]' }}
         needs: test
         runs-on: ubuntu-latest
+        permissions:
+            pull-requests: write
+            contents: write
         steps:
             -   name: Automerge
                 uses: fastify/github-action-merge-dependabot@v3
                 with:
-                    github-token: ${{ secrets.PAT_REPO }}
-                    target: minor
+                    target: 'minor'
