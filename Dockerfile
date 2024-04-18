@@ -1,21 +1,31 @@
-# Build and publish.
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
+###########################
+# Build stage.
+###########################
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+
+# Publish app.
 WORKDIR /app
 COPY . .
-RUN dotnet publish DiscordTranslationBot -c Release
+RUN dotnet publish DiscordTranslationBot -c Release -o ./out
 
-# Create runtime image.
+###########################
+# Runtime image creation stage.
+###########################
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
-# Install cultures and disable the invariant mode.
-RUN apk add --no-cache icu-libs
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+# Copy published build.
+WORKDIR /app
+COPY --from=build /app/out .
+
+# Enable globalization.
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
+RUN apk add --no-cache icu-data-full icu-libs
 
 # Configure healthcheck.
 RUN apk add --no-cache curl
 HEALTHCHECK CMD curl --fail http://localhost:8080/_health || exit 1
 
-WORKDIR /app
-COPY --from=build-env /app/DiscordTranslationBot/bin/Release/net8.0/publish .
-ENV DOTNET_EnableDiagnostics=0
+# Configure running the app.
 ENTRYPOINT ["dotnet", "DiscordTranslationBot.dll"]
