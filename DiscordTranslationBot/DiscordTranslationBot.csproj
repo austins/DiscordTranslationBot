@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <Platforms>AnyCPU;x64</Platforms>
         <UserSecretsId>dotnet-DiscordTranslationBot-92BF073E-600E-4E16-B57C-2B418D8A07E3</UserSecretsId>
     </PropertyGroup>
 
