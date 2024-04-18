@@ -22,6 +22,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Using Include="Mediator"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never"/>
     </ItemGroup>
 </Project>

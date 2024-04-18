@@ -21,4 +21,14 @@
     <ItemGroup>
         <ProjectReference Include="..\DiscordTranslationBot\DiscordTranslationBot.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="FluentAssertions"/>
+        <Using Include="Microsoft.Extensions.Logging"/>
+        <Using Include="NSubstitute"/>
+        <Using Include="NSubstitute.ClearExtensions"/>
+        <Using Include="NSubstitute.ExceptionExtensions"/>
+        <Using Include="NSubstitute.Extensions"/>
+        <Using Include="Xunit"/>
+    </ItemGroup>
 </Project>
