@@ -1,6 +1,6 @@
-###########################
-# Build stage.
-###########################
+###################################################
+## Build stage.
+###################################################
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
 # Publish app.
@@ -8,9 +8,9 @@ WORKDIR /app
 COPY . .
 RUN dotnet publish DiscordTranslationBot -c Release -o ./out
 
-###########################
-# Runtime image creation stage.
-###########################
+###################################################
+## Runtime image creation stage.
+###################################################
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 # Copy published build.
