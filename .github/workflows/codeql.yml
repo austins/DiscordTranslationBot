@@ -19,10 +19,6 @@ on:
     schedule:
         -   cron: '38 9 * * 4'
 
-concurrency:
-    group: codeql
-    cancel-in-progress: true
-
 jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
