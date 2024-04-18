@@ -4,9 +4,9 @@ namespace DiscordTranslationBot.Extensions;
 
 internal static class RateLimitingExtensions
 {
-    public const string HealthCheckRateLimiterPolicyName = "HealthCheckRateLimiter";
+    internal const string HealthCheckRateLimiterPolicyName = "HealthCheckRateLimiter";
 
-    public static IServiceCollection AddRateLimiting(this IServiceCollection services)
+    internal static IServiceCollection AddRateLimiting(this IServiceCollection services)
     {
         return services.AddRateLimiter(
             o =>
