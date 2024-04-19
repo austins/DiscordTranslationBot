@@ -409,3 +409,7 @@ FodyWeavers.xsd
 **/.idea/**/*.iml
 **/.idea/**/contentModel.xml
 **/.idea/**/modules.xml
+
+.DS_Store
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
