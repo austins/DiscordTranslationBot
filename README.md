@@ -1,6 +1,6 @@
 # Discord Translation Bot
 
-<img align="right" src="https://github.com/austins/DiscordTranslationBot/assets/1623983/96f1b58b-94f4-4df6-a81c-34e4f0342dc0"/>
+<img src="https://github.com/austins/DiscordTranslationBot/assets/1623983/96f1b58b-94f4-4df6-a81c-34e4f0342dc0" align="right" alt="Globe with flags" />
 
 A Discord bot that allows translations of messages in a Discord server (guild) using country flags and `/translate`
 command, powered by .NET
