@@ -15,7 +15,7 @@ internal static class CountryConstants
     /// the supported languages of each translation provider.
     /// In <see cref="CountryService.Initialize" />, the language codes will be mapped case-insensitive to a set of countries.
     /// </summary>
-    internal static IReadOnlyDictionary<SingleEmoji, string[]> LangCodeMap { get; } =
+    public static IReadOnlyDictionary<SingleEmoji, string[]> LangCodeMap { get; } =
         new Dictionary<SingleEmoji, string[]>
         {
             { Emoji.FlagAustralia, ["en"] },

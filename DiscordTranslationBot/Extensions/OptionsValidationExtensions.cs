@@ -11,7 +11,7 @@ internal static class OptionsValidationExtensions
     /// <param name="services">The services collection.</param>
     /// <param name="configurationSection">The configuration section.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
-    internal static void AddOptionsWithFluentValidation<TOptions>(
+    public static void AddOptionsWithFluentValidation<TOptions>(
         this IServiceCollection services,
         IConfigurationSection configurationSection)
         where TOptions : class

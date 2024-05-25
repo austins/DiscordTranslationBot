@@ -31,7 +31,7 @@ internal static class TranslationProviderExtensions
     /// <param name="services">The services collection.</param>
     /// <param name="configuration">The host configuration.</param>
     /// <returns>Service collection.</returns>
-    internal static IServiceCollection AddTranslationProviders(
+    public static IServiceCollection AddTranslationProviders(
         this IServiceCollection services,
         IConfiguration configuration)
     {
