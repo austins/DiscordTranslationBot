@@ -25,10 +25,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{FF90
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{CC1DE220-9E08-4A12-A5C9-F89854491634}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build.yml = .github\workflows\build.yml
 		.github\workflows\deploy.yml = .github\workflows\deploy.yml
 		.github\workflows\test.yml = .github\workflows\test.yml
 		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\pr.yml = .github\workflows\pr.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordTranslationBot.Tests.Unit", "DiscordTranslationBot.Tests.Unit\DiscordTranslationBot.Tests.Unit.csproj", "{37E2BB9E-A9DD-4E58-B538-464335461B13}"
