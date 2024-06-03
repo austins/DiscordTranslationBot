@@ -15,6 +15,7 @@ public sealed class RegisterDiscordCommands : ICommand
     /// <summary>
     /// The guilds to register Discord commands for.
     /// </summary>
+    [Required]
     [MinLength(1)]
     public required IEnumerable<IGuild> Guilds { get; init; }
 }
