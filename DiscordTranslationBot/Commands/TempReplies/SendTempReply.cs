@@ -9,9 +9,7 @@ namespace DiscordTranslationBot.Commands.TempReplies;
 /// <summary>
 /// Sends a temp reply.
 /// </summary>
-public sealed class SendTempReply
-    : ICommand,
-        IValidatableObject
+public sealed class SendTempReply : ICommand
 {
     /// <summary>
     /// The source message.
@@ -32,16 +30,10 @@ public sealed class SendTempReply
 
     /// <summary>
     /// The delay after which the reply will be deleted.
+    /// Minimum is 1 second; maximum is 1 minute.
     /// </summary>
+    [Range(typeof(TimeSpan), "00:00:01", "00:01:00")]
     public TimeSpan DeletionDelay { get; init; } = TimeSpan.FromSeconds(10);
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (DeletionDelay <= TimeSpan.Zero)
-        {
-            yield return new ValidationResult("Deletion delay must be greater than 0.", [nameof(DeletionDelay)]);
-        }
-    }
 }
 
 /// <summary>
