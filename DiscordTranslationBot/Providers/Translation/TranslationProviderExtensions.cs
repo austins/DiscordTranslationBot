@@ -3,8 +3,6 @@ using System.Text.Json;
 using System.Text.Unicode;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
-using Polly;
-using Polly.Contrib.WaitAndRetry;
 using Refit;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -84,9 +82,8 @@ internal static class TranslationProviderExtensions
             }
         }
 
-        // Add the Polly policy last to ensure it wraps any previous delegating handlers.
-        httpClientBuilder.AddTransientHttpErrorPolicy(
-            b => b.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(1), 2)));
+        // Add the resilience handler last to ensure it wraps any previous delegating handlers.
+        httpClientBuilder.AddStandardResilienceHandler();
 
         services.AddSingleton<TranslationProviderBase, TTranslationProvider>();
     }
