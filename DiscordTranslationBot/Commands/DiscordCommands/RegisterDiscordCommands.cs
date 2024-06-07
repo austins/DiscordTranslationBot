@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using FluentValidation;
 using Humanizer;
 
 namespace DiscordTranslationBot.Commands.DiscordCommands;
@@ -15,8 +15,15 @@ public sealed class RegisterDiscordCommands : ICommand
     /// <summary>
     /// The guilds to register Discord commands for.
     /// </summary>
-    [MinLength(1)]
     public required IEnumerable<IGuild> Guilds { get; init; }
+}
+
+public sealed class RegisterDiscordCommandsValidator : AbstractValidator<RegisterDiscordCommands>
+{
+    public RegisterDiscordCommandsValidator()
+    {
+        RuleFor(x => x.Guilds).NotEmpty();
+    }
 }
 
 public sealed partial class RegisterDiscordCommandsHandler

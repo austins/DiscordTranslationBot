@@ -1,14 +1,13 @@
-using System.ComponentModel.DataAnnotations;
-using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
+using FluentValidation;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
 /// <summary>
 /// The configuration options for translation providers.
 /// </summary>
-public sealed class TranslationProvidersOptions : IValidatableObject
+public sealed class TranslationProvidersOptions
 {
     /// <summary>
     /// Configuration section name for <see cref="TranslationProvidersOptions" />.
@@ -24,12 +23,13 @@ public sealed class TranslationProvidersOptions : IValidatableObject
     /// Options for LibreTranslate.
     /// </summary>
     public LibreTranslateOptions LibreTranslate { get; init; } = new();
+}
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+public sealed class TranslationProvidersOptionsValidator : AbstractValidator<TranslationProvidersOptions>
+{
+    public TranslationProvidersOptionsValidator()
     {
-        AzureTranslator.TryValidateObject(out var azureTranslatorValidationResults);
-        LibreTranslate.TryValidateObject(out var libreTranslateValidationResults);
-
-        return azureTranslatorValidationResults.Concat(libreTranslateValidationResults);
+        RuleFor(x => x.AzureTranslator).SetValidator(new AzureTranslatorOptionsValidator());
+        RuleFor(x => x.LibreTranslate).SetValidator(new LibreTranslateOptionsValidator());
     }
 }

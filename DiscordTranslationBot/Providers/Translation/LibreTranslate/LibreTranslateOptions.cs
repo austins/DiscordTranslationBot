@@ -1,3 +1,5 @@
+using FluentValidation;
+
 namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 
 /// <summary>
@@ -5,4 +7,12 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 /// </summary>
 public sealed class LibreTranslateOptions : TranslationProviderOptionsBase
 {
+}
+
+public sealed class LibreTranslateOptionsValidator : AbstractValidator<LibreTranslateOptions>
+{
+    public LibreTranslateOptionsValidator()
+    {
+        Include(new TranslationProviderOptionsBaseValidator());
+    }
 }

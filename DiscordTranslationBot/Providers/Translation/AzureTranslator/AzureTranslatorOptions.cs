@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 
@@ -16,30 +16,20 @@ public sealed class AzureTranslatorOptions : TranslationProviderOptionsBase
     /// The region for the Azure Translator API.
     /// </summary>
     public string? Region { get; init; }
+}
 
-    public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+public sealed class AzureTranslatorOptionsValidator : AbstractValidator<AzureTranslatorOptions>
+{
+    public AzureTranslatorOptionsValidator()
     {
-        var validationResults = base.Validate(validationContext).ToList();
+        Include(new TranslationProviderOptionsBaseValidator());
 
-        if (Enabled)
-        {
-            if (string.IsNullOrWhiteSpace(SecretKey))
+        When(
+            x => x.Enabled,
+            () =>
             {
-                validationResults.Add(
-                    new ValidationResult(
-                        $"{nameof(AzureTranslatorOptions)}.{nameof(SecretKey)} is required.",
-                        [nameof(SecretKey)]));
-            }
-
-            if (string.IsNullOrWhiteSpace(Region))
-            {
-                validationResults.Add(
-                    new ValidationResult(
-                        $"{nameof(AzureTranslatorOptions)}.{nameof(Region)} is required.",
-                        [nameof(Region)]));
-            }
-        }
-
-        return validationResults;
+                RuleFor(x => x.SecretKey).NotEmpty();
+                RuleFor(x => x.Region).NotEmpty();
+            });
     }
 }

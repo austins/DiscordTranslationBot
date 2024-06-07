@@ -1,14 +1,16 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
-using DiscordTranslationBot.Extensions;
+using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
-public sealed class SendTempReplyTests
+public sealed class SendTempReplyValidatorTests
 {
+    private readonly SendTempReplyValidator _sut = new();
+
     [Fact]
-    public void Valid_ValidatesWithoutErrors()
+    public async Task Valid_ValidatesWithoutErrors()
     {
         // Arrange
         var command = new SendTempReply
@@ -24,36 +26,35 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Invalid_Text_HasValidationError(string? text)
+    public async Task Invalid_Text_HasValidationError(string? text)
     {
         // Arrange
         var command = new SendTempReply
         {
             Text = text!,
+            ReactionInfo = null,
             SourceMessage = Substitute.For<IUserMessage>()
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.Text)));
+        result.ShouldHaveValidationErrorFor(x => x.Text);
     }
 
     [Fact]
-    public void Invalid_DeletionDelay_HasValidationError()
+    public async Task Invalid_DeletionDelay_HasValidationError()
     {
         // Arrange
         var command = new SendTempReply
@@ -69,10 +70,9 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidateObject(out var validationResults);
+        var result = await _sut.TestValidateAsync(command);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.DeletionDelay)));
+        result.ShouldHaveValidationErrorFor(x => x.DeletionDelay);
     }
 }

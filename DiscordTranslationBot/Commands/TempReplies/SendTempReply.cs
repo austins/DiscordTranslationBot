@@ -1,7 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Discord.Models;
+using FluentValidation;
 using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
@@ -9,9 +9,7 @@ namespace DiscordTranslationBot.Commands.TempReplies;
 /// <summary>
 /// Sends a temp reply.
 /// </summary>
-public sealed class SendTempReply
-    : ICommand,
-        IValidatableObject
+public sealed class SendTempReply : ICommand
 {
     /// <summary>
     /// The source message.
@@ -26,20 +24,20 @@ public sealed class SendTempReply
     /// <summary>
     /// The reply text.
     /// </summary>
-    [Required]
     public required string Text { get; init; }
 
     /// <summary>
     /// The delay after which the reply will be deleted.
     /// </summary>
     public TimeSpan DeletionDelay { get; init; } = TimeSpan.FromSeconds(10);
+}
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+public sealed class SendTempReplyValidator : AbstractValidator<SendTempReply>
+{
+    public SendTempReplyValidator()
     {
-        if (DeletionDelay <= TimeSpan.Zero)
-        {
-            yield return new ValidationResult("Deletion delay must be greater than 0.", [nameof(DeletionDelay)]);
-        }
+        RuleFor(x => x.Text).NotEmpty();
+        RuleFor(x => x.DeletionDelay).GreaterThan(TimeSpan.Zero);
     }
 }
 
