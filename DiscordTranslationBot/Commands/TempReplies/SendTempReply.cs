@@ -16,7 +16,6 @@ public sealed class SendTempReply
     /// <summary>
     /// The source message.
     /// </summary>
-    [Required]
     public required IUserMessage SourceMessage { get; init; }
 
     /// <summary>

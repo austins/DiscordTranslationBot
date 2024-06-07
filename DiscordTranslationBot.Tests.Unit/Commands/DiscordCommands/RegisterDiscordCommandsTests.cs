@@ -20,13 +20,11 @@ public sealed class RegisterDiscordCommandsTests
         validationResults.Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void Invalid_Command_Guilds_Validates_WithErrors(bool isNull)
+    [Fact]
+    public void Invalid_Command_Guilds_Validates_WithErrors()
     {
         // Arrange
-        var command = new RegisterDiscordCommands { Guilds = isNull ? null! : [] };
+        var command = new RegisterDiscordCommands { Guilds = [] };
 
         // Act
         var isValid = command.TryValidateObject(out var validationResults);

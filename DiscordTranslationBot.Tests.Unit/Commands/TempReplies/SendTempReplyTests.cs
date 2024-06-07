@@ -31,24 +31,6 @@ public sealed class SendTempReplyTests
         validationResults.Should().BeEmpty();
     }
 
-    [Fact]
-    public void Invalid_SourceMessage_HasValidationError()
-    {
-        // Arrange
-        var command = new SendTempReply
-        {
-            Text = "test",
-            SourceMessage = null!
-        };
-
-        // Act
-        var isValid = command.TryValidateObject(out var validationResults);
-
-        // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
