@@ -23,7 +23,7 @@ public sealed class RegisterDiscordCommandsTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Invalid_Command_Guilds_NullOrEmpty_Validates_WithErrors(bool isNull)
+    public void Invalid_Command_Guilds_Validates_WithErrors(bool isNull)
     {
         // Arrange
         var command = new RegisterDiscordCommands { Guilds = isNull ? null! : [] };
