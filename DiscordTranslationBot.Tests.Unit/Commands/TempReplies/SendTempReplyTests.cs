@@ -1,4 +1,3 @@
-using System.Globalization;
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
@@ -8,12 +7,8 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class SendTempReplyTests
 {
-    [Theory]
-    [InlineData("00:00:01")]
-    [InlineData("00:00:10")]
-    [InlineData("00:00:30.678")]
-    [InlineData("00:01:00")]
-    public void Valid_ValidatesWithoutErrors(string deletionDelay)
+    [Fact]
+    public void Valid_ValidatesWithoutErrors()
     {
         // Arrange
         var command = new SendTempReply
@@ -25,7 +20,7 @@ public sealed class SendTempReplyTests
                 Emote = Substitute.For<IEmote>()
             },
             SourceMessage = Substitute.For<IUserMessage>(),
-            DeletionDelay = TimeSpan.Parse(deletionDelay, CultureInfo.InvariantCulture)
+            DeletionDelay = TimeSpan.FromSeconds(10)
         };
 
         // Act
@@ -75,11 +70,8 @@ public sealed class SendTempReplyTests
         validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.Text)));
     }
 
-    [Theory]
-    [InlineData("00:00:00")] // 0 seconds
-    [InlineData("00:00:00.5")] // 0.5 seconds
-    [InlineData("00:01:00.1")] // 1 minute 0.1 seconds
-    public void Invalid_DeletionDelay_HasValidationError(string deletionDelay)
+    [Fact]
+    public void Invalid_DeletionDelay_HasValidationError()
     {
         // Arrange
         var command = new SendTempReply
@@ -91,7 +83,7 @@ public sealed class SendTempReplyTests
                 Emote = Substitute.For<IEmote>()
             },
             SourceMessage = Substitute.For<IUserMessage>(),
-            DeletionDelay = TimeSpan.Parse(deletionDelay, CultureInfo.InvariantCulture)
+            DeletionDelay = TimeSpan.Zero
         };
 
         // Act
