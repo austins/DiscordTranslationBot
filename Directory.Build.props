@@ -1,8 +1,7 @@
 <Project>
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <AnalysisLevel>8.0-all</AnalysisLevel>
-        <LangVersion>12</LangVersion>
+        <AnalysisLevel>latest-All</AnalysisLevel>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
