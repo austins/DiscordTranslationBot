@@ -8,7 +8,7 @@ internal static class OptionsValidationExtensions
     /// <summary>
     /// Adds options validated with FluentValidation and on start.
     /// </summary>
-    /// <param name="services">The services collection.</param>
+    /// <param name="services">The service collection.</param>
     /// <param name="configurationSection">The configuration section.</param>
     /// <typeparam name="TOptions">The options type.</typeparam>
     public static void AddOptionsWithFluentValidation<TOptions>(
