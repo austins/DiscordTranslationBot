@@ -42,7 +42,7 @@ builder
 // Mediator.
 builder
     .Services
-    .AddMediator(c => c.NotificationPublisherType = typeof(TaskWhenAllPublisher))
+    .AddMediator(o => o.NotificationPublisherType = typeof(TaskWhenAllPublisher))
     .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageValidationBehavior<,>))
     .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageElapsedTimeLoggingBehavior<,>));
 
