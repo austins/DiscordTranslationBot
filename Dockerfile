@@ -6,7 +6,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 # Publish app.
 WORKDIR /app
 COPY . .
-RUN dotnet publish DiscordTranslationBot -c Release -o ./out
+RUN dotnet publish ./src/DiscordTranslationBot -c Release -o ./out
 
 ###################################################
 ## Runtime image creation stage.

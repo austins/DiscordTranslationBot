@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\DiscordTranslationBot\DiscordTranslationBot.csproj"/>
+        <ProjectReference Include="..\..\src\DiscordTranslationBot\DiscordTranslationBot.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

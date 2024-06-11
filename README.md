@@ -65,11 +65,10 @@ Which providers are enabled can be configured per the instructions below.
 
 ## Deployment
 
-1. Build a Docker image with `docker build -t DiscordTranslationBot .` in the directory that contains the `Dockerfile`.
-2. Create and run a container with `docker run DiscordTranslationBot` and the following environment variables
+1. Build a Docker image with `docker build -t discordtranslationbot .` in the directory that contains the `Dockerfile`.
+2. Create and run a container with `docker run discordtranslationbot` and the following environment variables
    configured. Make sure that you've created a Discord bot and have configured at least one translation provider using
-   the steps
-   above. Example below:
+   the steps above. Example below:
 
 ```
 Discord__BotToken=
