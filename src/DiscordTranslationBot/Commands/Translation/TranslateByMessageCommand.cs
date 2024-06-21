@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.ComponentModel.DataAnnotations;
+using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
@@ -14,6 +15,7 @@ public sealed class TranslateByMessageCommand : ICommand
     /// <summary>
     /// The slash command.
     /// </summary>
+    [Required]
     public required IMessageCommandInteraction MessageCommand { get; init; }
 }
 

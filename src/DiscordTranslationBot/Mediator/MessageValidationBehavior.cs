@@ -1,4 +1,4 @@
-using FluentValidation;
+using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Mediator;
 
@@ -10,17 +10,6 @@ namespace DiscordTranslationBot.Mediator;
 public sealed class MessageValidationBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {
-    private readonly IValidator<TMessage>? _validator;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MessageValidationBehavior{TMessage,TResponse}" /> class.
-    /// </summary>
-    /// <param name="serviceProvider">Service provider to use.</param>
-    public MessageValidationBehavior(IServiceProvider serviceProvider)
-    {
-        _validator = serviceProvider.GetService<IValidator<TMessage>>();
-    }
-
     /// <summary>
     /// Validates an incoming message if it has a validator before executing its handler.
     /// </summary>
@@ -30,17 +19,17 @@ public sealed class MessageValidationBehavior<TMessage, TResponse> : IPipelineBe
     /// </param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    /// <exception cref="ValidationException">If there are any validation errors.</exception>
-    public async ValueTask<TResponse> Handle(
+    /// <exception cref="MessageValidationException">If there are any validation errors.</exception>
+    public ValueTask<TResponse> Handle(
         TMessage message,
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (_validator is not null)
+        if (!message.TryValidate(out var validationResults))
         {
-            await _validator.ValidateAndThrowAsync(message, cancellationToken);
+            throw new MessageValidationException(message.GetType().Name, validationResults);
         }
 
-        return await next(message, cancellationToken);
+        return next(message, cancellationToken);
     }
 }
