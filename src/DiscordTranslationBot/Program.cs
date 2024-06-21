@@ -6,7 +6,6 @@ using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
-using FluentValidation;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
@@ -14,11 +13,13 @@ using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.Logging.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff ");
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
-
 // Set up configuration.
-builder.Services.AddOptionsWithFluentValidation<DiscordOptions>(
-    builder.Configuration.GetRequiredSection(DiscordOptions.SectionName));
+builder
+    .Services
+    .AddOptions<DiscordOptions>()
+    .Bind(builder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // Set up services.
 builder

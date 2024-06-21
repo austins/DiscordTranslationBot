@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.ComponentModel.DataAnnotations;
+using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
@@ -13,16 +14,19 @@ namespace DiscordTranslationBot.Commands.Translation;
 
 public sealed class TranslateByCountryFlagEmojiReaction : ICommand
 {
+    [Required]
     public required Country Country { get; init; }
 
     /// <summary>
     /// The user message.
     /// </summary>
+    [Required]
     public required IUserMessage Message { get; init; }
 
     /// <summary>
     /// The reaction.
     /// </summary>
+    [Required]
     public required ReactionInfo ReactionInfo { get; init; }
 }
 
