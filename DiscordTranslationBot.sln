@@ -14,12 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Dockerfile = Dockerfile
 		.gitattributes = .gitattributes
 		DiscordTranslationBot.code-workspace = DiscordTranslationBot.code-workspace
+		renovate.json = renovate.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{FF90D684-1D09-4EB2-BA2F-6FBF9051413B}"
-	ProjectSection(SolutionItems) = preProject
-		.github\dependabot.yml = .github\dependabot.yml
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{CC1DE220-9E08-4A12-A5C9-F89854491634}"
 	ProjectSection(SolutionItems) = preProject
