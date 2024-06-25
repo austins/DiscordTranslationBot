@@ -6,7 +6,7 @@
         ":enableVulnerabilityAlerts",
         ":rebaseStalePrs",
         ":automergePr",
-        ":automergeStableNonMajor",
-        ":automergeRequireAllStatusChecks"
+        ":automergeRequireAllStatusChecks",
+        ":automergeMinor"
     ]
 }
