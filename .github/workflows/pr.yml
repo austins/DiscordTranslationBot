@@ -8,5 +8,4 @@ jobs:
     analyze:
         uses: ./.github/workflows/codeql.yml
     test:
-        needs: analyze
         uses: ./.github/workflows/test.yml

@@ -16,10 +16,9 @@ jobs:
     analyze:
         uses: ./.github/workflows/codeql.yml
     test:
-        needs: analyze
         uses: ./.github/workflows/test.yml
     docker:
-        needs: test
+        needs: [ analyze,test ]
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout
