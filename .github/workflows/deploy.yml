@@ -18,7 +18,7 @@ jobs:
     test:
         uses: ./.github/workflows/test.yml
     docker:
-        needs: [ analyze,test ]
+        needs: [ analyze, test ]
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout
