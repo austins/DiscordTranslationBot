@@ -58,14 +58,23 @@ internal sealed partial class DiscordEventListener
             new SlashCommandExecutedEvent { SlashCommand = slashCommand },
             cancellationToken);
 
-        _client.ReactionAdded += async (message, channel, reaction) => await PublishInBackgroundAsync(
-            new ReactionAddedEvent
+        _client.ReactionAdded += async (messageCache, channel, reaction) =>
+        {
+            // The message may be null if the reaction was not added on a user message, e.g. "pinned a message to this channel".
+            // If it's null, no-op.
+            var message = await messageCache.GetOrDownloadAsync();
+            if (message is not null)
             {
-                Message = await message.GetOrDownloadAsync(),
-                Channel = await channel.GetOrDownloadAsync(),
-                ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
-            },
-            cancellationToken);
+                await PublishInBackgroundAsync(
+                    new ReactionAddedEvent
+                    {
+                        Message = message,
+                        Channel = await channel.GetOrDownloadAsync(),
+                        ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
+                    },
+                    cancellationToken);
+            }
+        };
 
         _log.EventsInitialized();
 
