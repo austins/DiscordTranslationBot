@@ -147,13 +147,13 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Temp message with message ID {replyId} will be deleted in {totalSeconds}s.")]
+            Message = "Temp message ID {replyId} will be deleted in {totalSeconds}s.")]
         public partial void WaitingToDeleteTempMessage(ulong replyId, double totalSeconds);
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp message with message ID {replyId}.")]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp message ID {replyId}.")]
         public partial void DeletedTempMessage(ulong replyId);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp message with message ID {replyId}.")]
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp message ID {replyId}.")]
         public partial void FailedToDeleteTempMessage(Exception ex, ulong replyId);
     }
 }
