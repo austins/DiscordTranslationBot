@@ -3,6 +3,8 @@
     "extends": [
         "config:recommended",
         "schedule:daily",
+        "docker:pinDigests",
+        "helpers:pinGitHubActionDigests",
         ":enableVulnerabilityAlerts",
         ":rebaseStalePrs",
         ":automergePr",
