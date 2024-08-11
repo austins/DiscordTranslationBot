@@ -3,7 +3,6 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
-using NeoSmart.Unicode;
 using Refit;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.LibreTranslate;
@@ -11,10 +10,15 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.LibreTranslate;
 public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 {
     private readonly ILibreTranslateClient _client;
+    private readonly ICountry _country;
     private readonly LoggerFake<LibreTranslateProvider> _logger;
 
     public LibreTranslateProviderTests()
     {
+        _country = Substitute.For<ICountry>();
+        _country.Name.Returns("France");
+        _country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" });
+
         _client = Substitute.For<ILibreTranslateClient>();
 
         var languagesResponse = Substitute.For<IApiResponse<IList<Language>>>();
@@ -91,11 +95,6 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
         const string targetLanguageCode = "fr";
 
@@ -126,7 +125,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Returns(response);
 
         // Act
-        var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
+        var result = await Sut.TranslateByCountryAsync(_country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -164,11 +163,6 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         HttpStatusCode statusCode)
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
 
         var response = Substitute.For<IApiResponse<TranslateResult>>();
@@ -178,13 +172,13 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto" && x.TargetLangCode == country.LangCodes.First() && x.Text == text),
+                    x => x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 
@@ -195,11 +189,6 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
 
         var response = Substitute.For<IApiResponse<TranslateResult>>();
@@ -215,13 +204,13 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto" && x.TargetLangCode == country.LangCodes.First() && x.Text == text),
+                    x => x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 

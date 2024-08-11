@@ -3,7 +3,6 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
-using NeoSmart.Unicode;
 using Refit;
 using Languages = DiscordTranslationBot.Providers.Translation.AzureTranslator.Models.Languages;
 
@@ -12,10 +11,15 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.AzureTranslator
 public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 {
     private readonly IAzureTranslatorClient _client;
+    private readonly ICountry _country;
     private readonly LoggerFake<AzureTranslatorProvider> _logger;
 
     public AzureTranslatorProviderTests()
     {
+        _country = Substitute.For<ICountry>();
+        _country.Name.Returns("France");
+        _country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" });
+
         _client = Substitute.For<IAzureTranslatorClient>();
 
         var languagesResponse = Substitute.For<IApiResponse<Languages>>();
@@ -88,11 +92,6 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Returns_Expected()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
 
         var expected = new TranslationResult
@@ -125,7 +124,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
             .Returns(response);
 
         // Act
-        var result = await Sut.TranslateByCountryAsync(country, text, CancellationToken.None);
+        var result = await Sut.TranslateByCountryAsync(_country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -160,16 +159,11 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         var text = new string('a', AzureTranslatorProvider.TextCharacterLimit);
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<ArgumentException>();
 
@@ -186,11 +180,6 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
         HttpStatusCode statusCode)
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
 
         var response = Substitute.For<IApiResponse<IList<TranslateResult>>>();
@@ -201,7 +190,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 
@@ -212,11 +201,6 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string text = "test";
 
         var response = Substitute.For<IApiResponse<IList<TranslateResult>>>();
@@ -234,7 +218,7 @@ public sealed class AzureTranslatorProviderTests : TranslationProviderBaseTests
 
         // Act & Assert
         await Sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 

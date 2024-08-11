@@ -56,9 +56,9 @@ public abstract partial class TranslationProviderBase
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
-    /// <exception cref="LanguageNotSupportedForCountryException">Country not supported.</exception>
+    /// <exception cref="LanguageNotSupportedForCountryException">Country does not support the provider's supported lang codes.</exception>
     public virtual Task<TranslationResult> TranslateByCountryAsync(
-        Country country,
+        ICountry country,
         string text,
         CancellationToken cancellationToken)
     {

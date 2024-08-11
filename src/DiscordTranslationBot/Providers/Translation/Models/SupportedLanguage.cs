@@ -13,7 +13,7 @@ public sealed class SupportedLanguage : IEquatable<SupportedLanguage>
     /// <summary>
     /// The language name.
     /// </summary>
-    public string? Name { get; init; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Check if two supported language instances are the same.

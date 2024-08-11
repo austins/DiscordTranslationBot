@@ -1,6 +1,5 @@
 using Discord;
 using Discord.WebSocket;
-using DiscordTranslationBot.Countries.Services;
 using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Providers.Translation;
 using Microsoft.Extensions.Options;
@@ -14,7 +13,6 @@ namespace DiscordTranslationBot;
 internal sealed partial class Worker : IHostedService
 {
     private readonly DiscordSocketClient _client;
-    private readonly ICountryService _countryService;
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -25,7 +23,6 @@ internal sealed partial class Worker : IHostedService
     /// Initializes a new instance of the <see cref="Worker" /> class.
     /// </summary>
     /// <param name="translationProviders">Translation providers to use.</param>
-    /// <param name="countryService">Country service to use.</param>
     /// <param name="client">Discord client to use.</param>
     /// <param name="eventListener">Discord event listener to use.</param>
     /// <param name="discordOptions">Discord configuration options.</param>
@@ -33,7 +30,6 @@ internal sealed partial class Worker : IHostedService
     /// <param name="logger">Logger to use.</param>
     public Worker(
         IEnumerable<TranslationProviderBase> translationProviders,
-        ICountryService countryService,
         IDiscordClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,
@@ -41,7 +37,6 @@ internal sealed partial class Worker : IHostedService
         ILogger<Worker> logger)
     {
         _translationProviders = translationProviders.ToList();
-        _countryService = countryService;
         _client = (DiscordSocketClient)client;
         _eventListener = eventListener;
         _discordOptions = discordOptions;
@@ -72,9 +67,6 @@ internal sealed partial class Worker : IHostedService
             await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
             _log.InitializedTranslationProvider(translationProvider.ProviderName);
         }
-
-        // Initialize the country service.
-        _countryService.Initialize();
 
         // Initialize the Discord client.
         await _client.LoginAsync(TokenType.Bot, _discordOptions.Value.BotToken);

@@ -1,6 +1,6 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.Translation;
-using DiscordTranslationBot.Countries.Models;
+using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Extensions;
 using Emoji = NeoSmart.Unicode.Emoji;
@@ -15,10 +15,7 @@ public sealed class TranslateByCountryFlagEmojiReactionTests
         // Arrange
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = new Country(Emoji.FlagFrance.ToString()!, "France")
-            {
-                LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-            },
+            Country = CountryConstants.SupportedCountries[0],
             Message = Substitute.For<IUserMessage>(),
             ReactionInfo = new ReactionInfo
             {

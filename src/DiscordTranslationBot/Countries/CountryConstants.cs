@@ -1,4 +1,4 @@
-using DiscordTranslationBot.Countries.Services;
+using DiscordTranslationBot.Countries.Models;
 using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Countries;
@@ -6,45 +6,45 @@ namespace DiscordTranslationBot.Countries;
 /// <summary>
 /// Country constants used for flag emoji reactions.
 /// </summary>
-internal static class CountryConstants
+public static class CountryConstants
 {
     /// <summary>
-    /// Maps supported language codes to countries.
+    /// Countries supported for translation by flag emojis and their supported language codes.
+    /// </summary>
+    /// <remarks>
     /// The language codes should be the primary language of the country that translation providers
     /// will translate to when the associated flag emoji is received. The language codes are based on
     /// the supported languages of each translation provider.
-    /// In <see cref="CountryService.Initialize" />, the language codes will be mapped case-insensitive to a set of countries.
-    /// </summary>
-    public static IReadOnlyDictionary<SingleEmoji, string[]> LangCodeMap { get; } =
-        new Dictionary<SingleEmoji, string[]>
-        {
-            { Emoji.FlagAustralia, ["en"] },
-            { Emoji.FlagCanada, ["en"] },
-            { Emoji.FlagUnitedKingdom, ["en"] },
-            { Emoji.FlagUnitedStates, ["en"] },
-            { Emoji.FlagUsOutlyingIslands, ["en"] },
-            { Emoji.FlagAlgeria, ["ar"] },
-            { Emoji.FlagBahrain, ["ar"] },
-            { Emoji.FlagEgypt, ["ar"] },
-            { Emoji.FlagSaudiArabia, ["ar"] },
-            { Emoji.FlagChina, ["zh-Hans", "zh"] },
-            { Emoji.FlagHongKongSarChina, ["zh-Hant", "zh"] },
-            { Emoji.FlagTaiwan, ["zh-Hant", "zh"] },
-            { Emoji.FlagFrance, ["fr"] },
-            { Emoji.FlagGermany, ["de"] },
-            { Emoji.FlagIndia, ["hi"] },
-            { Emoji.FlagIreland, ["ga"] },
-            { Emoji.FlagItaly, ["it"] },
-            { Emoji.FlagJapan, ["ja"] },
-            { Emoji.FlagSouthKorea, ["ko"] },
-            { Emoji.FlagBrazil, ["pt-br", "pt"] },
-            { Emoji.FlagPortugal, ["pt-pt", "pt"] },
-            { Emoji.FlagRussia, ["ru"] },
-            { Emoji.FlagMexico, ["es"] },
-            { Emoji.FlagSpain, ["es"] },
-            { Emoji.FlagVietnam, ["vi"] },
-            { Emoji.FlagThailand, ["th"] },
-            { Emoji.FlagUkraine, ["uk"] },
-            { Emoji.FlagIndonesia, ["id"] }
-        };
+    /// </remarks>
+    public static IReadOnlyList<ICountry> SupportedCountries { get; } =
+    [
+        new Country(Emoji.FlagAustralia, ["en"]),
+        new Country(Emoji.FlagCanada, ["en"]),
+        new Country(Emoji.FlagUnitedKingdom, ["en"]),
+        new Country(Emoji.FlagUnitedStates, ["en"]),
+        new Country(Emoji.FlagUsOutlyingIslands, ["en"]),
+        new Country(Emoji.FlagAlgeria, ["ar"]),
+        new Country(Emoji.FlagBahrain, ["ar"]),
+        new Country(Emoji.FlagEgypt, ["ar"]),
+        new Country(Emoji.FlagSaudiArabia, ["ar"]),
+        new Country(Emoji.FlagChina, ["zh-Hans", "zh"]),
+        new Country(Emoji.FlagHongKongSarChina, ["zh-Hant", "zh"]),
+        new Country(Emoji.FlagTaiwan, ["zh-Hant", "zh"]),
+        new Country(Emoji.FlagFrance, ["fr"]),
+        new Country(Emoji.FlagGermany, ["de"]),
+        new Country(Emoji.FlagIndia, ["hi"]),
+        new Country(Emoji.FlagIreland, ["ga"]),
+        new Country(Emoji.FlagItaly, ["it"]),
+        new Country(Emoji.FlagJapan, ["ja"]),
+        new Country(Emoji.FlagSouthKorea, ["ko"]),
+        new Country(Emoji.FlagBrazil, ["pt-br", "pt"]),
+        new Country(Emoji.FlagPortugal, ["pt-pt", "pt"]),
+        new Country(Emoji.FlagRussia, ["ru"]),
+        new Country(Emoji.FlagMexico, ["es"]),
+        new Country(Emoji.FlagSpain, ["es"]),
+        new Country(Emoji.FlagVietnam, ["vi"]),
+        new Country(Emoji.FlagThailand, ["th"]),
+        new Country(Emoji.FlagUkraine, ["uk"]),
+        new Country(Emoji.FlagIndonesia, ["id"])
+    ];
 }
