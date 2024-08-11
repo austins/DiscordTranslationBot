@@ -1,9 +1,9 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Commands.Translation;
+using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
-using DiscordTranslationBot.Countries.Services;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation;
@@ -30,7 +30,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
 
-    private readonly ICountryService _countryService;
     private readonly IMediator _mediator;
     private readonly IUserMessage _message;
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
@@ -43,8 +42,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
-
-        _countryService = Substitute.For<ICountryService>();
 
         _message = Substitute.For<IUserMessage>();
         _message.Id.Returns(1UL);
@@ -65,7 +62,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
             [_translationProvider],
-            _countryService,
             _mediator,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
@@ -81,11 +77,9 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.Name)
+                Emote = new global::Discord.Emoji(Emoji.Airplane.Name)
             }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(false);
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -107,11 +101,9 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.Name)
+                Emote = new global::Discord.Emoji(CountryConstants.SupportedCountries[0].EmojiUnicode)
             }
         };
-
-        _countryService.TryGetCountryByEmoji(Arg.Any<string>(), out Arg.Any<Country?>()).Returns(true);
 
         // Act
         await _sut.Handle(notification, CancellationToken.None);
@@ -126,14 +118,9 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {
@@ -157,11 +144,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Success()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         var translationResult = new TranslationResult
         {
             DetectedLanguageCode = "en",
@@ -175,7 +157,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {
@@ -203,16 +185,11 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_SanitizesMessageEmpty()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         _message.Content.Returns(string.Empty);
 
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {
@@ -236,18 +213,13 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     public async Task Handle_TranslateByCountryFlagEmojiReaction_NoTranslationResult()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         _translationProvider
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {
@@ -270,11 +242,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         const string exMessage = "exception message";
 
         _translationProvider
@@ -283,7 +250,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {
@@ -307,11 +274,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_OnFailureToDetectSourceLanguage()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "France")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" }
-        };
-
         var translationResult = new TranslationResult
         {
             DetectedLanguageCode = "en",
@@ -325,7 +287,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         var command = new TranslateByCountryFlagEmojiReaction
         {
-            Country = country,
+            Country = CountryConstants.SupportedCountries[0],
             Message = _message,
             ReactionInfo = new ReactionInfo
             {

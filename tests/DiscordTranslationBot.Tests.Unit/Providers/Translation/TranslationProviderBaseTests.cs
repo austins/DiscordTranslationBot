@@ -1,7 +1,6 @@
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation;
-using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
@@ -31,10 +30,9 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
     public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
         // Arrange
-        var country = new Country(Emoji.FlagFrance.ToString()!, "unsupported_country")
-        {
-            LangCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        };
+        var country = Substitute.For<ICountry>();
+        country.Name.Returns("Test");
+        country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
 
         const string text = "test";
 

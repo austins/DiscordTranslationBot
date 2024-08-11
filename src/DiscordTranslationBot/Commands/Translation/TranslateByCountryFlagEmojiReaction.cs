@@ -3,7 +3,7 @@ using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
-using DiscordTranslationBot.Countries.Services;
+using DiscordTranslationBot.Countries.Utilities;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation;
@@ -15,7 +15,7 @@ namespace DiscordTranslationBot.Commands.Translation;
 public sealed class TranslateByCountryFlagEmojiReaction : ICommand
 {
     [Required]
-    public required Country Country { get; init; }
+    public required ICountry Country { get; init; }
 
     /// <summary>
     /// The user message.
@@ -38,7 +38,6 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
         INotificationHandler<ReactionAddedEvent>
 {
     private readonly IDiscordClient _client;
-    private readonly ICountryService _countryService;
     private readonly Log _log;
     private readonly IMediator _mediator;
     private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
@@ -48,19 +47,16 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviders">Translation providers to use.</param>
-    /// <param name="countryService">Country service to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
         IEnumerable<TranslationProviderBase> translationProviders,
-        ICountryService countryService,
         IMediator mediator,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviders = translationProviders.ToList();
-        _countryService = countryService;
         _mediator = mediator;
         _log = new Log(logger);
     }
@@ -189,7 +185,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
     public async ValueTask Handle(ReactionAddedEvent notification, CancellationToken cancellationToken)
     {
-        if (!_countryService.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
+        if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
         {
             return;
         }

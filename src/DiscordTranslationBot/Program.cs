@@ -1,7 +1,6 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
-using DiscordTranslationBot.Countries.Services;
 using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
@@ -25,7 +24,6 @@ builder
 builder
     .Services
     .AddTranslationProviders(builder.Configuration)
-    .AddSingleton<ICountryService, CountryService>()
     .AddSingleton<IDiscordClient>(
         _ => new DiscordSocketClient(
             new DiscordSocketConfig
