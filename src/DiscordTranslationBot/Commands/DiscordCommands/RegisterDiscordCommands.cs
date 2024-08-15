@@ -156,7 +156,7 @@ public sealed partial class RegisterDiscordCommandsHandler
             .Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
-                    Name = l.Name?.Truncate(SlashCommandBuilder.MaxNameLength) ?? l.LangCode,
+                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
                     Value = l.LangCode
                 })
             .OrderBy(c => c.Name)

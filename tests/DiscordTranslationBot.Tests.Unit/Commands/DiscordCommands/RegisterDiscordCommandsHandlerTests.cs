@@ -26,7 +26,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
 
         _sut = new RegisterDiscordCommandsHandler(
             _client,
-            new[] { _translationProvider },
+            [_translationProvider],
             _mediator,
             new LoggerFake<RegisterDiscordCommandsHandler>());
     }
