@@ -22,15 +22,6 @@ internal static class TelemetryExtensions
 
         var headers = $"X-Seq-ApiKey={options.ApiKey}";
 
-        builder.Logging.AddOpenTelemetry(
-            o => o.AddOtlpExporter(
-                e =>
-                {
-                    e.Protocol = OtlpExportProtocol.HttpProtobuf;
-                    e.Endpoint = options.LoggingEndpointUrl!;
-                    e.Headers = headers;
-                }));
-
         builder
             .Services
             .AddOpenTelemetry()
@@ -38,7 +29,10 @@ internal static class TelemetryExtensions
                 b => b
                     .AddService(builder.Environment.ApplicationName)
                     .AddAttributes(
-                        new Dictionary<string, object> { ["environment"] = builder.Environment.EnvironmentName }))
+                        new Dictionary<string, object>
+                        {
+                            ["deployment.environment"] = builder.Environment.EnvironmentName
+                        }))
             .WithMetrics(b => b.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddPrometheusExporter())
             .WithTracing(
                 b => b
@@ -51,6 +45,21 @@ internal static class TelemetryExtensions
                             e.Endpoint = options.TracingEndpointUrl!;
                             e.Headers = headers;
                         }));
+
+        builder.Logging.AddOpenTelemetry(
+            o =>
+            {
+                o.IncludeFormattedMessage = true;
+                o.IncludeScopes = true;
+
+                o.AddOtlpExporter(
+                    e =>
+                    {
+                        e.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        e.Endpoint = options.LoggingEndpointUrl!;
+                        e.Headers = headers;
+                    });
+            });
     }
 
     public static void UseTelemetry(this WebApplication app)
