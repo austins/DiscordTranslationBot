@@ -5,14 +5,20 @@ using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Telemetry;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
 
 var builder = WebApplication.CreateSlimBuilder(args);
+
+// Logging.
 builder.Logging.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff ");
 
-// Set up configuration.
+// Telemetry.
+builder.AddTelemetry();
+
+// Configuration.
 builder
     .Services
     .AddOptions<DiscordOptions>()
@@ -20,7 +26,7 @@ builder
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-// Set up services.
+// Main services.
 builder
     .Services
     .AddTranslationProviders(builder.Configuration)
@@ -54,6 +60,7 @@ builder
 
 var app = builder.Build();
 
+app.UseTelemetry();
 app.UseRateLimiter();
 
 app
