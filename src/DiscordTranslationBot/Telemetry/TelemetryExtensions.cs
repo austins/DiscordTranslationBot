@@ -33,7 +33,13 @@ internal static class TelemetryExtensions
                         {
                             ["deployment.environment"] = builder.Environment.EnvironmentName
                         }))
-            .WithMetrics(b => b.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddPrometheusExporter())
+            .WithMetrics(
+                b => b
+                    .AddProcessInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddPrometheusExporter())
             .WithTracing(
                 b => b
                     .AddAspNetCoreInstrumentation()
