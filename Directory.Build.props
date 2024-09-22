@@ -7,6 +7,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsNotAsErrors>S1135</WarningsNotAsErrors>
         <NoWarn>CS1591</NoWarn>
     </PropertyGroup>
 
