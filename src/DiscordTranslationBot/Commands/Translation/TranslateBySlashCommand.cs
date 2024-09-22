@@ -22,20 +22,20 @@ public sealed partial class TranslateBySlashCommandHandler
 {
     private readonly Log _log;
     private readonly IMediator _mediator;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateBySlashCommandHandler" /> class.
     /// </summary>
-    /// <param name="translationProviders">Translation providers.</param>
+    /// <param name="translationProviderFactory">Translation provider factory.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateBySlashCommandHandler(
-        IEnumerable<TranslationProviderBase> translationProviders,
+        TranslationProviderFactory translationProviderFactory,
         IMediator mediator,
         ILogger<TranslateBySlashCommandHandler> logger)
     {
-        _translationProviders = translationProviders.ToList();
+        _translationProviderFactory = translationProviderFactory;
         _mediator = mediator;
         _log = new Log(logger);
     }
@@ -74,17 +74,16 @@ public sealed partial class TranslateBySlashCommandHandler
             ?.Value;
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
-        var translationProvider = _translationProviders[0];
-
         try
         {
             var sourceLanguage = from is not null
-                ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
+                ? _translationProviderFactory.PrimaryProvider.SupportedLanguages.First(l => l.LangCode == from)
                 : null;
 
-            var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == to);
+            var targetLanguage =
+                _translationProviderFactory.PrimaryProvider.SupportedLanguages.First(l => l.LangCode == to);
 
-            var translationResult = await translationProvider.TranslateAsync(
+            var translationResult = await _translationProviderFactory.PrimaryProvider.TranslateAsync(
                 targetLanguage,
                 sanitizedText,
                 cancellationToken,
@@ -103,7 +102,7 @@ public sealed partial class TranslateBySlashCommandHandler
 
             await command.SlashCommand.FollowupAsync(
                 $"""
-                 {MentionUtils.MentionUser(command.SlashCommand.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {MentionUtils.MentionUser(command.SlashCommand.User.Id)} translated text using {_translationProviderFactory.PrimaryProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
@@ -112,7 +111,7 @@ public sealed partial class TranslateBySlashCommandHandler
         }
         catch (Exception ex)
         {
-            _log.TranslationFailure(ex, translationProvider.GetType());
+            _log.TranslationFailure(ex, _translationProviderFactory.PrimaryProvider.GetType());
         }
 
         return Unit.Value;

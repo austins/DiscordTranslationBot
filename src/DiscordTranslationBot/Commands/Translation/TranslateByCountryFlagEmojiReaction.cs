@@ -40,23 +40,23 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMediator _mediator;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateByCountryFlagEmojiReactionHandler" /> class.
     /// </summary>
     /// <param name="client">Discord client to use.</param>
-    /// <param name="translationProviders">Translation providers to use.</param>
+    /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
-        IEnumerable<TranslationProviderBase> translationProviders,
+        TranslationProviderFactory translationProviderFactory,
         IMediator mediator,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
-        _translationProviders = translationProviders.ToList();
+        _translationProviderFactory = translationProviderFactory;
         _mediator = mediator;
         _log = new Log(logger);
     }
@@ -97,7 +97,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
         string? providerName = null;
         TranslationResult? translationResult = null;
-        foreach (var translationProvider in _translationProviders)
+        foreach (var translationProvider in _translationProviderFactory.Providers)
         {
             try
             {
@@ -113,7 +113,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
             catch (LanguageNotSupportedForCountryException ex)
             {
                 // Send message if this is the last available translation provider.
-                if (translationProvider == _translationProviders[^1])
+                if (ReferenceEquals(translationProvider, _translationProviderFactory.LastProvider))
                 {
                     _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), command.Country.Name);
 

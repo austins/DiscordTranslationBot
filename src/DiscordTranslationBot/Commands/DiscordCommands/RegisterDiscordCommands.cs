@@ -5,7 +5,6 @@ using Discord.Net;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Models;
 using Humanizer;
 
 namespace DiscordTranslationBot.Commands.DiscordCommands;
@@ -28,24 +27,24 @@ public sealed partial class RegisterDiscordCommandsHandler
     private readonly IDiscordClient _client;
     private readonly ILogger<RegisterDiscordCommandsHandler> _logger;
     private readonly IMediator _mediator;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="RegisterDiscordCommandsHandler" /> class.
     /// </summary>
     /// <param name="client">Discord client to use.</param>
-    /// <param name="translationProviders">Translation providers.</param>
+    /// <param name="translationProviderFactory">Translation provider factory.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public RegisterDiscordCommandsHandler(
         IDiscordClient client,
-        IEnumerable<TranslationProviderBase> translationProviders,
+        TranslationProviderFactory translationProviderFactory,
         IMediator mediator,
         ILogger<RegisterDiscordCommandsHandler> logger)
     {
         _client = client;
+        _translationProviderFactory = translationProviderFactory;
         _mediator = mediator;
-        _translationProviders = translationProviders.ToList();
         _logger = logger;
     }
 
@@ -117,50 +116,15 @@ public sealed partial class RegisterDiscordCommandsHandler
     {
         // Translate command.
         // Only the first translation provider is supported as the slash command options can only be registered with one provider's supported languages.
-        var translationProvider = _translationProviders[0];
-
-        // Gather list of language choices for the command's options.
-        List<SupportedLanguage> supportedLangChoices;
-        if (translationProvider.TranslateCommandLangCodes is null)
-        {
-            // If no lang codes are specified, take the first up to the max options limit.
-            supportedLangChoices = translationProvider
-                .SupportedLanguages
-                .Take(SlashCommandBuilder.MaxOptionsCount)
-                .ToList();
-        }
-        else
-        {
-            // Get valid specified lang codes up to the limit.
-            supportedLangChoices = translationProvider
-                .SupportedLanguages
-                .Where(l => translationProvider.TranslateCommandLangCodes.Contains(l.LangCode))
-                .Take(SlashCommandBuilder.MaxOptionsCount)
-                .ToList();
-
-            // If there are less languages found than the max options and more supported languages,
-            // get the rest up to the max options limit.
-            if (supportedLangChoices.Count < SlashCommandBuilder.MaxOptionsCount
-                && translationProvider.SupportedLanguages.Count > supportedLangChoices.Count)
-            {
-                supportedLangChoices.AddRange(
-                    translationProvider
-                        .SupportedLanguages
-                        .Where(l => !supportedLangChoices.Contains(l))
-                        .Take(SlashCommandBuilder.MaxOptionsCount - supportedLangChoices.Count)
-                        .ToList());
-            }
-        }
-
-        // Convert the list of supported languages to command choices and sort alphabetically.
-        var langChoices = supportedLangChoices
+        // Convert the list of supported languages to command choices.
+        var langChoices = _translationProviderFactory
+            .GetSupportedLanguagesForOptions()
             .Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
                     Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
                     Value = l.LangCode
                 })
-            .OrderBy(c => c.Name)
             .ToList();
 
         var translateFromOption = new SlashCommandOptionBuilder()
