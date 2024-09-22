@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Discord.Events;
 public sealed class MessageCommandExecutedEvent : INotification
 {
     /// <summary>
-    /// The slash command.
+    /// The message command.
     /// </summary>
     public required IMessageCommandInteraction MessageCommand { get; init; }
 }

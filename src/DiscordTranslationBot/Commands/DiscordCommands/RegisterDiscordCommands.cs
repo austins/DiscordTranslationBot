@@ -104,6 +104,9 @@ public sealed partial class RegisterDiscordCommandsHandler
     {
         discordCommandsToRegister.Add(
             new MessageCommandBuilder().WithName(MessageCommandConstants.Translate.CommandName).Build());
+
+        discordCommandsToRegister.Add(
+            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateTo.CommandName).Build());
     }
 
     /// <summary>

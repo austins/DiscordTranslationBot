@@ -13,7 +13,7 @@ namespace DiscordTranslationBot.Commands.Translation;
 public sealed class TranslateByMessageCommand : ICommand
 {
     /// <summary>
-    /// The slash command.
+    /// The message command.
     /// </summary>
     [Required]
     public required IMessageCommandInteraction MessageCommand { get; init; }
