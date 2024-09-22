@@ -16,15 +16,4 @@ public static class MessageCommandConstants
         /// </summary>
         public const string CommandName = "Translate";
     }
-
-    /// <summary>
-    /// "Translate To..." message command constants.
-    /// </summary>
-    public static class TranslateTo
-    {
-        /// <summary>
-        /// The name of the "Translate To..." message command.
-        /// </summary>
-        public const string CommandName = "Translate To...";
-    }
 }

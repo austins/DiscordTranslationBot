@@ -103,7 +103,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
             .Received(1)
             .BulkOverwriteApplicationCommandsAsync(
                 Arg.Is<ApplicationCommandProperties[]>(
-                    x => x.Count(y => y is MessageCommandProperties) == 2
+                    x => x.Count(y => y is MessageCommandProperties) == 1
                          && x.Count(y => y is SlashCommandProperties) == 1),
                 Arg.Any<RequestOptions>());
     }
