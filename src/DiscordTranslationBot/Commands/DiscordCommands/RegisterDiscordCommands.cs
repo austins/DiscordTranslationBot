@@ -62,18 +62,16 @@ public sealed partial class RegisterDiscordCommandsHandler
 
         foreach (var guild in command.Guilds)
         {
-            foreach (var discordCommand in discordCommandsToRegister)
+            try
             {
-                try
-                {
-                    await guild.CreateApplicationCommandAsync(
-                        discordCommand,
-                        new RequestOptions { CancelToken = cancellationToken });
-                }
-                catch (HttpException exception)
-                {
-                    LogFailedToRegisterCommandForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
-                }
+                // Use bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
+                await guild.BulkOverwriteApplicationCommandsAsync(
+                    [..discordCommandsToRegister],
+                    new RequestOptions { CancelToken = cancellationToken });
+            }
+            catch (HttpException exception)
+            {
+                LogFailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
 
@@ -106,6 +104,9 @@ public sealed partial class RegisterDiscordCommandsHandler
     {
         discordCommandsToRegister.Add(
             new MessageCommandBuilder().WithName(MessageCommandConstants.Translate.CommandName).Build());
+
+        discordCommandsToRegister.Add(
+            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateTo.CommandName).Build());
     }
 
     /// <summary>
@@ -194,6 +195,6 @@ public sealed partial class RegisterDiscordCommandsHandler
 
     [LoggerMessage(
         Level = LogLevel.Error,
-        Message = "Failed to register slash command for guild ID {guildId} with error(s): {errors}")]
-    private partial void LogFailedToRegisterCommandForGuild(ulong guildId, string errors);
+        Message = "Failed to register commands for guild ID {guildId} with error(s): {errors}")]
+    private partial void LogFailedToRegisterCommandsForGuild(ulong guildId, string errors);
 }

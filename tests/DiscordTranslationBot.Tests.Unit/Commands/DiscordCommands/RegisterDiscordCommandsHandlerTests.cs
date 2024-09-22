@@ -101,10 +101,10 @@ public sealed class RegisterDiscordCommandsHandlerTests
 
         await guild
             .Received(1)
-            .CreateApplicationCommandAsync(Arg.Any<MessageCommandProperties>(), Arg.Any<RequestOptions>());
-
-        await guild
-            .Received(1)
-            .CreateApplicationCommandAsync(Arg.Any<SlashCommandProperties>(), Arg.Any<RequestOptions>());
+            .BulkOverwriteApplicationCommandsAsync(
+                Arg.Is<ApplicationCommandProperties[]>(
+                    x => x.Count(y => y is MessageCommandProperties) == 2
+                         && x.Count(y => y is SlashCommandProperties) == 1),
+                Arg.Any<RequestOptions>());
     }
 }
