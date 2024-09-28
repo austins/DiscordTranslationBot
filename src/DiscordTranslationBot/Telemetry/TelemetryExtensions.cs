@@ -35,7 +35,7 @@ internal static class TelemetryExtensions
                     .AddRuntimeInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddOtlpExporter(e => SetOltpExporterOptions(e, options.TracingEndpoint)));
+                    .AddOtlpExporter(e => SetOltpExporterOptions(e, options.MetricsEndpoint)));
         }
 
         if (options?.TracingEndpoint.Enabled == true)
