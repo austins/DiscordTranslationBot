@@ -16,7 +16,7 @@ public sealed class RegisterDiscordCommands : ICommand
     /// </summary>
     [Required]
     [MinLength(1)]
-    public required IEnumerable<IGuild> Guilds { get; init; }
+    public required IReadOnlyCollection<IGuild> Guilds { get; init; }
 }
 
 public sealed partial class RegisterDiscordCommandsHandler
@@ -25,7 +25,7 @@ public sealed partial class RegisterDiscordCommandsHandler
         INotificationHandler<JoinedGuildEvent>
 {
     private readonly IDiscordClient _client;
-    private readonly ILogger<RegisterDiscordCommandsHandler> _logger;
+    private readonly Log _log;
     private readonly IMediator _mediator;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
@@ -45,11 +45,13 @@ public sealed partial class RegisterDiscordCommandsHandler
         _client = client;
         _translationProviderFactory = translationProviderFactory;
         _mediator = mediator;
-        _logger = logger;
+        _log = new Log(logger);
     }
 
     public async ValueTask<Unit> Handle(RegisterDiscordCommands command, CancellationToken cancellationToken)
     {
+        _log.RegisteringCommandsForGuilds(command.Guilds.Count, command.Guilds.Select(x => x.Id).ToArray());
+
         var discordCommandsToRegister = new List<ApplicationCommandProperties>();
         GetMessageCommands(discordCommandsToRegister);
         GetSlashCommands(discordCommandsToRegister);
@@ -70,7 +72,7 @@ public sealed partial class RegisterDiscordCommandsHandler
             }
             catch (HttpException exception)
             {
-                LogFailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
+                _log.FailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
 
@@ -122,7 +124,7 @@ public sealed partial class RegisterDiscordCommandsHandler
             .Select(
                 l => new ApplicationCommandOptionChoiceProperties
                 {
-                    Name = l.Name.Truncate(SlashCommandBuilder.MaxNameLength),
+                    Name = l.Name.Truncate(SlashCommandOptionBuilder.ChoiceNameMaxLength),
                     Value = l.LangCode
                 })
             .ToList();
@@ -157,8 +159,23 @@ public sealed partial class RegisterDiscordCommandsHandler
                 .Build());
     }
 
-    [LoggerMessage(
-        Level = LogLevel.Error,
-        Message = "Failed to register commands for guild ID {guildId} with error(s): {errors}")]
-    private partial void LogFailedToRegisterCommandsForGuild(ulong guildId, string errors);
+    private sealed partial class Log
+    {
+        private readonly ILogger _logger;
+
+        public Log(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to register commands for guild ID {guildId} with error(s): {errors}")]
+        public partial void FailedToRegisterCommandsForGuild(ulong guildId, string errors);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Registering commands for {guildCount} guild(s) {guildIds}.")]
+        public partial void RegisteringCommandsForGuilds(int guildCount, ulong[] guildIds);
+    }
 }

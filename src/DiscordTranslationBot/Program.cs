@@ -2,6 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Discord;
+using DiscordTranslationBot.Discord.Services;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
@@ -42,6 +43,7 @@ builder
                 UseInteractionSnowflakeDate = false
             }))
     .AddSingleton<DiscordEventListener>()
+    .AddSingleton<IMessageHelper, MessageHelper>()
     .AddHostedService<Worker>();
 
 // Mediator.

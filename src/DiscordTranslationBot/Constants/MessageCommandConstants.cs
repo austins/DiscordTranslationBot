@@ -14,7 +14,7 @@ public static class MessageCommandConstants
         /// <summary>
         /// The name of the "Translate" message command.
         /// </summary>
-        public const string CommandName = "Translate";
+        public const string CommandName = "Translate (Auto)";
     }
 
     /// <summary>
@@ -26,5 +26,10 @@ public static class MessageCommandConstants
         /// The name of the "Translate To..." message command.
         /// </summary>
         public const string CommandName = "Translate To...";
+
+        /// <summary>
+        /// The unique custom ID of the select menu.
+        /// </summary>
+        public static readonly string SelectMenuId = $"{nameof(TranslateTo)}_{Guid.NewGuid()}";
     }
 }

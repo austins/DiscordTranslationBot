@@ -2,11 +2,11 @@
 using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Discord.Services;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
-using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Commands.Translation;
 
@@ -22,13 +22,14 @@ public sealed class TranslateByMessageCommand : ICommand
 /// <summary>
 /// Handler for the translate message command.
 /// </summary>
-public partial class TranslateByMessageCommandHandler
+public sealed partial class TranslateByMessageCommandHandler
     : ICommandHandler<TranslateByMessageCommand>,
         INotificationHandler<MessageCommandExecutedEvent>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMediator _mediator;
+    private readonly IMessageHelper _messageHelper;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
@@ -36,16 +37,19 @@ public partial class TranslateByMessageCommandHandler
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
+    /// <param name="messageHelper">Message helper to use.</param>
     /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByMessageCommandHandler(
         IDiscordClient client,
         TranslationProviderFactory translationProviderFactory,
+        IMessageHelper messageHelper,
         IMediator mediator,
         ILogger<TranslateByMessageCommandHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
+        _messageHelper = messageHelper;
         _mediator = mediator;
         _log = new Log(logger);
     }
@@ -169,7 +173,7 @@ public partial class TranslateByMessageCommandHandler
         await command.MessageCommand.FollowupAsync(
             embed: new EmbedBuilder()
                 .WithTitle("Translated Message")
-                .WithUrl(GetJumpUrl(command.MessageCommand.Data.Message).AbsoluteUri)
+                .WithUrl(_messageHelper.GetJumpUrl(command.MessageCommand.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
             options: new RequestOptions { CancelToken = cancellationToken });
@@ -187,16 +191,6 @@ public partial class TranslateByMessageCommandHandler
         await _mediator.Send(
             new TranslateByMessageCommand { MessageCommand = notification.MessageCommand },
             cancellationToken);
-    }
-
-    /// <summary>
-    /// Gets the jump URL for a message.
-    /// </summary>
-    /// <param name="message">The message.</param>
-    /// <returns>The jump URL for the message.</returns>
-    public virtual Uri GetJumpUrl(IMessage message)
-    {
-        return new Uri(message.GetJumpUrl(), UriKind.Absolute);
     }
 
     private sealed partial class Log

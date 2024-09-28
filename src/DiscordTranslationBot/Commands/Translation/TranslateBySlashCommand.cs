@@ -74,16 +74,17 @@ public sealed partial class TranslateBySlashCommandHandler
             ?.Value;
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
+        var translationProvider = _translationProviderFactory.PrimaryProvider;
+
         try
         {
             var sourceLanguage = from is not null
-                ? _translationProviderFactory.PrimaryProvider.SupportedLanguages.First(l => l.LangCode == from)
+                ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
                 : null;
 
-            var targetLanguage =
-                _translationProviderFactory.PrimaryProvider.SupportedLanguages.First(l => l.LangCode == to);
+            var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == to);
 
-            var translationResult = await _translationProviderFactory.PrimaryProvider.TranslateAsync(
+            var translationResult = await translationProvider.TranslateAsync(
                 targetLanguage,
                 sanitizedText,
                 cancellationToken,
@@ -102,7 +103,7 @@ public sealed partial class TranslateBySlashCommandHandler
 
             await command.SlashCommand.FollowupAsync(
                 $"""
-                 {MentionUtils.MentionUser(command.SlashCommand.User.Id)} translated text using {_translationProviderFactory.PrimaryProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {MentionUtils.MentionUser(command.SlashCommand.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
@@ -111,7 +112,7 @@ public sealed partial class TranslateBySlashCommandHandler
         }
         catch (Exception ex)
         {
-            _log.TranslationFailure(ex, _translationProviderFactory.PrimaryProvider.GetType());
+            _log.TranslationFailure(ex, translationProvider.GetType());
         }
 
         return Unit.Value;

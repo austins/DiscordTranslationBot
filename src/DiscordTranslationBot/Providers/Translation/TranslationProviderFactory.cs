@@ -3,9 +3,10 @@ using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
+// TODO: initialization guards
 public sealed partial class TranslationProviderFactory
 {
-    private const int MaxOptionsCount = SlashCommandBuilder.MaxOptionsCount;
+    private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
     private bool _initialized;
     private TranslationProviderBase? _lastProvider;
