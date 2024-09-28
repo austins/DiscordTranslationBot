@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DiscordTranslationBot.Extensions;
 
 namespace DiscordTranslationBot.Telemetry;
 
@@ -10,49 +11,31 @@ public sealed class TelemetryOptions : IValidatableObject
     public const string SectionName = "Telemetry";
 
     /// <summary>
-    /// Flag indicating whether telemetry is enabled.
+    /// The endpoint options for metrics.
     /// </summary>
-    public bool Enabled { get; init; }
+    public TelemetryEndpointOptions MetricsEndpoint { get; init; } = new();
 
     /// <summary>
-    /// The API key for Seq used by <see cref="LoggingEndpointUrl" /> and <see cref="TracingEndpointUrl" />.
+    /// The endpoint options for logging.
     /// </summary>
-    public string? ApiKey { get; init; }
+    public TelemetryEndpointOptions LoggingEndpoint { get; init; } = new();
 
     /// <summary>
-    /// The URL for logging endpoint.
+    /// The endpoint options for tracing.
     /// </summary>
-    public Uri? LoggingEndpointUrl { get; init; }
-
-    /// <summary>
-    /// The URL for tracing endpoint.
-    /// </summary>
-    public Uri? TracingEndpointUrl { get; init; }
+    public TelemetryEndpointOptions TracingEndpoint { get; init; } = new();
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (Enabled)
-        {
-            if (string.IsNullOrWhiteSpace(ApiKey))
-            {
-                yield return new ValidationResult(
-                    $"{nameof(TelemetryOptions)}.{nameof(ApiKey)} is required.",
-                    [nameof(ApiKey)]);
-            }
+        MetricsEndpoint.TryValidate(out var metricsEndpointValidationResults);
+        LoggingEndpoint.TryValidate(out var loggingEndpointValidationResults);
+        TracingEndpoint.TryValidate(out var tracingEndpointValidationResults);
 
-            if (LoggingEndpointUrl?.IsAbsoluteUri != true)
-            {
-                yield return new ValidationResult(
-                    $"{nameof(TelemetryOptions)}.{nameof(LoggingEndpointUrl)} is must be an absolute URI.",
-                    [nameof(LoggingEndpointUrl)]);
-            }
-
-            if (TracingEndpointUrl?.IsAbsoluteUri != true)
-            {
-                yield return new ValidationResult(
-                    $"{nameof(TelemetryOptions)}.{nameof(TracingEndpointUrl)} is must be an absolute URI.",
-                    [nameof(TracingEndpointUrl)]);
-            }
-        }
+        return
+        [
+            ..metricsEndpointValidationResults,
+            ..loggingEndpointValidationResults,
+            ..tracingEndpointValidationResults
+        ];
     }
 }

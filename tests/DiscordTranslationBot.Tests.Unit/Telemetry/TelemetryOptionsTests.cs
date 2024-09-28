@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Telemetry;
+using OpenTelemetry.Exporter;
 
 namespace DiscordTranslationBot.Tests.Unit.Telemetry;
 
@@ -14,10 +15,27 @@ public sealed class TelemetryOptionsTests
         var options = enabled
             ? new TelemetryOptions
             {
-                Enabled = true,
-                ApiKey = "apikey",
-                LoggingEndpointUrl = new Uri("http://localhost:1234"),
-                TracingEndpointUrl = new Uri("http://localhost:1234")
+                MetricsEndpoint = new TelemetryEndpointOptions
+                {
+                    Enabled = true,
+                    Protocol = OtlpExportProtocol.HttpProtobuf,
+                    Url = new Uri("http://localhost:1234"),
+                    Headers = new Dictionary<string, string>()
+                },
+                LoggingEndpoint = new TelemetryEndpointOptions
+                {
+                    Enabled = true,
+                    Protocol = OtlpExportProtocol.HttpProtobuf,
+                    Url = new Uri("http://localhost:1234"),
+                    Headers = new Dictionary<string, string>()
+                },
+                TracingEndpoint = new TelemetryEndpointOptions
+                {
+                    Enabled = true,
+                    Protocol = OtlpExportProtocol.HttpProtobuf,
+                    Url = new Uri("http://localhost:1234"),
+                    Headers = new Dictionary<string, string>()
+                }
             }
             : new TelemetryOptions();
 
@@ -29,19 +47,33 @@ public sealed class TelemetryOptionsTests
         validationResults.Should().BeEmpty();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void Invalid_Options_HasValidationErrors(string? stringValue)
+    [Fact]
+    public void Invalid_Options_HasValidationErrors()
     {
         // Arrange
         var options = new TelemetryOptions
         {
-            Enabled = true,
-            ApiKey = stringValue,
-            LoggingEndpointUrl = null,
-            TracingEndpointUrl = null
+            MetricsEndpoint = new TelemetryEndpointOptions
+            {
+                Enabled = true,
+                Protocol = OtlpExportProtocol.Grpc,
+                Url = null,
+                Headers = new Dictionary<string, string> { { "invalid;key", "invalid;value" } }
+            },
+            LoggingEndpoint = new TelemetryEndpointOptions
+            {
+                Enabled = true,
+                Protocol = OtlpExportProtocol.HttpProtobuf,
+                Url = null,
+                Headers = new Dictionary<string, string>()
+            },
+            TracingEndpoint = new TelemetryEndpointOptions
+            {
+                Enabled = true,
+                Protocol = OtlpExportProtocol.HttpProtobuf,
+                Url = null,
+                Headers = new Dictionary<string, string>()
+            }
         };
 
         // Act
@@ -52,17 +84,14 @@ public sealed class TelemetryOptionsTests
 
         validationResults
             .Should()
-            .HaveCount(3)
+            .HaveCount(4)
             .And
-            .ContainSingle(
-                x => x.ErrorMessage!.Contains($"{nameof(TelemetryOptions)}.{nameof(TelemetryOptions.ApiKey)}"))
+            .Contain(
+                x => x.ErrorMessage!.Contains(
+                    $"{nameof(TelemetryEndpointOptions)}.{nameof(TelemetryEndpointOptions.Url)}"))
             .And
             .ContainSingle(
                 x => x.ErrorMessage!.Contains(
-                    $"{nameof(TelemetryOptions)}.{nameof(TelemetryOptions.LoggingEndpointUrl)}"))
-            .And
-            .ContainSingle(
-                x => x.ErrorMessage!.Contains(
-                    $"{nameof(TelemetryOptions)}.{nameof(TelemetryOptions.TracingEndpointUrl)}"));
+                    $"{nameof(TelemetryEndpointOptions)}.{nameof(TelemetryEndpointOptions.Headers)}"));
     }
 }

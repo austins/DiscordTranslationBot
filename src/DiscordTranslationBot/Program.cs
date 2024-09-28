@@ -60,7 +60,6 @@ builder
 
 var app = builder.Build();
 
-app.UseTelemetry();
 app.UseRateLimiter();
 
 app
