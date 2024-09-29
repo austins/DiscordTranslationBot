@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Logs;
+﻿using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -11,16 +9,19 @@ internal static class TelemetryExtensions
 {
     public static void AddTelemetry(this WebApplicationBuilder builder)
     {
-        var section = builder.Configuration.GetSection(TelemetryOptions.SectionName);
-        builder.Services.AddOptions<TelemetryOptions>().Bind(section).ValidateDataAnnotations().ValidateOnStart();
-
-        var options = section.Get<TelemetryOptions>();
+        var options = builder.Configuration.GetSection(TelemetryOptions.SectionName).Get<TelemetryOptions>();
         if (options?.Enabled != true)
         {
             return;
         }
 
-        var headers = $"X-Seq-ApiKey={options.ApiKey}";
+        builder.Logging.AddOpenTelemetry(
+            o =>
+            {
+                o.IncludeFormattedMessage = true;
+                o.IncludeScopes = true;
+                o.AddOtlpExporter();
+            });
 
         builder
             .Services
@@ -39,43 +40,7 @@ internal static class TelemetryExtensions
                     .AddRuntimeInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddPrometheusExporter())
-            .WithTracing(
-                b => b
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddOtlpExporter(
-                        e =>
-                        {
-                            e.Protocol = OtlpExportProtocol.HttpProtobuf;
-                            e.Endpoint = options.TracingEndpointUrl!;
-                            e.Headers = headers;
-                        }));
-
-        builder.Logging.AddOpenTelemetry(
-            o =>
-            {
-                o.IncludeFormattedMessage = true;
-                o.IncludeScopes = true;
-
-                o.AddOtlpExporter(
-                    e =>
-                    {
-                        e.Protocol = OtlpExportProtocol.HttpProtobuf;
-                        e.Endpoint = options.LoggingEndpointUrl!;
-                        e.Headers = headers;
-                    });
-            });
-    }
-
-    public static void UseTelemetry(this WebApplication app)
-    {
-        var options = app.Services.GetRequiredService<IOptions<TelemetryOptions>>();
-        if (!options.Value.Enabled)
-        {
-            return;
-        }
-
-        app.MapPrometheusScrapingEndpoint("/_metrics");
+                    .AddOtlpExporter())
+            .WithTracing(b => b.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter());
     }
 }

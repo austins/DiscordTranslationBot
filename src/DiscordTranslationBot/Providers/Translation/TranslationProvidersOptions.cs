@@ -30,6 +30,6 @@ public sealed class TranslationProvidersOptions : IValidatableObject
         AzureTranslator.TryValidate(out var azureTranslatorValidationResults);
         LibreTranslate.TryValidate(out var libreTranslateValidationResults);
 
-        return azureTranslatorValidationResults.Concat(libreTranslateValidationResults);
+        return [..azureTranslatorValidationResults, ..libreTranslateValidationResults];
     }
 }
