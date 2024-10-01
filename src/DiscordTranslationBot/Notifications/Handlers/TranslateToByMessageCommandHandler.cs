@@ -1,44 +1,35 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Services;
+using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using Humanizer;
 
-namespace DiscordTranslationBot.Commands.Translation;
-
-public sealed class TranslateToByMessageCommand : ICommand
-{
-    /// <summary>
-    /// The message command.
-    /// </summary>
-    [Required]
-    public required IMessageCommandInteraction MessageCommand { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 public sealed class TranslateToByMessageCommandHandler
-    : ICommandHandler<TranslateToByMessageCommand>,
-        INotificationHandler<MessageCommandExecutedEvent>,
-        INotificationHandler<SelectMenuExecutedEvent>
+    : INotificationHandler<MessageCommandExecutedNotification>,
+        INotificationHandler<SelectMenuExecutedNotification>
 {
-    private readonly IMediator _mediator;
     private readonly IMessageHelper _messageHelper;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     public TranslateToByMessageCommandHandler(
         TranslationProviderFactory translationProviderFactory,
-        IMessageHelper messageHelper,
-        IMediator mediator)
+        IMessageHelper messageHelper)
     {
         _translationProviderFactory = translationProviderFactory;
         _messageHelper = messageHelper;
-        _mediator = mediator;
     }
 
-    public async ValueTask<Unit> Handle(TranslateToByMessageCommand command, CancellationToken cancellationToken)
+    public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        await command.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateTo.CommandName)
+        {
+            return;
+        }
+
+        await notification.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
         // Convert the list of supported languages to select menu options.
         var langOptions = _translationProviderFactory
@@ -58,28 +49,14 @@ public sealed class TranslateToByMessageCommandHandler
             .WithButton("Translate & Share", "buttonid2", ButtonStyle.Secondary)
             .Build();
 
-        await command.MessageCommand.FollowupAsync(
-            $"What would you like to translate {_messageHelper.GetJumpUrl(command.MessageCommand.Data.Message)} to?",
+        await notification.MessageCommand.FollowupAsync(
+            $"What would you like to translate {_messageHelper.GetJumpUrl(notification.MessageCommand.Data.Message)} to?",
             components: components,
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });
-
-        return Unit.Value;
     }
 
-    public async ValueTask Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
-    {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateTo.CommandName)
-        {
-            return;
-        }
-
-        await _mediator.Send(
-            new TranslateToByMessageCommand { MessageCommand = notification.MessageCommand },
-            cancellationToken);
-    }
-
-    public async ValueTask Handle(SelectMenuExecutedEvent notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(SelectMenuExecutedNotification notification, CancellationToken cancellationToken)
     {
         if (notification.MessageComponent.Data.CustomId != MessageCommandConstants.TranslateTo.SelectMenuId)
         {

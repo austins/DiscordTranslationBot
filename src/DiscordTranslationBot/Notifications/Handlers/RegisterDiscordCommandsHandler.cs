@@ -1,32 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using Humanizer;
 
-namespace DiscordTranslationBot.Commands.DiscordCommands;
-
-public sealed class RegisterDiscordCommands : ICommand
-{
-    /// <summary>
-    /// The guilds to register Discord commands for.
-    /// </summary>
-    [Required]
-    [MinLength(1)]
-    public required IReadOnlyCollection<IGuild> Guilds { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 public sealed partial class RegisterDiscordCommandsHandler
-    : ICommandHandler<RegisterDiscordCommands>,
-        INotificationHandler<ReadyEvent>,
-        INotificationHandler<JoinedGuildEvent>
+    : INotificationHandler<ReadyNotification>,
+        INotificationHandler<JoinedGuildNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly IMediator _mediator;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
@@ -34,23 +21,40 @@ public sealed partial class RegisterDiscordCommandsHandler
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory.</param>
-    /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public RegisterDiscordCommandsHandler(
         IDiscordClient client,
         TranslationProviderFactory translationProviderFactory,
-        IMediator mediator,
         ILogger<RegisterDiscordCommandsHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
-        _mediator = mediator;
         _log = new Log(logger);
     }
 
-    public async ValueTask<Unit> Handle(RegisterDiscordCommands command, CancellationToken cancellationToken)
+#pragma warning disable AsyncFixer01
+    public async ValueTask Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
-        _log.RegisteringCommandsForGuilds(command.Guilds.Count, command.Guilds.Select(x => x.Id).ToArray());
+        await RegisterDiscordCommandsAsync([notification.Guild], cancellationToken);
+    }
+#pragma warning restore AsyncFixer01
+
+    public async ValueTask Handle(ReadyNotification notification, CancellationToken cancellationToken)
+    {
+        var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
+        if (guilds.Count == 0)
+        {
+            return;
+        }
+
+        await RegisterDiscordCommandsAsync(guilds, cancellationToken);
+    }
+
+    public async Task RegisterDiscordCommandsAsync(
+        IReadOnlyCollection<IGuild> guilds,
+        CancellationToken cancellationToken)
+    {
+        _log.RegisteringCommandsForGuilds(guilds.Count, guilds.Select(x => x.Id).ToArray());
 
         var discordCommandsToRegister = new List<ApplicationCommandProperties>();
         GetMessageCommands(discordCommandsToRegister);
@@ -58,10 +62,10 @@ public sealed partial class RegisterDiscordCommandsHandler
 
         if (discordCommandsToRegister.Count == 0)
         {
-            return Unit.Value;
+            return;
         }
 
-        foreach (var guild in command.Guilds)
+        foreach (var guild in guilds)
         {
             try
             {
@@ -75,26 +79,6 @@ public sealed partial class RegisterDiscordCommandsHandler
                 _log.FailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
             }
         }
-
-        return Unit.Value;
-    }
-
-#pragma warning disable AsyncFixer01
-    public async ValueTask Handle(JoinedGuildEvent notification, CancellationToken cancellationToken)
-    {
-        await _mediator.Send(new RegisterDiscordCommands { Guilds = [notification.Guild] }, cancellationToken);
-    }
-#pragma warning restore AsyncFixer01
-
-    public async ValueTask Handle(ReadyEvent notification, CancellationToken cancellationToken)
-    {
-        var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
-        if (guilds.Count == 0)
-        {
-            return;
-        }
-
-        await _mediator.Send(new RegisterDiscordCommands { Guilds = guilds }, cancellationToken);
     }
 
     /// <summary>

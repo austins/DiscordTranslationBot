@@ -1,41 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Countries.Exceptions;
-using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Countries.Utilities;
-using DiscordTranslationBot.Discord.Events;
-using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
 
-namespace DiscordTranslationBot.Commands.Translation;
-
-public sealed class TranslateByCountryFlagEmojiReaction : ICommand
-{
-    [Required]
-    public required ICountry Country { get; init; }
-
-    /// <summary>
-    /// The user message.
-    /// </summary>
-    [Required]
-    public required IUserMessage Message { get; init; }
-
-    /// <summary>
-    /// The reaction.
-    /// </summary>
-    [Required]
-    public required ReactionInfo ReactionInfo { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 /// <summary>
 /// Handler for translating by a flag emoji reaction.
 /// </summary>
-public sealed partial class TranslateByCountryFlagEmojiReactionHandler
-    : ICommandHandler<TranslateByCountryFlagEmojiReaction>,
-        INotificationHandler<ReactionAddedEvent>
+public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -64,35 +41,38 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
     /// <summary>
     /// Translates any message that got a country flag emoji reaction on it.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async ValueTask<Unit> Handle(
-        TranslateByCountryFlagEmojiReaction command,
-        CancellationToken cancellationToken)
+    public async ValueTask Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (command.Message.Author.Id == _client.CurrentUser?.Id)
+        if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
+        {
+            return;
+        }
+
+        if (notification.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await command.Message.RemoveReactionAsync(
-                command.ReactionInfo.Emote,
-                command.ReactionInfo.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.ReactionInfo.Emote,
+                notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(command.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(notification.Message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await command.Message.RemoveReactionAsync(
-                command.ReactionInfo.Emote,
-                command.ReactionInfo.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.ReactionInfo.Emote,
+                notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
         string? providerName = null;
@@ -104,7 +84,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
                 providerName = translationProvider.ProviderName;
 
                 translationResult = await translationProvider.TranslateByCountryAsync(
-                    command.Country,
+                    country,
                     sanitizedMessage,
                     cancellationToken);
 
@@ -115,18 +95,18 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
                 // Send message if this is the last available translation provider.
                 if (ReferenceEquals(translationProvider, _translationProviderFactory.LastProvider))
                 {
-                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), command.Country.Name);
+                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), country.Name);
 
                     await _mediator.Send(
                         new SendTempReply
                         {
                             Text = ex.Message,
-                            ReactionInfo = command.ReactionInfo,
-                            SourceMessage = command.Message
+                            ReactionInfo = notification.ReactionInfo,
+                            SourceMessage = notification.Message
                         },
                         cancellationToken);
 
-                    return Unit.Value;
+                    return;
                 }
             }
             catch (Exception ex)
@@ -137,12 +117,12 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
         if (translationResult is null)
         {
-            await command.Message.RemoveReactionAsync(
-                command.ReactionInfo.Emote,
-                command.ReactionInfo.UserId,
+            await notification.Message.RemoveReactionAsync(
+                notification.ReactionInfo.Emote,
+                notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
@@ -153,12 +133,12 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
                 new SendTempReply
                 {
                     Text = "Couldn't detect the source language to translate from or the result is the same.",
-                    ReactionInfo = command.ReactionInfo,
-                    SourceMessage = command.Message
+                    ReactionInfo = notification.ReactionInfo,
+                    SourceMessage = notification.Message
                 },
                 cancellationToken);
 
-            return Unit.Value;
+            return;
         }
 
         // Send the reply message.
@@ -172,30 +152,13 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler
                {Format.BlockQuote(translationResult.TranslatedText)}
                """;
 
-        return await _mediator.Send(
+        await _mediator.Send(
             new SendTempReply
             {
                 Text = replyText,
-                ReactionInfo = command.ReactionInfo,
-                SourceMessage = command.Message,
+                ReactionInfo = notification.ReactionInfo,
+                SourceMessage = notification.Message,
                 DeletionDelay = TimeSpan.FromSeconds(20)
-            },
-            cancellationToken);
-    }
-
-    public async ValueTask Handle(ReactionAddedEvent notification, CancellationToken cancellationToken)
-    {
-        if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
-        {
-            return;
-        }
-
-        await _mediator.Send(
-            new TranslateByCountryFlagEmojiReaction
-            {
-                Country = country,
-                Message = notification.Message,
-                ReactionInfo = notification.ReactionInfo
             },
             cancellationToken);
     }

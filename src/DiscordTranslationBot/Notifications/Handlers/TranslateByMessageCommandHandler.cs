@@ -1,34 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Services;
+using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
 
-namespace DiscordTranslationBot.Commands.Translation;
-
-public sealed class TranslateByMessageCommand : ICommand
-{
-    /// <summary>
-    /// The message command.
-    /// </summary>
-    [Required]
-    public required IMessageCommandInteraction MessageCommand { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 /// <summary>
 /// Handler for the translate message command.
 /// </summary>
-public sealed partial class TranslateByMessageCommandHandler
-    : ICommandHandler<TranslateByMessageCommand>,
-        INotificationHandler<MessageCommandExecutedEvent>
+public sealed partial class TranslateByMessageCommandHandler : INotificationHandler<MessageCommandExecutedNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly IMediator _mediator;
     private readonly IMessageHelper _messageHelper;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
@@ -38,57 +25,59 @@ public sealed partial class TranslateByMessageCommandHandler
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="messageHelper">Message helper to use.</param>
-    /// <param name="mediator">Mediator to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByMessageCommandHandler(
         IDiscordClient client,
         TranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
-        IMediator mediator,
         ILogger<TranslateByMessageCommandHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
         _messageHelper = messageHelper;
-        _mediator = mediator;
         _log = new Log(logger);
     }
 
     /// <summary>
     /// Translates the message interacted with to the user's locale.
     /// </summary>
-    /// <param name="command">The Mediator command.</param>
+    /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(TranslateByMessageCommand command, CancellationToken cancellationToken)
+    public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (command.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
+        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
+        {
+            return;
+        }
+
+        if (notification.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await command.MessageCommand.RespondAsync(
+            await notification.MessageCommand.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(command.MessageCommand.Data.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(notification.MessageCommand.Data.Message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await command.MessageCommand.RespondAsync(
+            await notification.MessageCommand.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        await command.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        await notification.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
-        var userLocale = command.MessageCommand.UserLocale;
+        var userLocale = notification.MessageCommand.UserLocale;
 
         string? providerName = null;
         TranslationResult? translationResult = null;
@@ -134,25 +123,25 @@ public sealed partial class TranslateByMessageCommandHandler
         if (translationResult is null)
         {
             // Send message if no translation providers support the locale.
-            await command.MessageCommand.FollowupAsync(
+            await notification.MessageCommand.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
         {
             _log.FailureToDetectSourceLanguage();
 
-            await command.MessageCommand.FollowupAsync(
+            await notification.MessageCommand.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        var fromHeading = $"By {MentionUtils.MentionUser(command.MessageCommand.Data.Message.Author.Id)}";
+        var fromHeading = $"By {MentionUtils.MentionUser(notification.MessageCommand.Data.Message.Author.Id)}";
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
             fromHeading +=
@@ -170,27 +159,13 @@ public sealed partial class TranslateByMessageCommandHandler
                            {translationResult.TranslatedText}
                            """;
 
-        await command.MessageCommand.FollowupAsync(
+        await notification.MessageCommand.FollowupAsync(
             embed: new EmbedBuilder()
                 .WithTitle("Translated Message")
-                .WithUrl(_messageHelper.GetJumpUrl(command.MessageCommand.Data.Message).AbsoluteUri)
+                .WithUrl(_messageHelper.GetJumpUrl(notification.MessageCommand.Data.Message).AbsoluteUri)
                 .WithDescription(description)
                 .Build(),
             options: new RequestOptions { CancelToken = cancellationToken });
-
-        return Unit.Value;
-    }
-
-    public async ValueTask Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
-    {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
-        {
-            return;
-        }
-
-        await _mediator.Send(
-            new TranslateByMessageCommand { MessageCommand = notification.MessageCommand },
-            cancellationToken);
     }
 
     private sealed partial class Log
