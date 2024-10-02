@@ -4,9 +4,9 @@ using Discord;
 namespace DiscordTranslationBot.Notifications.Events;
 
 /// <summary>
-/// Notification for the Discord SelectMenuExecuted event.
+/// Notification for the Discord ButtonExecuted event.
 /// </summary>
-public sealed class SelectMenuExecutedNotification : INotification
+public sealed class ButtonExecutedNotification : INotification
 {
     /// <summary>
     /// The message component.

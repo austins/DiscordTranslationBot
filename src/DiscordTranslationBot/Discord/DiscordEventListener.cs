@@ -54,8 +54,12 @@ internal sealed partial class DiscordEventListener
             new MessageCommandExecutedNotification { MessageCommand = messageCommand },
             cancellationToken);
 
-        _client.SelectMenuExecuted += messageComponent => PublishInBackgroundAsync(
-            new SelectMenuExecutedNotification { MessageComponent = messageComponent },
+        _client.SelectMenuExecuted += interaction => PublishInBackgroundAsync(
+            new SelectMenuExecutedNotification { Interaction = interaction },
+            cancellationToken);
+
+        _client.ButtonExecuted += interaction => PublishInBackgroundAsync(
+            new ButtonExecutedNotification { Interaction = interaction },
             cancellationToken);
 
         _client.SlashCommandExecuted += slashCommand => PublishInBackgroundAsync(

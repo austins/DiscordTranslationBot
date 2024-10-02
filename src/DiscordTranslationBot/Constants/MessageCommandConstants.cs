@@ -30,6 +30,16 @@ public static class MessageCommandConstants
         /// <summary>
         /// The unique custom ID of the select menu.
         /// </summary>
-        public static readonly string SelectMenuId = $"{nameof(TranslateTo)}_{Guid.NewGuid()}";
+        public static readonly string SelectMenuId = $"{nameof(TranslateTo)}_SelectMenu";
+
+        /// <summary>
+        /// The unique custom ID of the translate button.
+        /// </summary>
+        public static readonly string TranslateButtonId = $"{nameof(TranslateTo)}_TranslateButton";
+
+        /// <summary>
+        /// The unique custom ID of the translate and share button.
+        /// </summary>
+        public static readonly string TranslateAndShareButtonId = $"{nameof(TranslateTo)}_TranslateAndShareButton";
     }
 }
