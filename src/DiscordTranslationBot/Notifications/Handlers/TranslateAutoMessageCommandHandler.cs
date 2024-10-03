@@ -10,9 +10,10 @@ using Humanizer;
 namespace DiscordTranslationBot.Notifications.Handlers;
 
 /// <summary>
-/// Handler for the translate message command.
+/// Handler for the "Translate (Auto)" message command.
 /// </summary>
-public sealed partial class TranslateByMessageCommandHandler : INotificationHandler<MessageCommandExecutedNotification>
+public sealed partial class TranslateAutoMessageCommandHandler
+    : INotificationHandler<MessageCommandExecutedNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -20,17 +21,17 @@ public sealed partial class TranslateByMessageCommandHandler : INotificationHand
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslateByMessageCommandHandler" /> class.
+    /// Initializes a new instance of the <see cref="TranslateAutoMessageCommandHandler" /> class.
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="messageHelper">Message helper to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public TranslateByMessageCommandHandler(
+    public TranslateAutoMessageCommandHandler(
         IDiscordClient client,
         TranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
-        ILogger<TranslateByMessageCommandHandler> logger)
+        ILogger<TranslateAutoMessageCommandHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
@@ -45,7 +46,7 @@ public sealed partial class TranslateByMessageCommandHandler : INotificationHand
     /// <param name="cancellationToken">The cancellation token.</param>
     public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
+        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateAuto.CommandName)
         {
             return;
         }

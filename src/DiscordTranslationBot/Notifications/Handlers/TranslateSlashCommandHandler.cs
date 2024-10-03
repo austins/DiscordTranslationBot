@@ -6,19 +6,19 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class TranslateBySlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
+public sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslateBySlashCommandHandler" /> class.
+    /// Initializes a new instance of the <see cref="TranslateSlashCommandHandler" /> class.
     /// </summary>
     /// <param name="translationProviderFactory">Translation provider factory.</param>
     /// <param name="logger">Logger to use.</param>
-    public TranslateBySlashCommandHandler(
+    public TranslateSlashCommandHandler(
         TranslationProviderFactory translationProviderFactory,
-        ILogger<TranslateBySlashCommandHandler> logger)
+        ILogger<TranslateSlashCommandHandler> logger)
     {
         _translationProviderFactory = translationProviderFactory;
         _log = new Log(logger);

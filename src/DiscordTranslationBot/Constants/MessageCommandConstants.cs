@@ -7,12 +7,12 @@ namespace DiscordTranslationBot.Constants;
 public static class MessageCommandConstants
 {
     /// <summary>
-    /// "Translate" message command constants.
+    /// "Translate (Auto)" message command constants.
     /// </summary>
-    public static class Translate
+    public static class TranslateAuto
     {
         /// <summary>
-        /// The name of the "Translate" message command.
+        /// The name of the "Translate (Auto)" message command.
         /// </summary>
         public const string CommandName = "Translate (Auto)";
     }

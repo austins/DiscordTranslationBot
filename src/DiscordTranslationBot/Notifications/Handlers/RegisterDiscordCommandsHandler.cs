@@ -88,7 +88,7 @@ public sealed partial class RegisterDiscordCommandsHandler
     private static void GetMessageCommands(List<ApplicationCommandProperties> discordCommandsToRegister)
     {
         discordCommandsToRegister.Add(
-            new MessageCommandBuilder().WithName(MessageCommandConstants.Translate.CommandName).Build());
+            new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateAuto.CommandName).Build());
 
         discordCommandsToRegister.Add(
             new MessageCommandBuilder().WithName(MessageCommandConstants.TranslateTo.CommandName).Build());
