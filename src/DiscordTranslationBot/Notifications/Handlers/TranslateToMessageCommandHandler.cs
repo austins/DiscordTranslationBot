@@ -126,12 +126,12 @@ public sealed partial class TranslateToMessageCommandHandler
             }
             else if (buttonId == MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
             {
-                await notification.Interaction.DeleteOriginalResponseAsync(
-                    new RequestOptions { CancelToken = cancellationToken });
-
-                await notification.Interaction.Message.Channel.SendMessageAsync(
-                    embed: embed,
-                    options: new RequestOptions { CancelToken = cancellationToken });
+                await Task.WhenAll(
+                    notification.Interaction.DeleteOriginalResponseAsync(
+                        new RequestOptions { CancelToken = cancellationToken }),
+                    notification.Interaction.Message.Channel.SendMessageAsync(
+                        embed: embed,
+                        options: new RequestOptions { CancelToken = cancellationToken }));
             }
         }
         catch (Exception ex)
@@ -149,7 +149,7 @@ public sealed partial class TranslateToMessageCommandHandler
 
         await notification.MessageCommand.RespondAsync(
             $"What would you like to translate {_messageHelper.GetJumpUrl(notification.MessageCommand.Data.Message)} to?",
-            components: BuildMessageComponents(),
+            components: BuildMessageComponents(false),
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });
     }
@@ -162,7 +162,7 @@ public sealed partial class TranslateToMessageCommandHandler
         }
 
         await notification.Interaction.UpdateAsync(
-            m => { m.Components = BuildMessageComponents(notification.Interaction.Data.Values.First()); },
+            m => { m.Components = BuildMessageComponents(true, notification.Interaction.Data.Values.First()); },
             new RequestOptions { CancelToken = cancellationToken });
     }
 
@@ -178,7 +178,7 @@ public sealed partial class TranslateToMessageCommandHandler
         throw new InvalidOperationException("Failed to find select menu component in message.");
     }
 
-    private MessageComponent BuildMessageComponents(string? valueSelected = null)
+    private MessageComponent BuildMessageComponents(bool buttonsEnabled, string? valueSelected = null)
     {
         // Convert the list of supported languages to select menu options.
         var langOptions = _translationProviderFactory
@@ -195,11 +195,12 @@ public sealed partial class TranslateToMessageCommandHandler
                 MessageCommandConstants.TranslateTo.SelectMenuId,
                 langOptions,
                 "Select the language to translate to...")
-            .WithButton("Translate", MessageCommandConstants.TranslateTo.TranslateButtonId)
+            .WithButton("Translate", MessageCommandConstants.TranslateTo.TranslateButtonId, disabled: !buttonsEnabled)
             .WithButton(
                 "Translate & Share",
                 MessageCommandConstants.TranslateTo.TranslateAndShareButtonId,
-                ButtonStyle.Secondary)
+                ButtonStyle.Secondary,
+                disabled: !buttonsEnabled)
             .Build();
     }
 

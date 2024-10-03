@@ -41,12 +41,14 @@ public sealed partial class TranslationProviderFactory
             _log.ProvidersEnabled(Providers.Select(tp => tp.ProviderName));
 
             // Initialize the translator providers.
-            foreach (var translationProvider in Providers)
+            async Task InitializeSupportedLanguagesAsync(TranslationProviderBase translationProvider)
             {
                 _log.InitializingProvider(translationProvider.ProviderName);
                 await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
                 _log.InitializeProvider(translationProvider.ProviderName);
             }
+
+            await Task.WhenAll(Providers.Select(InitializeSupportedLanguagesAsync));
 
             _initialized = true;
         }
