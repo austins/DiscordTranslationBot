@@ -31,8 +31,4 @@
     <ItemGroup>
         <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Discord\Services\"/>
-    </ItemGroup>
 </Project>
