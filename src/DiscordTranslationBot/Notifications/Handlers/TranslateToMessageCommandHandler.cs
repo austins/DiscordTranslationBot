@@ -1,8 +1,8 @@
 ﻿using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Services;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
 
@@ -36,11 +36,7 @@ public sealed partial class TranslateToMessageCommandHandler
             return;
         }
 
-        var selectedLanguage = GetSelectedLanguage(notification.Interaction.Message);
-        if (selectedLanguage is null)
-        {
-            return;
-        }
+        await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
         var referencedMessageId = notification.Interaction.Message.Reference.MessageId.GetValueOrDefault(
             _messageHelper.GetJumpUrlsInMessage(notification.Interaction.Message)[0].MessageId);
@@ -55,16 +51,18 @@ public sealed partial class TranslateToMessageCommandHandler
         {
             _log.EmptySourceText();
 
-            // TODO: change to modify and move defer above
-            await notification.Interaction.RespondAsync(
-                "No text to translate.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken });
+            await notification.Interaction.ModifyOriginalResponseAsync(
+                m =>
+                {
+                    m.Content = "No text to translate.";
+                    m.Components = null;
+                },
+                new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
 
-        await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        var selectedLanguage = GetSelectedLanguage(notification.Interaction.Message);
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
         var translationProvider = _translationProviderFactory.PrimaryProvider;
@@ -82,45 +80,27 @@ public sealed partial class TranslateToMessageCommandHandler
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await notification.Interaction.FollowupAsync(
-                    "Couldn't detect the source language to translate from or the result is the same.",
-                    options: new RequestOptions { CancelToken = cancellationToken });
+                await notification.Interaction.ModifyOriginalResponseAsync(
+                    m =>
+                    {
+                        m.Content = "Couldn't detect the source language to translate from or the result is the same.";
+                        m.Components = null;
+                    },
+                    new RequestOptions { CancelToken = cancellationToken });
 
                 return;
             }
-
-            var fromHeading = $"By {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
-            if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
-            {
-                fromHeading +=
-                    $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
-            }
-
-            var toHeading =
-                $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({translationProvider.ProviderName})";
-
-            var description = $"""
-                               {Format.Bold(fromHeading)}:
-                               {sanitizedText.Truncate(50)}
-
-                               {Format.Bold(toHeading)}:
-                               {translationResult.TranslatedText}
-                               """;
-
-            var embed = new EmbedBuilder()
-                .WithTitle("Translated Message")
-                .WithUrl(_messageHelper.GetJumpUrl(referencedMessage).AbsoluteUri)
-                .WithDescription(description)
-                .Build();
 
             if (buttonId == MessageCommandConstants.TranslateTo.TranslateButtonId)
             {
                 await notification.Interaction.ModifyOriginalResponseAsync(
                     m =>
                     {
-                        m.Content = null;
+                        m.Content = _messageHelper.BuildTranslationReplyWithReference(
+                            referencedMessage,
+                            translationResult);
+
                         m.Components = null;
-                        m.Embed = embed;
                     },
                     new RequestOptions { CancelToken = cancellationToken });
             }
@@ -130,7 +110,11 @@ public sealed partial class TranslateToMessageCommandHandler
                     notification.Interaction.DeleteOriginalResponseAsync(
                         new RequestOptions { CancelToken = cancellationToken }),
                     notification.Interaction.Message.Channel.SendMessageAsync(
-                        embed: embed,
+                        _messageHelper.BuildTranslationReplyWithReference(
+                            referencedMessage,
+                            translationResult,
+                            notification.Interaction.User.Id),
+                        messageReference: notification.Interaction.Message.Reference,
                         options: new RequestOptions { CancelToken = cancellationToken }));
             }
         }
@@ -144,6 +128,20 @@ public sealed partial class TranslateToMessageCommandHandler
     {
         if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateTo.CommandName)
         {
+            return;
+        }
+
+        // Check if message can be translated first.
+        if (string.IsNullOrWhiteSpace(FormatUtility.SanitizeText(notification.MessageCommand.Data.Message.Content)))
+        {
+            _log.EmptySourceText();
+
+            // We must acknowledge and respond to the message command.
+            await notification.MessageCommand.RespondAsync(
+                "No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
             return;
         }
 
@@ -166,13 +164,13 @@ public sealed partial class TranslateToMessageCommandHandler
             new RequestOptions { CancelToken = cancellationToken });
     }
 
-    private static string? GetSelectedLanguage(IUserMessage message)
+    private static string GetSelectedLanguage(IUserMessage message)
     {
         if ((message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(
                 x => x.CustomId == MessageCommandConstants.TranslateTo.SelectMenuId) is SelectMenuComponent
             selectMenuComponent)
         {
-            return selectMenuComponent.Options.FirstOrDefault(x => x.IsDefault == true)?.Value;
+            return selectMenuComponent.Options.First(x => x.IsDefault == true).Value;
         }
 
         throw new InvalidOperationException("Failed to find select menu component in message.");

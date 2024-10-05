@@ -5,6 +5,7 @@ using DiscordTranslationBot.Countries.Utilities;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
@@ -17,6 +18,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMediator _mediator;
+    private readonly IMessageHelper _messageHelper;
     private readonly TranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
@@ -25,16 +27,19 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="mediator">Mediator to use.</param>
+    /// <param name="messageHelper">Message helper to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
         TranslationProviderFactory translationProviderFactory,
         IMediator mediator,
+        IMessageHelper messageHelper,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
         _mediator = mediator;
+        _messageHelper = messageHelper;
         _log = new Log(logger);
     }
 
@@ -75,14 +80,11 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             return;
         }
 
-        string? providerName = null;
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
         {
             try
             {
-                providerName = translationProvider.ProviderName;
-
                 translationResult = await translationProvider.TranslateByCountryAsync(
                     country,
                     sanitizedMessage,
@@ -141,21 +143,14 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             return;
         }
 
-        // Send the reply message.
-        var replyText = !string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode)
-            ? $"""
-               Translated message from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)} to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
-               {Format.BlockQuote(translationResult.TranslatedText)}
-               """
-            : $"""
-               Translated message to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName}):
-               {Format.BlockQuote(translationResult.TranslatedText)}
-               """;
-
+        // Send the reply message. Note: we can't send an ephemeral message as those are only for command interactions.
         await _mediator.Send(
             new SendTempReply
             {
-                Text = replyText,
+                Text = _messageHelper.BuildTranslationReplyWithReference(
+                    notification.Message,
+                    translationResult,
+                    notification.ReactionInfo.UserId),
                 ReactionInfo = notification.ReactionInfo,
                 SourceMessage = notification.Message,
                 DeletionDelay = TimeSpan.FromSeconds(20)

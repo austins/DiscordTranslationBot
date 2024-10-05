@@ -2,9 +2,10 @@
 using System.Text.RegularExpressions;
 using Discord;
 using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Providers.Translation.Models;
 using IMessage = Discord.IMessage;
 
-namespace DiscordTranslationBot.Discord.Services;
+namespace DiscordTranslationBot.Services;
 
 public sealed partial class MessageHelper : IMessageHelper
 {
@@ -33,6 +34,26 @@ public sealed partial class MessageHelper : IMessageHelper
         return jumpUrls;
     }
 
+    public string BuildTranslationReplyWithReference(
+        IMessage referencedMessage,
+        TranslationResult translationResult,
+        ulong? userId = null)
+    {
+        var replyText =
+            $"{(userId is null ? "You" : MentionUtils.MentionUser(userId.Value))} translated {GetJumpUrl(referencedMessage)} by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
+
+        if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
+        {
+            replyText +=
+                $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
+        }
+
+        replyText +=
+            $" to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}";
+
+        return replyText;
+    }
+
     [GeneratedRegex(@"https:\/\/discord\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)")]
     private static partial Regex JumpUrlRegex();
 }
@@ -42,4 +63,9 @@ public interface IMessageHelper
     public Uri GetJumpUrl(IMessage message);
 
     public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message);
+
+    public string BuildTranslationReplyWithReference(
+        IMessage referencedMessage,
+        TranslationResult translationResult,
+        ulong? userId = null);
 }

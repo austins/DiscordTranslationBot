@@ -92,7 +92,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
 
             await notification.SlashCommand.FollowupAsync(
                 $"""
-                 {MentionUtils.MentionUser(notification.SlashCommand.User.Id)} translated text using {translationProvider.ProviderName} from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {MentionUtils.MentionUser(notification.SlashCommand.User.Id)} translated text from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}

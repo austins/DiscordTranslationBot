@@ -3,11 +3,11 @@ using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
-// TODO: initialization guards
 public sealed partial class TranslationProviderFactory
 {
     private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
+    private readonly IReadOnlyList<TranslationProviderBase> _providers;
     private bool _initialized;
     private TranslationProviderBase? _lastProvider;
     private TranslationProviderBase? _primaryProvider;
@@ -17,38 +17,59 @@ public sealed partial class TranslationProviderFactory
         IEnumerable<TranslationProviderBase> translationProviders,
         ILogger<TranslationProviderFactory> logger)
     {
-        Providers = translationProviders.ToList();
+        _providers = translationProviders.ToList();
         _log = new Log(logger);
     }
 
-    public IReadOnlyList<TranslationProviderBase> Providers { get; }
+    public IReadOnlyList<TranslationProviderBase> Providers
+    {
+        get
+        {
+            ThrowIfProvidersNotInitialized();
+            return _providers;
+        }
+    }
 
-    public TranslationProviderBase PrimaryProvider => _primaryProvider ??= Providers[0];
+    public TranslationProviderBase PrimaryProvider
+    {
+        get
+        {
+            ThrowIfProvidersNotInitialized();
+            return _primaryProvider ??= Providers[0];
+        }
+    }
 
-    public TranslationProviderBase LastProvider => _lastProvider ??= Providers[^1];
+    public TranslationProviderBase LastProvider
+    {
+        get
+        {
+            ThrowIfProvidersNotInitialized();
+            return _lastProvider ??= Providers[^1];
+        }
+    }
 
     public async Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken)
     {
         if (!_initialized)
         {
             // Check if no translation providers are enabled.
-            if (!Providers.Any())
+            if (!_providers.Any())
             {
                 _log.NoProvidersEnabled();
                 return false;
             }
 
-            _log.ProvidersEnabled(Providers.Select(tp => tp.ProviderName));
+            _log.ProvidersEnabled(_providers.Select(tp => tp.ProviderName));
 
             // Initialize the translator providers.
             async Task InitializeSupportedLanguagesAsync(TranslationProviderBase translationProvider)
             {
                 _log.InitializingProvider(translationProvider.ProviderName);
                 await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
-                _log.InitializeProvider(translationProvider.ProviderName);
+                _log.InitializedProvider(translationProvider.ProviderName);
             }
 
-            await Task.WhenAll(Providers.Select(InitializeSupportedLanguagesAsync));
+            await Task.WhenAll(_providers.Select(InitializeSupportedLanguagesAsync));
 
             _initialized = true;
         }
@@ -58,6 +79,8 @@ public sealed partial class TranslationProviderFactory
 
     public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions()
     {
+        ThrowIfProvidersNotInitialized();
+
         if (_supportedLanguagesForOptions is null)
         {
             // Gather list of language choices for the command's options.
@@ -96,6 +119,15 @@ public sealed partial class TranslationProviderFactory
         return _supportedLanguagesForOptions;
     }
 
+    private void ThrowIfProvidersNotInitialized()
+    {
+        if (!_initialized)
+        {
+            throw new InvalidOperationException(
+                $"Providers must be initialized before calling {nameof(TranslationProviderFactory)}.{nameof(GetSupportedLanguagesForOptions)}.");
+        }
+    }
+
     private sealed partial class Log
     {
         private readonly ILogger _logger;
@@ -120,6 +152,6 @@ public sealed partial class TranslationProviderFactory
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Finished initializing translation provider: {providerName}")]
-        public partial void InitializeProvider(string providerName);
+        public partial void InitializedProvider(string providerName);
     }
 }

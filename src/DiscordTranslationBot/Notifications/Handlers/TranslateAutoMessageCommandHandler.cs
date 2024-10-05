@@ -1,11 +1,10 @@
 ﻿using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Services;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
-using Humanizer;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
@@ -80,7 +79,6 @@ public sealed partial class TranslateAutoMessageCommandHandler
 
         var userLocale = notification.MessageCommand.UserLocale;
 
-        string? providerName = null;
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
         {
@@ -106,8 +104,6 @@ public sealed partial class TranslateAutoMessageCommandHandler
                     continue;
                 }
 
-                providerName = translationProvider.ProviderName;
-
                 translationResult = await translationProvider.TranslateAsync(
                     targetLanguage,
                     sanitizedMessage,
@@ -126,6 +122,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
             // Send message if no translation providers support the locale.
             await notification.MessageCommand.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
@@ -137,35 +134,17 @@ public sealed partial class TranslateAutoMessageCommandHandler
 
             await notification.MessageCommand.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
             return;
         }
 
-        var fromHeading = $"By {MentionUtils.MentionUser(notification.MessageCommand.Data.Message.Author.Id)}";
-        if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
-        {
-            fromHeading +=
-                $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
-        }
-
-        var toHeading =
-            $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
-
-        var description = $"""
-                           {Format.Bold(fromHeading)}:
-                           {sanitizedMessage.Truncate(50)}
-
-                           {Format.Bold(toHeading)}:
-                           {translationResult.TranslatedText}
-                           """;
-
         await notification.MessageCommand.FollowupAsync(
-            embed: new EmbedBuilder()
-                .WithTitle("Translated Message")
-                .WithUrl(_messageHelper.GetJumpUrl(notification.MessageCommand.Data.Message).AbsoluteUri)
-                .WithDescription(description)
-                .Build(),
+            _messageHelper.BuildTranslationReplyWithReference(
+                notification.MessageCommand.Data.Message,
+                translationResult),
+            ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });
     }
 

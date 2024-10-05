@@ -2,14 +2,15 @@ using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Discord;
-using DiscordTranslationBot.Discord.Services;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Telemetry;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
+using MessageHelper = DiscordTranslationBot.Services.MessageHelper;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
