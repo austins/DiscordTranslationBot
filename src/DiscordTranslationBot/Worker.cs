@@ -16,7 +16,7 @@ internal sealed class Worker : IHostedService
     private readonly IOptions<DiscordOptions> _discordOptions;
     private readonly DiscordEventListener _eventListener;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Worker" /> class.
@@ -27,7 +27,7 @@ internal sealed class Worker : IHostedService
     /// <param name="discordOptions">Discord configuration options.</param>
     /// <param name="hostApplicationLifetime">Host application lifetime to use.</param>
     public Worker(
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         IDiscordClient client,
         DiscordEventListener eventListener,
         IOptions<DiscordOptions> discordOptions,

@@ -3,14 +3,12 @@ using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
-public sealed partial class TranslationProviderFactory
+public sealed partial class TranslationProviderFactory : ITranslationProviderFactory
 {
     private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
     private readonly IReadOnlyList<TranslationProviderBase> _providers;
     private bool _initialized;
-    private TranslationProviderBase? _lastProvider;
-    private TranslationProviderBase? _primaryProvider;
     private IReadOnlyList<SupportedLanguage>? _supportedLanguagesForOptions;
 
     public TranslationProviderFactory(
@@ -30,23 +28,9 @@ public sealed partial class TranslationProviderFactory
         }
     }
 
-    public TranslationProviderBase PrimaryProvider
-    {
-        get
-        {
-            ThrowIfProvidersNotInitialized();
-            return _primaryProvider ??= Providers[0];
-        }
-    }
+    public TranslationProviderBase PrimaryProvider => Providers[0];
 
-    public TranslationProviderBase LastProvider
-    {
-        get
-        {
-            ThrowIfProvidersNotInitialized();
-            return _lastProvider ??= Providers[^1];
-        }
-    }
+    public TranslationProviderBase LastProvider => Providers[^1];
 
     public async Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken)
     {
@@ -154,4 +138,17 @@ public sealed partial class TranslationProviderFactory
             Message = "Finished initializing translation provider: {providerName}")]
         public partial void InitializedProvider(string providerName);
     }
+}
+
+public interface ITranslationProviderFactory
+{
+    public IReadOnlyList<TranslationProviderBase> Providers { get; }
+
+    public TranslationProviderBase PrimaryProvider { get; }
+
+    public TranslationProviderBase LastProvider { get; }
+
+    public Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken);
+
+    public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions();
 }

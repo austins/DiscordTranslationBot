@@ -17,7 +17,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateAutoMessageCommandHandler" /> class.
@@ -28,7 +28,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
     /// <param name="logger">Logger to use.</param>
     public TranslateAutoMessageCommandHandler(
         IDiscordClient client,
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
         ILogger<TranslateAutoMessageCommandHandler> logger)
     {
@@ -45,16 +45,16 @@ public sealed partial class TranslateAutoMessageCommandHandler
     /// <param name="cancellationToken">The cancellation token.</param>
     public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateAuto.CommandName)
+        if (notification.Interaction.Data.Name != MessageCommandConstants.TranslateAuto.CommandName)
         {
             return;
         }
 
-        if (notification.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
+        if (notification.Interaction.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.MessageCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -62,12 +62,12 @@ public sealed partial class TranslateAutoMessageCommandHandler
             return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(notification.MessageCommand.Data.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(notification.Interaction.Data.Message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await notification.MessageCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -75,9 +75,9 @@ public sealed partial class TranslateAutoMessageCommandHandler
             return;
         }
 
-        await notification.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
-        var userLocale = notification.MessageCommand.UserLocale;
+        var userLocale = notification.Interaction.UserLocale;
 
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
@@ -120,7 +120,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
         if (translationResult is null)
         {
             // Send message if no translation providers support the locale.
-            await notification.MessageCommand.FollowupAsync(
+            await notification.Interaction.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -132,7 +132,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
         {
             _log.FailureToDetectSourceLanguage();
 
-            await notification.MessageCommand.FollowupAsync(
+            await notification.Interaction.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -140,10 +140,8 @@ public sealed partial class TranslateAutoMessageCommandHandler
             return;
         }
 
-        await notification.MessageCommand.FollowupAsync(
-            _messageHelper.BuildTranslationReplyWithReference(
-                notification.MessageCommand.Data.Message,
-                translationResult),
+        await notification.Interaction.FollowupAsync(
+            _messageHelper.BuildTranslationReplyWithReference(notification.Interaction.Data.Message, translationResult),
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });
     }

@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 public sealed class SelectMenuExecutedNotification : INotification
 {
     /// <summary>
-    /// The message component.
+    /// The select menu component interaction.
     /// </summary>
     [Required]
     public required IComponentInteraction Interaction { get; init; }

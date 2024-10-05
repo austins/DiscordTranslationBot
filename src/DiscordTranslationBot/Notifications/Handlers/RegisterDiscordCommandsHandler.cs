@@ -14,7 +14,7 @@ public sealed partial class RegisterDiscordCommandsHandler
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="RegisterDiscordCommandsHandler" /> class.
@@ -24,7 +24,7 @@ public sealed partial class RegisterDiscordCommandsHandler
     /// <param name="logger">Logger to use.</param>
     public RegisterDiscordCommandsHandler(
         IDiscordClient client,
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         ILogger<RegisterDiscordCommandsHandler> logger)
     {
         _client = client;

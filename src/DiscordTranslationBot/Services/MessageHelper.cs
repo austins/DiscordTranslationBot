@@ -73,11 +73,11 @@ public interface IMessageHelper
     public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message);
 
     /// <summary>
-    /// Build a reply for a message being translated.
+    /// Build a reply for a message being translated with a jump URL and info about the referenced message.
     /// </summary>
     /// <remarks>
-    /// Ephemeral messages cannot have a message reference, but messages sent directly to a channel can, we can have
-    /// a jump URL and info about the referenced message in the content text.
+    /// This is useful in cases of ephemeral messages, which cannot have a message reference,
+    /// but messages sent directly to a channel can.
     /// </remarks>
     /// <param name="referencedMessage">The message being translated.</param>
     /// <param name="translationResult">The translation result.</param>

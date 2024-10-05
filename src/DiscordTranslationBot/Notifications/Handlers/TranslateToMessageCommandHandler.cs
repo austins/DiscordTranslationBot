@@ -15,10 +15,10 @@ public sealed partial class TranslateToMessageCommandHandler
 {
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     public TranslateToMessageCommandHandler(
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
         ILogger<TranslateToMessageCommandHandler> logger)
     {
@@ -128,18 +128,18 @@ public sealed partial class TranslateToMessageCommandHandler
 
     public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.TranslateTo.CommandName)
+        if (notification.Interaction.Data.Name != MessageCommandConstants.TranslateTo.CommandName)
         {
             return;
         }
 
         // Check if message can be translated first.
-        if (string.IsNullOrWhiteSpace(FormatUtility.SanitizeText(notification.MessageCommand.Data.Message.Content)))
+        if (string.IsNullOrWhiteSpace(FormatUtility.SanitizeText(notification.Interaction.Data.Message.Content)))
         {
             _log.EmptySourceText();
 
             // We must acknowledge and respond to the message command.
-            await notification.MessageCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -147,8 +147,8 @@ public sealed partial class TranslateToMessageCommandHandler
             return;
         }
 
-        await notification.MessageCommand.RespondAsync(
-            $"What would you like to translate {_messageHelper.GetJumpUrl(notification.MessageCommand.Data.Message)} to?",
+        await notification.Interaction.RespondAsync(
+            $"What would you like to translate {_messageHelper.GetJumpUrl(notification.Interaction.Data.Message)} to?",
             components: BuildMessageComponents(false),
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });

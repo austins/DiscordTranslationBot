@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 public sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateSlashCommandHandler" /> class.
@@ -17,7 +17,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
     /// <param name="translationProviderFactory">Translation provider factory.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateSlashCommandHandler(
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         ILogger<TranslateSlashCommandHandler> logger)
     {
         _translationProviderFactory = translationProviderFactory;
@@ -31,13 +31,13 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
     /// <param name="cancellationToken">The cancellation token.</param>
     public async ValueTask Handle(SlashCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.SlashCommand.Data.Name != SlashCommandConstants.Translate.CommandName)
+        if (notification.Interaction.Data.Name != SlashCommandConstants.Translate.CommandName)
         {
             return;
         }
 
         // Get the input values.
-        var options = notification.SlashCommand.Data.Options;
+        var options = notification.Interaction.Data.Options;
 
         var text = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandTextOptionName).Value;
 
@@ -47,7 +47,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
         {
             _log.EmptySourceText();
 
-            await notification.SlashCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
@@ -55,7 +55,7 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             return;
         }
 
-        await notification.SlashCommand.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
+        await notification.Interaction.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
 
         var to = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandToOptionName).Value;
 
@@ -83,16 +83,16 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             {
                 _log.FailureToDetectSourceLanguage();
 
-                await notification.SlashCommand.FollowupAsync(
+                await notification.Interaction.FollowupAsync(
                     "Couldn't detect the source language to translate from or the result is the same.",
                     options: new RequestOptions { CancelToken = cancellationToken });
 
                 return;
             }
 
-            await notification.SlashCommand.FollowupAsync(
+            await notification.Interaction.FollowupAsync(
                 $"""
-                 {MentionUtils.MentionUser(notification.SlashCommand.User.Id)} translated text from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
+                 {MentionUtils.MentionUser(notification.Interaction.User.Id)} translated text from {Format.Italics(sourceLanguage?.Name ?? translationResult.DetectedLanguageName)}:
                  {Format.Quote(sanitizedText)}
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}

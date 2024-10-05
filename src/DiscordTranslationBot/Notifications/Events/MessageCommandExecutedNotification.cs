@@ -9,8 +9,8 @@ namespace DiscordTranslationBot.Notifications.Events;
 public sealed class MessageCommandExecutedNotification : INotification
 {
     /// <summary>
-    /// The message command.
+    /// The message command interaction.
     /// </summary>
     [Required]
-    public required IMessageCommandInteraction MessageCommand { get; init; }
+    public required IMessageCommandInteraction Interaction { get; init; }
 }

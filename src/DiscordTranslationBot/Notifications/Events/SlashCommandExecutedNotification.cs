@@ -9,8 +9,8 @@ namespace DiscordTranslationBot.Notifications.Events;
 public sealed class SlashCommandExecutedNotification : INotification
 {
     /// <summary>
-    /// The slash command.
+    /// The slash command interaction.
     /// </summary>
     [Required]
-    public required ISlashCommandInteraction SlashCommand { get; init; }
+    public required ISlashCommandInteraction Interaction { get; init; }
 }

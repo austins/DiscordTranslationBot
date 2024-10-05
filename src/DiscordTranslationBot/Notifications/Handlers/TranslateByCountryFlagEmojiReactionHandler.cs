@@ -19,7 +19,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     private readonly Log _log;
     private readonly IMediator _mediator;
     private readonly IMessageHelper _messageHelper;
-    private readonly TranslationProviderFactory _translationProviderFactory;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateByCountryFlagEmojiReactionHandler" /> class.
@@ -31,7 +31,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
-        TranslationProviderFactory translationProviderFactory,
+        ITranslationProviderFactory translationProviderFactory,
         IMediator mediator,
         IMessageHelper messageHelper,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
