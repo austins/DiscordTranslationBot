@@ -91,6 +91,8 @@ public sealed partial class TranslateToMessageCommandHandler
                 return;
             }
 
+            // Ephemeral messages cannot have a message reference, but messages sent directly to a channel can, but
+            // we have a jump URL in the content text in both cases for consistency.
             if (buttonId == MessageCommandConstants.TranslateTo.TranslateButtonId)
             {
                 await notification.Interaction.ModifyOriginalResponseAsync(

@@ -37,10 +37,10 @@ public sealed partial class MessageHelper : IMessageHelper
     public string BuildTranslationReplyWithReference(
         IMessage referencedMessage,
         TranslationResult translationResult,
-        ulong? userId = null)
+        ulong? interactionUserId = null)
     {
         var replyText =
-            $"{(userId is null ? "You" : MentionUtils.MentionUser(userId.Value))} translated {GetJumpUrl(referencedMessage)} by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
+            $"{(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))} translated {GetJumpUrl(referencedMessage)} by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
 
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
@@ -60,12 +60,31 @@ public sealed partial class MessageHelper : IMessageHelper
 
 public interface IMessageHelper
 {
+    /// <summary>
+    /// Get a jump URL for a message.
+    /// </summary>
+    /// <remarks>
+    /// Discord.Net's <see cref="MessageExtensions.GetJumpUrl" /> is an extension. In order to test it, we must wrap it.
+    /// </remarks>
+    /// <param name="message">The message to get a jump URL for.</param>
+    /// <returns>Jump URL of the message.</returns>
     public Uri GetJumpUrl(IMessage message);
 
     public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message);
 
+    /// <summary>
+    /// Build a reply for a message being translated.
+    /// </summary>
+    /// <remarks>
+    /// Ephemeral messages cannot have a message reference, but messages sent directly to a channel can, we can have
+    /// a jump URL and info about the referenced message in the content text.
+    /// </remarks>
+    /// <param name="referencedMessage">The message being translated.</param>
+    /// <param name="translationResult">The translation result.</param>
+    /// <param name="interactionUserId">Optionally, the user who invoked the interaction.</param>
+    /// <returns>Content text with jump URL and info of message being translated.</returns>
     public string BuildTranslationReplyWithReference(
         IMessage referencedMessage,
         TranslationResult translationResult,
-        ulong? userId = null);
+        ulong? interactionUserId = null);
 }
