@@ -33,9 +33,9 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        var entry = _logger.Entries[0];
-        entry.LogLevel.Should().Be(expectedLevel);
-        entry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
-        entry.Exception.Should().Be(command.LogMessage.Exception);
+        var logEntry = _logger.Entries[0];
+        logEntry.LogLevel.Should().Be(expectedLevel);
+        logEntry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
+        logEntry.Exception.Should().Be(command.LogMessage.Exception);
     }
 }

@@ -9,6 +9,8 @@ namespace DiscordTranslationBot.Services;
 
 public sealed partial class MessageHelper : IMessageHelper
 {
+    public const string DmChannelId = "@me";
+
     public Uri GetJumpUrl(IMessage message)
     {
         return new Uri(message.GetJumpUrl(), UriKind.Absolute);
@@ -19,7 +21,7 @@ public sealed partial class MessageHelper : IMessageHelper
         var jumpUrls = new List<JumpUrl>();
         foreach (var groups in JumpUrlRegex().Matches(message.CleanContent).Select(m => m.Groups))
         {
-            var isDmChannel = groups[0].Value == "@me";
+            var isDmChannel = groups[1].Value == DmChannelId;
 
             jumpUrls.Add(
                 new JumpUrl
@@ -54,7 +56,7 @@ public sealed partial class MessageHelper : IMessageHelper
         return replyText;
     }
 
-    [GeneratedRegex(@"https:\/\/discord\.com\/channels\/(@me|\d+)\/(\d+)\/(\d+)")]
+    [GeneratedRegex($@"https:\/\/discord\.com\/channels\/({DmChannelId}|\d+)\/(\d+)\/(\d+)")]
     private static partial Regex JumpUrlRegex();
 }
 

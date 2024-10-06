@@ -8,7 +8,7 @@ public sealed class JumpUrl
     public required bool IsDmChannel { get; init; }
 
     /// <summary>
-    /// Guild ID. Not null if <see cref="IsDmChannel" /> is false.
+    /// Guild ID. Null if <see cref="IsDmChannel" /> is true.
     /// </summary>
     public required ulong? GuildId { get; init; }
 

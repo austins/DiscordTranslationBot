@@ -31,8 +31,6 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _message.Channel.Returns(Substitute.For<IMessageChannel>());
 
         var messageHelper = Substitute.For<IMessageHelper>();
-        messageHelper.GetJumpUrl(_message).Returns(new Uri("http://localhost/test"));
-
         messageHelper
             .BuildTranslationReplyWithReference(_message, Arg.Any<TranslationResult>(), Arg.Any<ulong?>())
             .Returns(ReplyText);
