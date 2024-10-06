@@ -52,6 +52,8 @@ internal static class TranslationProviderExtensions
                 options.AzureTranslator.ApiUrl!);
         }
 
+        services.AddSingleton<ITranslationProviderFactory, TranslationProviderFactory>();
+
         return services;
     }
 

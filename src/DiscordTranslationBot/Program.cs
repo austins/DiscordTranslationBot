@@ -5,10 +5,10 @@ using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Telemetry;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using DiscordEventListener = DiscordTranslationBot.Discord.DiscordEventListener;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -42,12 +42,13 @@ builder
                 UseInteractionSnowflakeDate = false
             }))
     .AddSingleton<DiscordEventListener>()
+    .AddSingleton<IMessageHelper, MessageHelper>()
     .AddHostedService<Worker>();
 
 // Mediator.
 builder
     .Services
-    .AddMediator(o => o.NotificationPublisherType = typeof(TaskWhenAllPublisher))
+    .AddMediator(o => o.NotificationPublisherType = typeof(ValidatedTaskWhenAllPublisher))
     .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageValidationBehavior<,>))
     .AddSingleton(typeof(IPipelineBehavior<,>), typeof(MessageElapsedTimeLoggingBehavior<,>));
 

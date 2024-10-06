@@ -1,94 +1,86 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Discord;
+﻿using Discord;
 using DiscordTranslationBot.Constants;
-using DiscordTranslationBot.Discord.Events;
+using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
-using Humanizer;
-using IMessage = Discord.IMessage;
 
-namespace DiscordTranslationBot.Commands.Translation;
-
-public sealed class TranslateByMessageCommand : ICommand
-{
-    /// <summary>
-    /// The slash command.
-    /// </summary>
-    [Required]
-    public required IMessageCommandInteraction MessageCommand { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 /// <summary>
-/// Handler for the translate message command.
+/// Handler for the "Translate (Auto)" message command.
 /// </summary>
-public partial class TranslateByMessageCommandHandler
-    : ICommandHandler<TranslateByMessageCommand>,
-        INotificationHandler<MessageCommandExecutedEvent>
+public sealed partial class TranslateAutoMessageCommandHandler
+    : INotificationHandler<MessageCommandExecutedNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly IMediator _mediator;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly IMessageHelper _messageHelper;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TranslateByMessageCommandHandler" /> class.
+    /// Initializes a new instance of the <see cref="TranslateAutoMessageCommandHandler" /> class.
     /// </summary>
     /// <param name="client">Discord client to use.</param>
-    /// <param name="translationProviders">Translation providers to use.</param>
-    /// <param name="mediator">Mediator to use.</param>
+    /// <param name="translationProviderFactory">Translation provider factory to use.</param>
+    /// <param name="messageHelper">Message helper to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public TranslateByMessageCommandHandler(
+    public TranslateAutoMessageCommandHandler(
         IDiscordClient client,
-        IEnumerable<TranslationProviderBase> translationProviders,
-        IMediator mediator,
-        ILogger<TranslateByMessageCommandHandler> logger)
+        ITranslationProviderFactory translationProviderFactory,
+        IMessageHelper messageHelper,
+        ILogger<TranslateAutoMessageCommandHandler> logger)
     {
         _client = client;
-        _translationProviders = translationProviders.ToList();
-        _mediator = mediator;
+        _translationProviderFactory = translationProviderFactory;
+        _messageHelper = messageHelper;
         _log = new Log(logger);
     }
 
     /// <summary>
     /// Translates the message interacted with to the user's locale.
     /// </summary>
-    /// <param name="command">The Mediator command.</param>
+    /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    public async ValueTask<Unit> Handle(TranslateByMessageCommand command, CancellationToken cancellationToken)
+    public async ValueTask Handle(MessageCommandExecutedNotification notification, CancellationToken cancellationToken)
     {
-        if (command.MessageCommand.Data.Message.Author.Id == _client.CurrentUser?.Id)
+        if (notification.Interaction.Data.Name != MessageCommandConstants.TranslateAuto.CommandName)
+        {
+            return;
+        }
+
+        if (notification.Interaction.Data.Message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await command.MessageCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(command.MessageCommand.Data.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(notification.Interaction.Data.Message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await command.MessageCommand.RespondAsync(
+            await notification.Interaction.RespondAsync(
                 "No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
-        await command.MessageCommand.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+        await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
-        var userLocale = command.MessageCommand.UserLocale;
+        var userLocale = notification.Interaction.UserLocale;
 
-        string? providerName = null;
         TranslationResult? translationResult = null;
-        foreach (var translationProvider in _translationProviders)
+        foreach (var translationProvider in _translationProviderFactory.Providers)
         {
             try
             {
@@ -112,8 +104,6 @@ public partial class TranslateByMessageCommandHandler
                     continue;
                 }
 
-                providerName = translationProvider.ProviderName;
-
                 translationResult = await translationProvider.TranslateAsync(
                     targetLanguage,
                     sanitizedMessage,
@@ -130,73 +120,30 @@ public partial class TranslateByMessageCommandHandler
         if (translationResult is null)
         {
             // Send message if no translation providers support the locale.
-            await command.MessageCommand.FollowupAsync(
+            await notification.Interaction.FollowupAsync(
                 $"Your locale {userLocale} isn't supported for translation via this action.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
+            return;
         }
 
         if (translationResult.TranslatedText == sanitizedMessage)
         {
             _log.FailureToDetectSourceLanguage();
 
-            await command.MessageCommand.FollowupAsync(
+            await notification.Interaction.FollowupAsync(
                 "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
-            return Unit.Value;
-        }
-
-        var fromHeading = $"By {MentionUtils.MentionUser(command.MessageCommand.Data.Message.Author.Id)}";
-        if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
-        {
-            fromHeading +=
-                $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
-        }
-
-        var toHeading =
-            $"To {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)} ({providerName})";
-
-        var description = $"""
-                           {Format.Bold(fromHeading)}:
-                           {sanitizedMessage.Truncate(50)}
-
-                           {Format.Bold(toHeading)}:
-                           {translationResult.TranslatedText}
-                           """;
-
-        await command.MessageCommand.FollowupAsync(
-            embed: new EmbedBuilder()
-                .WithTitle("Translated Message")
-                .WithUrl(GetJumpUrl(command.MessageCommand.Data.Message).AbsoluteUri)
-                .WithDescription(description)
-                .Build(),
-            options: new RequestOptions { CancelToken = cancellationToken });
-
-        return Unit.Value;
-    }
-
-    public async ValueTask Handle(MessageCommandExecutedEvent notification, CancellationToken cancellationToken)
-    {
-        if (notification.MessageCommand.Data.Name != MessageCommandConstants.Translate.CommandName)
-        {
             return;
         }
 
-        await _mediator.Send(
-            new TranslateByMessageCommand { MessageCommand = notification.MessageCommand },
-            cancellationToken);
-    }
-
-    /// <summary>
-    /// Gets the jump URL for a message.
-    /// </summary>
-    /// <param name="message">The message.</param>
-    /// <returns>The jump URL for the message.</returns>
-    public virtual Uri GetJumpUrl(IMessage message)
-    {
-        return new Uri(message.GetJumpUrl(), UriKind.Absolute);
+        await notification.Interaction.FollowupAsync(
+            _messageHelper.BuildTranslationReplyWithReference(notification.Interaction.Data.Message, translationResult),
+            ephemeral: true,
+            options: new RequestOptions { CancelToken = cancellationToken });
     }
 
     private sealed partial class Log

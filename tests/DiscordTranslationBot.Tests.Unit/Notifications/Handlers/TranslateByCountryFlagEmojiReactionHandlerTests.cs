@@ -1,17 +1,17 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
-using DiscordTranslationBot.Commands.Translation;
-using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
-using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Notifications.Events;
+using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using Mediator;
 using Emoji = NeoSmart.Unicode.Emoji;
 
-namespace DiscordTranslationBot.Tests.Unit.Commands.Translation;
+namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
 public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 {
@@ -27,18 +27,20 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
                                                     test
                                                     """;
 
+    private const string ReplyText = "test";
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
+    private readonly IMessageChannel _channel;
 
     private readonly IMediator _mediator;
     private readonly IUserMessage _message;
+    private readonly ReactionAddedNotification _notification;
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
     public TranslateByCountryFlagEmojiReactionHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
-        _translationProvider.ProviderName.Returns("Test Provider");
 
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
@@ -52,28 +54,49 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>())
             .Returns(Task.CompletedTask);
 
-        var channel = Substitute.For<IMessageChannel, IGuildChannel>();
-        channel.EnterTypingState().ReturnsForAnyArgs(Substitute.For<IDisposable>());
-        _message.Channel.Returns(channel);
-        ((IGuildChannel)channel).Guild.Id.Returns(1UL);
+        _channel = Substitute.For<IMessageChannel, IGuildChannel>();
+        _channel.EnterTypingState().ReturnsForAnyArgs(Substitute.For<IDisposable>());
+        _message.Channel.Returns(_channel);
+        ((IGuildChannel)_channel).Guild.Id.Returns(1UL);
 
         _mediator = Substitute.For<IMediator>();
 
+        var messageHelper = Substitute.For<IMessageHelper>();
+        messageHelper
+            .BuildTranslationReplyWithReference(_message, Arg.Any<TranslationResult>(), Arg.Any<ulong?>())
+            .Returns(ReplyText);
+
+        _notification = new ReactionAddedNotification
+        {
+            Message = _message,
+            Channel = _channel,
+            ReactionInfo = new ReactionInfo
+            {
+                UserId = 1UL,
+                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
+            }
+        };
+
+        var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
+        translationProviderFactory.Providers.Returns([_translationProvider]);
+        translationProviderFactory.LastProvider.Returns(_translationProvider);
+
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
-            [_translationProvider],
+            translationProviderFactory,
             _mediator,
+            messageHelper,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
 
     [Fact]
-    public async Task Handle_ReactionAddedEvent_Returns_GetCountryByEmojiFalse()
+    public async Task Handle_ReactionAddedNotification_Returns_GetCountryByEmoji_NotAFlagEmoji()
     {
         // Arrange
-        var notification = new ReactionAddedEvent
+        var notification = new ReactionAddedNotification
         {
             Message = _message,
-            Channel = Substitute.For<IMessageChannel>(),
+            Channel = _channel,
             ReactionInfo = new ReactionInfo
             {
                 UserId = 1UL,
@@ -85,31 +108,11 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         await _sut.Handle(notification, CancellationToken.None);
 
         // Assert
-        await _mediator
+        await _message
             .DidNotReceive()
-            .Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
-    }
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-    [Fact]
-    public async Task Handle_ReactionAddedEvent_SendsCommand_GetCountryByEmojiTrue()
-    {
-        // Arrange
-        var notification = new ReactionAddedEvent
-        {
-            Message = _message,
-            Channel = Substitute.For<IMessageChannel>(),
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(CountryConstants.SupportedCountries[0].EmojiUnicode)
-            }
-        };
-
-        // Act
-        await _sut.Handle(notification, CancellationToken.None);
-
-        // Assert
-        await _mediator.Received(1).Send(Arg.Any<TranslateByCountryFlagEmojiReaction>(), Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
     }
 
     [Fact]
@@ -118,26 +121,13 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Arrange
         _message.Author.Id.Returns(BotUserId);
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceive()
-            .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
     }
 
     [Fact]
@@ -155,30 +145,15 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await _translationProvider
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator
-            .Received(1)
-            .Send(
-                Arg.Is<SendTempReply>(x => x.Text.Contains("Translated message from", StringComparison.Ordinal)),
-                Arg.Any<CancellationToken>());
+        await _mediator.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -187,25 +162,11 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Arrange
         _message.Content.Returns(string.Empty);
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
-        await _translationProvider
-            .DidNotReceive()
-            .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -217,23 +178,11 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((TranslationResult)null!);
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
-
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -248,19 +197,8 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await _translationProvider
@@ -285,19 +223,8 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
             .Returns(translationResult);
 
-        var command = new TranslateByCountryFlagEmojiReaction
-        {
-            Country = CountryConstants.SupportedCountries[0],
-            Message = _message,
-            ReactionInfo = new ReactionInfo
-            {
-                UserId = 1UL,
-                Emote = new global::Discord.Emoji(Emoji.FlagUnitedStates.ToString())
-            }
-        };
-
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
         await _translationProvider

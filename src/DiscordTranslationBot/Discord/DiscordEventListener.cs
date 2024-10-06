@@ -1,8 +1,8 @@
 using Discord;
 using Discord.WebSocket;
 using DiscordTranslationBot.Commands.Logging;
-using DiscordTranslationBot.Discord.Events;
 using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Notifications.Events;
 
 namespace DiscordTranslationBot.Discord;
 
@@ -38,7 +38,7 @@ internal sealed partial class DiscordEventListener
     public Task InitializeEventsAsync(CancellationToken cancellationToken)
     {
         // Discord client initiated events can run on its gateway thread.
-        _client.Ready += async () => await _mediator.Publish(new ReadyEvent(), cancellationToken);
+        _client.Ready += async () => await _mediator.Publish(new ReadyNotification(), cancellationToken);
 
         _client.Log += async logMessage => await _mediator.Send(
             new RedirectLogMessageToLogger { LogMessage = logMessage },
@@ -47,15 +47,23 @@ internal sealed partial class DiscordEventListener
         // User initiated events should run on a new thread to not block the gateway thread.
         // Each event published can act within a per-request scope.
         _client.JoinedGuild += guild => PublishInBackgroundAsync(
-            new JoinedGuildEvent { Guild = guild },
+            new JoinedGuildNotification { Guild = guild },
             cancellationToken);
 
         _client.MessageCommandExecuted += messageCommand => PublishInBackgroundAsync(
-            new MessageCommandExecutedEvent { MessageCommand = messageCommand },
+            new MessageCommandExecutedNotification { Interaction = messageCommand },
+            cancellationToken);
+
+        _client.SelectMenuExecuted += interaction => PublishInBackgroundAsync(
+            new SelectMenuExecutedNotification { Interaction = interaction },
+            cancellationToken);
+
+        _client.ButtonExecuted += interaction => PublishInBackgroundAsync(
+            new ButtonExecutedNotification { Interaction = interaction },
             cancellationToken);
 
         _client.SlashCommandExecuted += slashCommand => PublishInBackgroundAsync(
-            new SlashCommandExecutedEvent { SlashCommand = slashCommand },
+            new SlashCommandExecutedNotification { Interaction = slashCommand },
             cancellationToken);
 
         _client.ReactionAdded += async (messageCache, channel, reaction) =>
@@ -66,7 +74,7 @@ internal sealed partial class DiscordEventListener
             if (message is not null)
             {
                 await PublishInBackgroundAsync(
-                    new ReactionAddedEvent
+                    new ReactionAddedNotification
                     {
                         Message = message,
                         Channel = await channel.GetOrDownloadAsync(),
