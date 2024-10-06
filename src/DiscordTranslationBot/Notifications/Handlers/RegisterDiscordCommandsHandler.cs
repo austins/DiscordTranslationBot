@@ -54,8 +54,6 @@ public sealed partial class RegisterDiscordCommandsHandler
         IReadOnlyCollection<IGuild> guilds,
         CancellationToken cancellationToken)
     {
-        _log.RegisteringCommandsForGuilds(guilds.Count, guilds.Select(x => x.Id).ToArray());
-
         var discordCommandsToRegister = new List<ApplicationCommandProperties>();
         GetMessageCommands(discordCommandsToRegister);
         GetSlashCommands(discordCommandsToRegister);
@@ -65,6 +63,8 @@ public sealed partial class RegisterDiscordCommandsHandler
             return;
         }
 
+        _log.RegisteringCommandsForGuilds(guilds.Count);
+
         foreach (var guild in guilds)
         {
             try
@@ -73,6 +73,8 @@ public sealed partial class RegisterDiscordCommandsHandler
                 await guild.BulkOverwriteApplicationCommandsAsync(
                     [..discordCommandsToRegister],
                     new RequestOptions { CancelToken = cancellationToken });
+
+                _log.RegisteredCommandsForGuild(guild.Id);
             }
             catch (HttpException exception)
             {
@@ -157,9 +159,10 @@ public sealed partial class RegisterDiscordCommandsHandler
             Message = "Failed to register commands for guild ID {guildId} with error(s): {errors}")]
         public partial void FailedToRegisterCommandsForGuild(ulong guildId, string errors);
 
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Registering commands for {guildCount} guild(s) {guildIds}.")]
-        public partial void RegisteringCommandsForGuilds(int guildCount, ulong[] guildIds);
+        [LoggerMessage(Level = LogLevel.Information, Message = "Registering commands for {guildCount} guild(s)...")]
+        public partial void RegisteringCommandsForGuilds(int guildCount);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Registered commands for guild ID: {guildId}")]
+        public partial void RegisteredCommandsForGuild(ulong guildId);
     }
 }
