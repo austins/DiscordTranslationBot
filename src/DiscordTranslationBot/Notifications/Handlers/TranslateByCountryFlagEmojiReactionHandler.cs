@@ -153,7 +153,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                     notification.ReactionInfo.UserId),
                 ReactionInfo = notification.ReactionInfo,
                 SourceMessage = notification.Message,
-                DeletionDelay = TimeSpan.FromSeconds(20)
+                DeletionDelay = TimeSpan.FromMinutes(1.5)
             },
             cancellationToken);
     }
