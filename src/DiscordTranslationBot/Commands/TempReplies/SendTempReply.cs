@@ -35,7 +35,7 @@ public sealed class SendTempReply : ICommand
     /// <summary>
     /// The delay after which the reply will be deleted.
     /// </summary>
-    [Range(typeof(TimeSpan), "00:00:01", "00:01:00")]
+    [Range(typeof(TimeSpan), "00:00:01", "00:01:30")]
     public TimeSpan DeletionDelay { get; init; } = TimeSpan.FromSeconds(15);
 }
 

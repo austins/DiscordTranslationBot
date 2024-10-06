@@ -13,6 +13,7 @@ public sealed class SendTempReplyTests
     [InlineData("00:00:10")]
     [InlineData("00:00:30.678")]
     [InlineData("00:01:00")]
+    [InlineData("00:01:30")]
     public void Valid_ValidatesWithoutErrors(string deletionDelay)
     {
         // Arrange
@@ -79,7 +80,7 @@ public sealed class SendTempReplyTests
     [Theory]
     [InlineData("00:00:00")] // 0 seconds
     [InlineData("00:00:00.5")] // 0.5 seconds
-    [InlineData("00:01:00.1")] // 1 minute 0.1 seconds
+    [InlineData("00:01:30.1")] // 1 minute 30.1 seconds
     public void Invalid_DeletionDelay_HasValidationError(string deletionDelay)
     {
         // Arrange
