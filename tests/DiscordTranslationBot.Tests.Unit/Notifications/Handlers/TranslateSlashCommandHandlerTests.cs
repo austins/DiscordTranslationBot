@@ -9,15 +9,12 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
 public sealed class TranslateSlashCommandHandlerTests
 {
-    private const string ProviderName = "Test Provider";
     private readonly TranslateSlashCommandHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
     public TranslateSlashCommandHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
-        _translationProvider.ProviderName.Returns(ProviderName);
-        _translationProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
 
         var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
         translationProviderFactory.PrimaryProvider.Returns(_translationProvider);

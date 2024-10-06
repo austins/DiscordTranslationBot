@@ -10,7 +10,6 @@ public sealed class RegisterDiscordCommandsHandlerTests
 {
     private const int ExpectedMessageCommandCount = 2;
     private const int ExpectedSlashCommandCount = 1;
-    private const string ProviderName = "Test Provider";
     private readonly IDiscordClient _client;
     private readonly RegisterDiscordCommandsHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
@@ -20,7 +19,6 @@ public sealed class RegisterDiscordCommandsHandlerTests
         _client = Substitute.For<IDiscordClient>();
 
         _translationProvider = Substitute.For<TranslationProviderBase>();
-        _translationProvider.ProviderName.Returns(ProviderName);
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
 
         var supportedLanguage = new SupportedLanguage

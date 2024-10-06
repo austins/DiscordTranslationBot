@@ -38,8 +38,7 @@ public sealed partial class TranslateToMessageCommandHandler
 
         await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
 
-        var referencedMessageId = notification.Interaction.Message.Reference.MessageId.GetValueOrDefault(
-            _messageHelper.GetJumpUrlsInMessage(notification.Interaction.Message)[0].MessageId);
+        var referencedMessageId = _messageHelper.GetJumpUrlsInMessage(notification.Interaction.Message)[0].MessageId;
 
         var referencedMessage = await notification.Interaction.Message.Channel.GetMessageAsync(
             referencedMessageId,
@@ -116,7 +115,7 @@ public sealed partial class TranslateToMessageCommandHandler
                             referencedMessage,
                             translationResult,
                             notification.Interaction.User.Id),
-                        messageReference: notification.Interaction.Message.Reference,
+                        messageReference: new MessageReference(referencedMessageId),
                         options: new RequestOptions { CancelToken = cancellationToken }));
             }
         }

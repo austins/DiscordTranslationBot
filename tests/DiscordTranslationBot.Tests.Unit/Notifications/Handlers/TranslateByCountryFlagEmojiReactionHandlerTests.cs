@@ -41,7 +41,6 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     public TranslateByCountryFlagEmojiReactionHandlerTests()
     {
         _translationProvider = Substitute.For<TranslationProviderBase>();
-        _translationProvider.ProviderName.Returns("Test Provider");
 
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
