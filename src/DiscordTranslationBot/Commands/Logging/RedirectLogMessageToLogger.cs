@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 
 namespace DiscordTranslationBot.Commands.Logging;
 
@@ -34,15 +35,19 @@ public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<
     public ValueTask<Unit> Handle(RedirectLogMessageToLogger command, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = command.LogMessage.Severity switch
+        var logLevel = command.LogMessage.Exception switch
         {
-            LogSeverity.Debug => LogLevel.Trace,
-            LogSeverity.Verbose => LogLevel.Debug,
-            LogSeverity.Info => LogLevel.Information,
-            LogSeverity.Warning => LogLevel.Warning,
-            LogSeverity.Error => LogLevel.Error,
-            LogSeverity.Critical => LogLevel.Critical,
-            _ => LogLevel.Trace
+            GatewayReconnectException => LogLevel.Information,
+            _ => command.LogMessage.Severity switch
+            {
+                LogSeverity.Debug => LogLevel.Trace,
+                LogSeverity.Verbose => LogLevel.Debug,
+                LogSeverity.Info => LogLevel.Information,
+                LogSeverity.Warning => LogLevel.Warning,
+                LogSeverity.Error => LogLevel.Error,
+                LogSeverity.Critical => LogLevel.Critical,
+                _ => LogLevel.Trace
+            }
         };
 
         LogDiscordMessage(
