@@ -22,7 +22,7 @@ public sealed partial class Scheduler : IScheduler
     {
         if (executeAt <= _timeProvider.GetUtcNow())
         {
-            throw new InvalidOperationException("Tasks can only be scheduled to execute in the future.");
+            throw new InvalidOperationException("Commands can only be scheduled to execute in the future.");
         }
 
         _queue.Enqueue(async ct => await _mediator.Send(command, ct), executeAt);
