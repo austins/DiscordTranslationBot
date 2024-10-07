@@ -42,8 +42,8 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
                 }
             }
 
-            // Wait some time before checking the queue again to reduce overloading CPU resources.
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            // Wait some time before checking the queue again to reduce overloading CPU resources and deadlocking.
+            await Task.Delay(TimeSpan.FromSeconds(1.2), stoppingToken);
         }
     }
 

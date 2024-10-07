@@ -4,10 +4,29 @@ namespace DiscordTranslationBot.Jobs;
 
 public sealed partial class Scheduler : IScheduler
 {
+    /// <summary>
+    /// The threshold of the count of dequeued tasks since trim that will allow trimming once exceeded.
+    /// </summary>
+    /// <remarks>
+    /// This is a simple solution to reduce unnecessary allocation for our use case.
+    /// If this threshold is not effective, we may adjust it or consider another solution.
+    /// </remarks>
+    private const int DequeuedSinceTrimThreshold = 100;
+
+    private readonly object _lock = new();
     private readonly Log _log;
     private readonly IMediator _mediator;
+
+    /// <summary>
+    /// The priority queue.
+    /// </summary>
+    /// <remarks>
+    /// This is not thread-safe, so locking must be implemented as tasks can be enqueued across threads.
+    /// </remarks>
     private readonly PriorityQueue<Func<CancellationToken, Task>, DateTimeOffset> _queue = new();
+
     private readonly TimeProvider _timeProvider;
+    private int _dequeuedSinceTrim;
 
     public Scheduler(IMediator mediator, TimeProvider timeProvider, ILogger<Scheduler> logger)
     {
@@ -16,7 +35,16 @@ public sealed partial class Scheduler : IScheduler
         _log = new Log(logger);
     }
 
-    public int Count => _queue.Count;
+    public int Count
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _queue.Count;
+            }
+        }
+    }
 
     public void Schedule(ICommand command, DateTimeOffset executeAt)
     {
@@ -25,8 +53,11 @@ public sealed partial class Scheduler : IScheduler
             throw new InvalidOperationException("Commands can only be scheduled to execute in the future.");
         }
 
-        _queue.Enqueue(async ct => await _mediator.Send(command, ct), executeAt);
-        _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), _queue.Count);
+        lock (_lock)
+        {
+            _queue.Enqueue(async ct => await _mediator.Send(command, ct), executeAt);
+            _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), _queue.Count);
+        }
     }
 
     public void Schedule(ICommand command, TimeSpan executionDelay)
@@ -36,11 +67,24 @@ public sealed partial class Scheduler : IScheduler
 
     public bool TryGetNextTask([NotNullWhen(true)] out Func<CancellationToken, Task>? task)
     {
-        if (_queue.TryPeek(out _, out var executeAt) && executeAt <= _timeProvider.GetUtcNow())
+        lock (_lock)
         {
-            task = _queue.Dequeue();
-            _log.DequeuedTask(executeAt.ToLocalTime(), _queue.Count);
-            return true;
+            if (_queue.TryPeek(out _, out var executeAt) && executeAt <= _timeProvider.GetUtcNow())
+            {
+                task = _queue.Dequeue();
+                _log.DequeuedTask(executeAt.ToLocalTime(), _queue.Count);
+
+                // Optimize memory usage if number of dequeued before the next trim exceeds threshold.
+                _dequeuedSinceTrim++;
+                if (_dequeuedSinceTrim > DequeuedSinceTrimThreshold)
+                {
+                    _queue.TrimExcess();
+                    _log.TrimmedExcess(DequeuedSinceTrimThreshold);
+                    _dequeuedSinceTrim = 0;
+                }
+
+                return true;
+            }
         }
 
         task = null;
@@ -67,6 +111,12 @@ public sealed partial class Scheduler : IScheduler
             Message =
                 "Dequeued a task scheduled to be executed at {executeAt}. Remaining tasks in queue: {remainingTasks}.")]
         public partial void DequeuedTask(DateTimeOffset executeAt, int remainingTasks);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message =
+                "The scheduler priority queue was trimmed after dequeue threshold of {dequeuedSinceTrimThreshold} was exceeded.")]
+        public partial void TrimmedExcess(int dequeuedSinceTrimThreshold);
     }
 }
 
