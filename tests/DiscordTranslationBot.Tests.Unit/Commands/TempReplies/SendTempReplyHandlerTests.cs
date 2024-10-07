@@ -1,14 +1,23 @@
-﻿using System.Net;
-using Discord;
-using Discord.Net;
+﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Jobs;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class SendTempReplyHandlerTests
 {
-    private readonly SendTempReplyHandler _sut = new(new LoggerFake<SendTempReplyHandler>());
+    private readonly LoggerFake<SendTempReplyHandler> _logger;
+    private readonly IScheduler _scheduler;
+    private readonly SendTempReplyHandler _sut;
+
+    public SendTempReplyHandlerTests()
+    {
+        _scheduler = Substitute.For<IScheduler>();
+        _logger = new LoggerFake<SendTempReplyHandler>();
+
+        _sut = new SendTempReplyHandler(_scheduler, _logger);
+    }
 
     [Theory]
     [InlineData(true)]
@@ -26,78 +35,63 @@ public sealed class SendTempReplyHandlerTests
                     Emote = Substitute.For<IEmote>()
                 }
                 : null,
-            SourceMessage = Substitute.For<IUserMessage>(),
-            DeletionDelay = TimeSpan.FromTicks(1)
+            SourceMessage = Substitute.For<IUserMessage>()
         };
+
+        const ulong sourceMessageId = 100UL;
+        command.SourceMessage.Id.Returns(sourceMessageId);
 
         var reply = Substitute.For<IUserMessage>();
         command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
-
-        if (hasReaction)
-        {
-            reply
-                .Channel
-                .GetMessageAsync(
-                    Arg.Is<ulong>(x => x == command.SourceMessage.Id),
-                    Arg.Any<CacheMode>(),
-                    Arg.Any<RequestOptions>())
-                .Returns(command.SourceMessage);
-        }
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
-
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        await reply
-            .Channel
-            .Received(hasReaction ? 1 : 0)
-            .GetMessageAsync(
-                Arg.Is<ulong>(x => x == command.SourceMessage.Id),
-                Arg.Any<CacheMode>(),
-                Arg.Any<RequestOptions>());
-
-        await command
-            .SourceMessage
-            .Received(hasReaction ? 1 : 0)
-            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
-
-        await reply.ReceivedWithAnyArgs(1).DeleteAsync();
+        _scheduler
+            .Received(1)
+            .Schedule(
+                Arg.Is<DeleteTempReply>(
+                    x => ReferenceEquals(x.Reply, reply)
+                         && x.SourceMessageId == sourceMessageId
+                         && ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
+                command.DeletionDelay);
     }
 
     [Fact]
-    public async Task Handle_SendTempReply_Success_TempReplyAlreadyDeleted()
+    public async Task Handle_SendTempReply_FailedToSendTempMessage()
     {
         // Arrange
         var command = new SendTempReply
         {
             Text = "test",
             ReactionInfo = null,
-            SourceMessage = Substitute.For<IUserMessage>(),
-            DeletionDelay = TimeSpan.FromTicks(1)
+            SourceMessage = Substitute.For<IUserMessage>()
         };
 
-        var reply = Substitute.For<IUserMessage>();
-        command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
+        const ulong sourceMessageId = 100UL;
+        command.SourceMessage.Id.Returns(sourceMessageId);
 
-        reply
-            .DeleteAsync(Arg.Any<RequestOptions>())
-            .ThrowsAsync(
-                new HttpException(
-                    HttpStatusCode.NotFound,
-                    Substitute.For<IRequest>(),
-                    DiscordErrorCode.UnknownMessage));
+        var exception = new Exception();
+        command.SourceMessage.Channel.SendMessageAsync().ThrowsAsyncForAnyArgs(exception);
 
-        // Act & Assert
-        await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().NotThrowAsync();
+        // Act + Assert
+        await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().ThrowAsync<Exception>();
 
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
-
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        await reply.ReceivedWithAnyArgs(1).DeleteAsync();
+        _logger
+            .Entries
+            .Should()
+            .ContainSingle(
+                x => x.LogLevel == LogLevel.Error
+                     && ReferenceEquals(x.Exception, exception)
+                     && x.Message.Contains($"message ID {sourceMessageId}"));
+
+        _scheduler.ReceivedCalls().Should().BeEmpty();
     }
 }
