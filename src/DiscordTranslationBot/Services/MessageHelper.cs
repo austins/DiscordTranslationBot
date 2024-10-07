@@ -42,7 +42,12 @@ public sealed partial class MessageHelper : IMessageHelper
         ulong? interactionUserId = null)
     {
         var replyText =
-            $"{(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))} translated {GetJumpUrl(referencedMessage)} by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
+            $"{(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))} translated {GetJumpUrl(referencedMessage)}";
+
+        if (interactionUserId != referencedMessage.Author.Id)
+        {
+            replyText += $" by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
+        }
 
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
@@ -83,7 +88,7 @@ public interface IMessageHelper
     /// </remarks>
     /// <param name="referencedMessage">The message being translated.</param>
     /// <param name="translationResult">The translation result.</param>
-    /// <param name="interactionUserId">Optionally, the user who invoked the interaction.</param>
+    /// <param name="interactionUserId">Optionally, the user who invoked the interaction, which will be mentioned.</param>
     /// <returns>Content text with jump URL and info of message being translated.</returns>
     public string BuildTranslationReplyWithReference(
         IMessage referencedMessage,

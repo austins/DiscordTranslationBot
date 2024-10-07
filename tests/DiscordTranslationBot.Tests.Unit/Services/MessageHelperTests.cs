@@ -147,4 +147,40 @@ public sealed class MessageHelperTests
         // Assert
         result.Should().Be(expected);
     }
+
+    [Fact]
+    public void BuildTranslationReplyWithReference_SameUser_ReturnsExpected()
+    {
+        // Arrange
+        var message = Substitute.For<IMessage>();
+        message.Id.Returns(1UL);
+
+        const ulong interactionUserId = 2UL;
+        message.Author.Id.Returns(interactionUserId);
+
+        var channel = Substitute.For<ITextChannel>();
+        channel.Id.Returns(3UL);
+        channel.GuildId.Returns(4UL);
+        message.Channel.Returns(channel);
+
+        var messageJumpUrl = _sut.GetJumpUrl(message);
+
+        var translationResult = new TranslationResult
+        {
+            DetectedLanguageCode = "en-US",
+            DetectedLanguageName = "English",
+            TargetLanguageCode = "de",
+            TargetLanguageName = "German",
+            TranslatedText = "TRANSLATED_TEXT"
+        };
+
+        var expected =
+            $"<@{interactionUserId}> translated {messageJumpUrl} from *{translationResult.DetectedLanguageName}* to *{translationResult.TargetLanguageName}*:\n>>> {translationResult.TranslatedText}";
+
+        // Act
+        var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
+
+        // Assert
+        result.Should().Be(expected);
+    }
 }
