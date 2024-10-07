@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using DiscordTranslationBot;
 using DiscordTranslationBot.Discord;
 using DiscordTranslationBot.Extensions;
+using DiscordTranslationBot.Jobs;
 using DiscordTranslationBot.Mediator;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Services;
@@ -43,7 +44,8 @@ builder
             }))
     .AddSingleton<DiscordEventListener>()
     .AddSingleton<IMessageHelper, MessageHelper>()
-    .AddHostedService<Worker>();
+    .AddHostedService<Worker>()
+    .AddJobs();
 
 // Mediator.
 builder

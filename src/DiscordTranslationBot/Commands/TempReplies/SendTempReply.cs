@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Discord;
-using Discord.Net;
 using DiscordTranslationBot.Discord.Models;
-using IMessage = Discord.IMessage;
+using DiscordTranslationBot.Jobs;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
@@ -45,13 +44,16 @@ public sealed class SendTempReply : ICommand
 public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
 {
     private readonly Log _log;
+    private readonly IScheduler _scheduler;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SendTempReplyHandler" /> class.
     /// </summary>
+    /// <param name="scheduler">Scheduler to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public SendTempReplyHandler(ILogger<SendTempReplyHandler> logger)
+    public SendTempReplyHandler(IScheduler scheduler, ILogger<SendTempReplyHandler> logger)
     {
+        _scheduler = scheduler;
         _log = new Log(logger);
     }
 
@@ -84,55 +86,18 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
             typingState.Dispose();
         }
 
-        _log.WaitingToDeleteTempMessage(reply.Id, command.DeletionDelay.TotalSeconds);
-        await Task.Delay(command.DeletionDelay, cancellationToken);
-        await DeleteTempReplyAsync(reply, command, cancellationToken);
+        _scheduler.Schedule(
+            new DeleteTempReply
+            {
+                Reply = reply,
+                SourceMessageId = command.SourceMessage.Id,
+                ReactionInfo = command.ReactionInfo
+            },
+            command.DeletionDelay);
+
+        _log.DeleteTempMessageScheduled(reply.Id, command.DeletionDelay.TotalSeconds);
 
         return Unit.Value;
-    }
-
-    /// <summary>
-    /// Deletes a temp reply. If there is a reaction associated with the source message, it will be cleared, too.
-    /// </summary>
-    /// <param name="reply">The reply to delete.</param>
-    /// <param name="command">The command.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    private async Task DeleteTempReplyAsync(IMessage reply, SendTempReply command, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // If there is also a reaction and the source message still exists, remove the reaction from it.
-            if (command.ReactionInfo is not null)
-            {
-                var sourceMessage = await reply.Channel.GetMessageAsync(
-                    command.SourceMessage.Id,
-                    options: new RequestOptions { CancelToken = cancellationToken });
-
-                if (sourceMessage is not null)
-                {
-                    await sourceMessage.RemoveReactionAsync(
-                        command.ReactionInfo.Emote,
-                        command.ReactionInfo.UserId,
-                        new RequestOptions { CancelToken = cancellationToken });
-                }
-            }
-
-            // Delete the reply message.
-            try
-            {
-                await reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-                _log.DeletedTempMessage(reply.Id);
-            }
-            catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
-            {
-                // The message was already deleted.
-            }
-        }
-        catch (Exception ex)
-        {
-            _log.FailedToDeleteTempMessage(ex, reply.Id);
-            throw;
-        }
     }
 
     private sealed partial class Log
@@ -146,18 +111,12 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "Failed to send temp message for reaction to message ID {referencedMessageId} with text: {text}")]
-        public partial void FailedToSendTempMessage(Exception ex, ulong referencedMessageId, string text);
+            Message = "Failed to send temp message for reaction to message ID {sourceMessageId} with text: {text}")]
+        public partial void FailedToSendTempMessage(Exception ex, ulong sourceMessageId, string text);
 
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Temp message ID {replyId} will be deleted in {totalSeconds}s.")]
-        public partial void WaitingToDeleteTempMessage(ulong replyId, double totalSeconds);
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp message ID {replyId}.")]
-        public partial void DeletedTempMessage(ulong replyId);
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp message ID {replyId}.")]
-        public partial void FailedToDeleteTempMessage(Exception ex, ulong replyId);
+        public partial void DeleteTempMessageScheduled(ulong replyId, double totalSeconds);
     }
 }
