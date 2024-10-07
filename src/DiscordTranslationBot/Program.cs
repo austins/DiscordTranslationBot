@@ -44,8 +44,8 @@ builder
             }))
     .AddSingleton<DiscordEventListener>()
     .AddSingleton<IMessageHelper, MessageHelper>()
-    .AddHostedService<Worker>()
-    .AddJobs();
+    .AddJobs()
+    .AddHostedService<Worker>();
 
 // Mediator.
 builder

@@ -2,6 +2,11 @@
 
 public sealed partial class SchedulerBackgroundService : BackgroundService
 {
+    /// <summary>
+    /// Interval for getting and executing the next task in order to reduce overloading resources and deadlocking.
+    /// </summary>
+    private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(1250);
+
     private readonly Log _log;
     private readonly IScheduler _scheduler;
 
@@ -11,39 +16,35 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
         _log = new Log(logger);
     }
 
-    public override Task StartAsync(CancellationToken cancellationToken)
-    {
-        _log.Starting();
-        return base.StartAsync(cancellationToken);
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        _log.Stopping(_scheduler.Count);
-        return base.StopAsync(cancellationToken);
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (_scheduler.TryGetNextTask(out var task))
-            {
-                _log.TaskExecuting();
+        _log.Started();
 
-                try
+        using var timer = new PeriodicTimer(Interval);
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                if (_scheduler.TryGetNextTask(out var task))
                 {
-                    await task(stoppingToken);
-                    _log.TaskExecuted();
-                }
-                catch (Exception ex)
-                {
-                    _log.TaskFailed(ex);
+                    _log.TaskExecuting();
+
+                    try
+                    {
+                        await task(stoppingToken);
+                        _log.TaskExecuted();
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.TaskFailed(ex);
+                    }
                 }
             }
-
-            // Wait some time before checking the queue again to reduce overloading CPU resources and deadlocking.
-            await Task.Delay(TimeSpan.FromSeconds(1.2), stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _log.Stopped(_scheduler.Count);
         }
     }
 
@@ -56,13 +57,13 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
             _logger = logger;
         }
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Starting scheduler background service...")]
-        public partial void Starting();
+        [LoggerMessage(Level = LogLevel.Information, Message = "Started scheduler background service.")]
+        public partial void Started();
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Stopping scheduler background service with {remainingTasks} remaining tasks in the queue...")]
-        public partial void Stopping(int remainingTasks);
+            Message = "Stopped scheduler background service with {remainingTasks} remaining tasks in the queue.")]
+        public partial void Stopped(int remainingTasks);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Executing scheduled task...")]
         public partial void TaskExecuting();
