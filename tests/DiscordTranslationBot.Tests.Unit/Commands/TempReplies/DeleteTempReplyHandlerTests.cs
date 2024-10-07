@@ -54,6 +54,13 @@ public sealed class DeleteTempReplyHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
+        await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
+
+        _logger
+            .Entries
+            .Should()
+            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+
         await command
             .Reply
             .Channel
@@ -63,14 +70,6 @@ public sealed class DeleteTempReplyHandlerTests
         await sourceMessage
             .Received(hasReactionInfo ? 1 : 0)
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions?>());
-
-        await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
-
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
     }
 
     [Fact]
@@ -101,19 +100,18 @@ public sealed class DeleteTempReplyHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await command
-            .Reply
-            .Channel
-            .Received(1)
-            .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>());
-
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
         _logger
             .Entries
             .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+
+        await command
+            .Reply
+            .Channel
+            .Received(1)
+            .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>());
     }
 
     [Fact]

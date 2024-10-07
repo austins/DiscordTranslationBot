@@ -39,40 +39,37 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
 
     public async ValueTask<Unit> Handle(DeleteTempReply command, CancellationToken cancellationToken)
     {
+        // Delete the reply message.
         try
         {
-            // If there is also a reaction and the source message still exists, remove the reaction from it.
-            if (command.ReactionInfo is not null)
-            {
-                var sourceMessage = await command.Reply.Channel.GetMessageAsync(
-                    command.SourceMessageId,
-                    options: new RequestOptions { CancelToken = cancellationToken });
-
-                if (sourceMessage is not null)
-                {
-                    await sourceMessage.RemoveReactionAsync(
-                        command.ReactionInfo.Emote,
-                        command.ReactionInfo.UserId,
-                        new RequestOptions { CancelToken = cancellationToken });
-                }
-            }
-
-            // Delete the reply message.
-            try
-            {
-                await command.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-                _log.DeletedTempReply(command.Reply.Id);
-            }
-            catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
-            {
-                // The message was likely already deleted.
-                _log.TempReplyNotFound(command.Reply.Id);
-            }
+            await command.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
+            _log.DeletedTempReply(command.Reply.Id);
+        }
+        catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
+        {
+            // The message was likely already deleted.
+            _log.TempReplyNotFound(command.Reply.Id);
         }
         catch (Exception ex)
         {
             _log.FailedToDeleteTempReply(ex, command.Reply.Id);
             throw;
+        }
+
+        // If there is also a reaction and the source message still exists, remove the reaction from it.
+        if (command.ReactionInfo is not null)
+        {
+            var sourceMessage = await command.Reply.Channel.GetMessageAsync(
+                command.SourceMessageId,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
+            if (sourceMessage is not null)
+            {
+                await sourceMessage.RemoveReactionAsync(
+                    command.ReactionInfo.Emote,
+                    command.ReactionInfo.UserId,
+                    new RequestOptions { CancelToken = cancellationToken });
+            }
         }
 
         return Unit.Value;
