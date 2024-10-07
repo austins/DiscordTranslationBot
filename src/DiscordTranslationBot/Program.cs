@@ -30,6 +30,7 @@ builder
 // Main services.
 builder
     .Services
+    .AddSingleton(TimeProvider.System)
     .AddTranslationProviders(builder.Configuration)
     .AddSingleton<IDiscordClient>(
         _ => new DiscordSocketClient(
