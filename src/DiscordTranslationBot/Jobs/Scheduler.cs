@@ -92,7 +92,7 @@ public interface IScheduler
     public void Schedule(ICommand command, TimeSpan executionDelay);
 
     /// <summary>
-    /// Try to get the next scheduled task to be executed.
+    /// Try to get the next scheduled task due to be executed.
     /// If a task exists, it is dequeued.
     /// </summary>
     /// <param name="task">Scheduled task.</param>
