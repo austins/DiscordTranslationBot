@@ -159,7 +159,11 @@ public sealed class DeleteTempReplyHandlerTests
         {
             Reply = Substitute.For<IUserMessage>(),
             SourceMessageId = 1UL,
-            ReactionInfo = null
+            ReactionInfo = new ReactionInfo
+            {
+                UserId = 1,
+                Emote = Substitute.For<IEmote>()
+            }
         };
 
         const ulong replyId = 5UL;
@@ -167,6 +171,13 @@ public sealed class DeleteTempReplyHandlerTests
 
         var exception = new Exception();
         command.Reply.DeleteAsync().ThrowsAsyncForAnyArgs(exception);
+
+        var sourceMessage = Substitute.For<IUserMessage>();
+        command
+            .Reply
+            .Channel
+            .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
+            .Returns(sourceMessage);
 
         // Act + Assert
         await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().ThrowAsync<Exception>();
@@ -181,5 +192,11 @@ public sealed class DeleteTempReplyHandlerTests
                 x => x.LogLevel == LogLevel.Error
                      && ReferenceEquals(x.Exception, exception)
                      && x.Message == $"Failed to delete temp reply ID {replyId}.");
+
+        await command
+            .Reply
+            .Channel
+            .DidNotReceive()
+            .GetMessageAsync(Arg.Any<ulong>(), options: Arg.Any<RequestOptions?>());
     }
 }
