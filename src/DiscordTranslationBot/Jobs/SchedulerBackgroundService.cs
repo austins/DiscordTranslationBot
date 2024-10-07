@@ -30,8 +30,16 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
             if (_scheduler.TryGetNextTask(out var task))
             {
                 _log.TaskExecuting();
-                await task(stoppingToken);
-                _log.TaskExecuted();
+
+                try
+                {
+                    await task(stoppingToken);
+                    _log.TaskExecuted();
+                }
+                catch (Exception ex)
+                {
+                    _log.TaskFailed(ex);
+                }
             }
 
             // Wait some time before checking the queue again to reduce overloading CPU resources.
@@ -59,7 +67,10 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
         [LoggerMessage(Level = LogLevel.Information, Message = "Executing scheduled task...")]
         public partial void TaskExecuting();
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Executed scheduled task.")]
+        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully executed scheduled task.")]
         public partial void TaskExecuted();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to execute scheduled task.")]
+        public partial void TaskFailed(Exception ex);
     }
 }
