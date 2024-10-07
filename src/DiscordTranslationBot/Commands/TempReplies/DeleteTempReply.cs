@@ -61,17 +61,17 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
             try
             {
                 await command.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-                _log.DeletedTempMessage(command.Reply.Id);
+                _log.DeletedTempReply(command.Reply.Id);
             }
             catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
             {
                 // The message was likely already deleted.
-                _log.TempMessageNotFound(command.Reply.Id);
+                _log.TempReplyNotFound(command.Reply.Id);
             }
         }
         catch (Exception ex)
         {
-            _log.FailedToDeleteTempMessage(ex, command.Reply.Id);
+            _log.FailedToDeleteTempReply(ex, command.Reply.Id);
             throw;
         }
 
@@ -87,15 +87,15 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
             _logger = logger;
         }
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp message ID {replyId}.")]
-        public partial void DeletedTempMessage(ulong replyId);
+        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp reply ID {replyId}.")]
+        public partial void DeletedTempReply(ulong replyId);
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Temp message ID {replyId} was not found and likely manually deleted.")]
-        public partial void TempMessageNotFound(ulong replyId);
+            Message = "Temp reply ID {replyId} was not found and likely manually deleted.")]
+        public partial void TempReplyNotFound(ulong replyId);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp message ID {replyId}.")]
-        public partial void FailedToDeleteTempMessage(Exception ex, ulong replyId);
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp reply ID {replyId}.")]
+        public partial void FailedToDeleteTempReply(Exception ex, ulong replyId);
     }
 }

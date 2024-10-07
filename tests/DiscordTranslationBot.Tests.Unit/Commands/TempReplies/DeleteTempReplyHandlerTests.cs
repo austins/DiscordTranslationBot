@@ -70,7 +70,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Entries
             .Should()
             .ContainSingle(
-                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp message ID {replyId}.");
+                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Entries
             .Should()
             .ContainSingle(
-                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp message ID {replyId}.");
+                x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Should()
             .ContainSingle(
                 x => x.LogLevel == LogLevel.Information
-                     && x.Message == $"Temp message ID {replyId} was not found and likely manually deleted.");
+                     && x.Message == $"Temp reply ID {replyId} was not found and likely manually deleted.");
     }
 
     [Fact]
@@ -182,6 +182,6 @@ public sealed class DeleteTempReplyHandlerTests
             .ContainSingle(
                 x => x.LogLevel == LogLevel.Error
                      && ReferenceEquals(x.Exception, exception)
-                     && x.Message == $"Failed to delete temp message ID {replyId}.");
+                     && x.Message == $"Failed to delete temp reply ID {replyId}.");
     }
 }

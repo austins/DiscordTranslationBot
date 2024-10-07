@@ -95,7 +95,7 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
             },
             command.DeletionDelay);
 
-        _log.DeleteTempReplyScheduled(reply.Id, command.DeletionDelay.TotalSeconds);
+        _log.ScheduledDeleteTempReply(reply.Id, command.DeletionDelay.TotalSeconds);
 
         return Unit.Value;
     }
@@ -115,6 +115,6 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Temp reply ID {replyId} will be deleted in {totalSeconds}s.")]
-        public partial void DeleteTempReplyScheduled(ulong replyId, double totalSeconds);
+        public partial void ScheduledDeleteTempReply(ulong replyId, double totalSeconds);
     }
 }
