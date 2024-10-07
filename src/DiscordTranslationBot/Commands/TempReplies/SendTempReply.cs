@@ -78,7 +78,7 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
         }
         catch (Exception ex)
         {
-            _log.FailedToSendTempMessage(ex, command.SourceMessage.Id, command.Text);
+            _log.FailedToSendTempReply(ex, command.SourceMessage.Id);
             throw;
         }
         finally
@@ -95,7 +95,7 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
             },
             command.DeletionDelay);
 
-        _log.DeleteTempMessageScheduled(reply.Id, command.DeletionDelay.TotalSeconds);
+        _log.DeleteTempReplyScheduled(reply.Id, command.DeletionDelay.TotalSeconds);
 
         return Unit.Value;
     }
@@ -109,14 +109,12 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
             _logger = logger;
         }
 
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "Failed to send temp message for reaction to message ID {sourceMessageId} with text: {text}")]
-        public partial void FailedToSendTempMessage(Exception ex, ulong sourceMessageId, string text);
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send temp reply to message ID {sourceMessageId}.")]
+        public partial void FailedToSendTempReply(Exception ex, ulong sourceMessageId);
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Temp message ID {replyId} will be deleted in {totalSeconds}s.")]
-        public partial void DeleteTempMessageScheduled(ulong replyId, double totalSeconds);
+            Message = "Temp reply ID {replyId} will be deleted in {totalSeconds}s.")]
+        public partial void DeleteTempReplyScheduled(ulong replyId, double totalSeconds);
     }
 }
