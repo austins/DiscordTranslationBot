@@ -180,6 +180,8 @@ public sealed partial class TranslateToMessageCommandHandler
     private MessageComponent BuildMessageComponents(bool buttonsEnabled, string? valueSelected = null)
     {
         // Convert the list of supported languages to select menu options.
+        // We set the default value of the select menu component when a value is selected so that it
+        // is shown when the message is rebuilt and so we can retrieve the selected value when clicking a button.
         var langOptions = _translationProviderFactory
             .GetSupportedLanguagesForOptions()
             .Select(
