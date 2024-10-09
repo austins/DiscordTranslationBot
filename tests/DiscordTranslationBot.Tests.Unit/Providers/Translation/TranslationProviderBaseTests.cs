@@ -1,31 +1,12 @@
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
-public abstract class TranslationProviderBaseTests : IAsyncLifetime
+public sealed class TranslationProviderBaseTests
 {
-    protected TranslationProviderBase Sut { get; init; } = null!;
-
-    public async Task InitializeAsync()
-    {
-        ArgumentNullException.ThrowIfNull(Sut);
-        await Sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    [Fact]
-    public void ProviderName_IsNotEmpty()
-    {
-        // Assert
-        Sut.ProviderName.Should().NotBeEmpty();
-    }
-
     [Fact]
     public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
     {
@@ -36,10 +17,29 @@ public abstract class TranslationProviderBaseTests : IAsyncLifetime
 
         const string text = "test";
 
+        var sut = new TranslationProviderFake();
+
         // Act & Assert
-        await Sut
+        await sut
             .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<LanguageNotSupportedForCountryException>();
+    }
+
+    private sealed class TranslationProviderFake : TranslationProviderBase
+    {
+        public override Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public override Task<TranslationResult> TranslateAsync(
+            SupportedLanguage targetLanguage,
+            string text,
+            CancellationToken cancellationToken,
+            SupportedLanguage? sourceLanguage = null)
+        {
+            return Task.FromResult(new TranslationResult { TargetLanguageCode = "test" });
+        }
     }
 }

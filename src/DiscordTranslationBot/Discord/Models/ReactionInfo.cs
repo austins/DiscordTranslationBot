@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Discord.Models;
 /// <remarks>
 /// Helps with mocking reactions in tests.
 /// </remarks>
-public sealed class ReactionInfo
+internal sealed class ReactionInfo
 {
     /// <summary>
     /// The ID of the user who initiated the reaction.

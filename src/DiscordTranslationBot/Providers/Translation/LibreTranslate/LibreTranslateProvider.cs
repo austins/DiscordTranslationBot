@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 /// <summary>
 /// Provider for LibreTranslate.
 /// </summary>
-public sealed class LibreTranslateProvider : TranslationProviderBase
+internal sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly ILibreTranslateClient _client;
     private readonly Log _log;
@@ -22,10 +22,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
         _log = new Log(logger);
     }
 
-    /// <inheritdoc cref="TranslationProviderBase.ProviderName" />
-    public override string ProviderName => "LibreTranslate";
-
-    /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync" />
+    /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
     /// <remarks>
     /// List of supported language codes reference: https://libretranslate.com/languages.
     /// </remarks>
@@ -66,7 +63,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
             .ToHashSet();
     }
 
-    /// <inheritdoc cref="TranslationProviderBase.TranslateAsync" />
+    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,

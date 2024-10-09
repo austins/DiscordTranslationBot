@@ -13,7 +13,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.9.1"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0-preview.9.24507.7"/>
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0"/>
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0"/>
@@ -30,5 +30,10 @@
 
     <ItemGroup>
         <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests.Unit"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 </Project>

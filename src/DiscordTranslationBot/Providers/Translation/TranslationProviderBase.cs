@@ -8,23 +8,66 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Base class for translation providers.
 /// </summary>
-public abstract partial class TranslationProviderBase
+internal abstract partial class TranslationProviderBase : ITranslationProvider
+{
+    public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
+        new HashSet<SupportedLanguage>();
+
+    public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
+
+    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+
+    public abstract Task<TranslationResult> TranslateAsync(
+        SupportedLanguage targetLanguage,
+        string text,
+        CancellationToken cancellationToken,
+        SupportedLanguage? sourceLanguage = null);
+
+    public Task<TranslationResult> TranslateByCountryAsync(
+        ICountry country,
+        string text,
+        CancellationToken cancellationToken)
+    {
+        // Gets the lang code that a country supports.
+        var targetLanguage =
+            SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
+            ?? throw new LanguageNotSupportedForCountryException(
+                $"Target language isn't supported by {GetType().Name} for {country.Name}.");
+
+        return TranslateAsync(targetLanguage, text, cancellationToken);
+    }
+
+    protected partial class Log
+    {
+        public Log(ILogger logger)
+        {
+            Logger = logger;
+        }
+
+        protected ILogger Logger { get; }
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Response failure with status {statusCode}: {message}")]
+        public partial void ResponseFailure(string message, HttpStatusCode statusCode, Exception? ex = null);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
+        public partial void NoLanguageCodesReturned();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
+        public partial void NoTranslationReturned();
+    }
+}
+
+internal interface ITranslationProvider
 {
     /// <summary>
     /// Lang codes that can be specified for the translate command choices.
     /// </summary>
-    public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
+    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
 
     /// <summary>
     /// Supported language codes for the provider.
     /// </summary>
-    public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
-        new HashSet<SupportedLanguage>();
-
-    /// <summary>
-    /// The name of the translation provider.
-    /// </summary>
-    public abstract string ProviderName { get; }
+    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; }
 
     /// <summary>
     /// Initialize the <see cref="SupportedLanguages" /> for the provider.
@@ -33,7 +76,7 @@ public abstract partial class TranslationProviderBase
     /// This is called for each provider in <see cref="Worker.StartAsync" /> when the application starts up.
     /// </remarks>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
+    public Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Translate text.
@@ -43,7 +86,7 @@ public abstract partial class TranslationProviderBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="sourceLanguage">The supported language to translate from.</param>
     /// <returns>Translated text.</returns>
-    public abstract Task<TranslationResult> TranslateAsync(
+    public Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
@@ -57,36 +100,8 @@ public abstract partial class TranslationProviderBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Translated text.</returns>
     /// <exception cref="LanguageNotSupportedForCountryException">Country does not support the provider's supported lang codes.</exception>
-    public virtual Task<TranslationResult> TranslateByCountryAsync(
+    public Task<TranslationResult> TranslateByCountryAsync(
         ICountry country,
         string text,
-        CancellationToken cancellationToken)
-    {
-        // Gets the lang code that a country supports.
-        var targetLanguage =
-            SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
-            ?? throw new LanguageNotSupportedForCountryException(
-                $"Target language isn't supported by {ProviderName} for {country.Name}.");
-
-        return TranslateAsync(targetLanguage, text, cancellationToken);
-    }
-
-    protected partial class Log
-    {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Response failure with status {statusCode}: {message}")]
-        public partial void ResponseFailure(string message, HttpStatusCode statusCode, Exception? ex = null);
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
-        public partial void NoLanguageCodesReturned();
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
-        public partial void NoTranslationReturned();
-    }
+        CancellationToken cancellationToken);
 }

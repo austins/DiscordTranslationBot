@@ -5,14 +5,14 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
 public sealed class TranslationProviderFactoryTests
 {
-    private readonly TranslationProviderBase _lastProvider;
-    private readonly TranslationProviderBase _primaryProvider;
+    private readonly ITranslationProvider _lastProvider;
+    private readonly ITranslationProvider _primaryProvider;
     private readonly TranslationProviderFactory _sut;
 
     public TranslationProviderFactoryTests()
     {
-        _primaryProvider = Substitute.For<TranslationProviderBase>();
-        _lastProvider = Substitute.For<TranslationProviderBase>();
+        _primaryProvider = Substitute.For<ITranslationProvider>();
+        _lastProvider = Substitute.For<ITranslationProvider>();
 
         _sut = new TranslationProviderFactory(
             [_primaryProvider, _lastProvider],

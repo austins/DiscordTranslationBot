@@ -3,23 +3,23 @@ using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
-public sealed partial class TranslationProviderFactory : ITranslationProviderFactory
+internal sealed partial class TranslationProviderFactory : ITranslationProviderFactory
 {
     private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
-    private readonly IReadOnlyList<TranslationProviderBase> _providers;
+    private readonly IReadOnlyList<ITranslationProvider> _providers;
     private bool _initialized;
     private IReadOnlyList<SupportedLanguage>? _supportedLanguagesForOptions;
 
     public TranslationProviderFactory(
-        IEnumerable<TranslationProviderBase> translationProviders,
+        IEnumerable<ITranslationProvider> translationProviders,
         ILogger<TranslationProviderFactory> logger)
     {
         _providers = translationProviders.ToList();
         _log = new Log(logger);
     }
 
-    public IReadOnlyList<TranslationProviderBase> Providers
+    public IReadOnlyList<ITranslationProvider> Providers
     {
         get
         {
@@ -28,9 +28,9 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
         }
     }
 
-    public TranslationProviderBase PrimaryProvider => Providers[0];
+    public ITranslationProvider PrimaryProvider => Providers[0];
 
-    public TranslationProviderBase LastProvider => Providers[^1];
+    public ITranslationProvider LastProvider => Providers[^1];
 
     public async Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken)
     {
@@ -43,14 +43,15 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
                 return false;
             }
 
-            _log.ProvidersEnabled(_providers.Select(tp => tp.ProviderName));
+            _log.ProvidersEnabled(_providers.Select(x => x.GetType().Name));
 
             // Initialize the translator providers.
-            async Task InitializeSupportedLanguagesAsync(TranslationProviderBase translationProvider)
+            async Task InitializeSupportedLanguagesAsync(ITranslationProvider translationProvider)
             {
-                _log.InitializingProvider(translationProvider.ProviderName);
+                var providerName = translationProvider.GetType().Name;
+                _log.InitializingProvider(providerName);
                 await translationProvider.InitializeSupportedLanguagesAsync(cancellationToken);
-                _log.InitializedProvider(translationProvider.ProviderName);
+                _log.InitializedProvider(providerName);
             }
 
             await Task.WhenAll(_providers.Select(InitializeSupportedLanguagesAsync));
@@ -97,7 +98,7 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
                 }
             }
 
-            _supportedLanguagesForOptions = [..supportedLanguages.OrderBy(l => l.Name)];
+            _supportedLanguagesForOptions = [.. supportedLanguages.OrderBy(l => l.Name)];
         }
 
         return _supportedLanguagesForOptions;
@@ -112,15 +113,8 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
         }
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(
             Level = LogLevel.Error,
             Message =
@@ -140,13 +134,13 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
     }
 }
 
-public interface ITranslationProviderFactory
+internal interface ITranslationProviderFactory
 {
-    public IReadOnlyList<TranslationProviderBase> Providers { get; }
+    public IReadOnlyList<ITranslationProvider> Providers { get; }
 
-    public TranslationProviderBase PrimaryProvider { get; }
+    public ITranslationProvider PrimaryProvider { get; }
 
-    public TranslationProviderBase LastProvider { get; }
+    public ITranslationProvider LastProvider { get; }
 
     public Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken);
 

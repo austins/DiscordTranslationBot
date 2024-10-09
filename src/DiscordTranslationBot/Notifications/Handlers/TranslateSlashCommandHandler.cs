@@ -6,7 +6,7 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
+internal sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
     private readonly ITranslationProviderFactory _translationProviderFactory;
@@ -105,15 +105,8 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
         }
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]

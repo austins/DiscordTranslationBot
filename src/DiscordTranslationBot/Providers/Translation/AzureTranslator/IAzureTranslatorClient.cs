@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// API client for Azure Translator.
 /// </summary>
-public interface IAzureTranslatorClient
+internal interface IAzureTranslatorClient
 {
     /// <summary>
     /// Get supported languages.
@@ -29,8 +29,8 @@ public interface IAzureTranslatorClient
     /// <returns>API response of translation results.</returns>
     [Post("/translate?api-version=3.0")]
     public Task<IApiResponse<IList<TranslateResult>>> TranslateAsync(
-        [AliasAs("to")] [Query] string targetLangCode,
+        [AliasAs("to")][Query] string targetLangCode,
         [Body] IList<TranslateRequest> requests,
         CancellationToken cancellationToken,
-        [AliasAs("from")] [Query] string? sourceLangCode = null);
+        [AliasAs("from")][Query] string? sourceLangCode = null);
 }

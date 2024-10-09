@@ -51,14 +51,15 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        _scheduler
+        await _scheduler
             .Received(1)
-            .Schedule(
+            .ScheduleAsync(
                 Arg.Is<DeleteTempReply>(
                     x => ReferenceEquals(x.Reply, reply)
                          && x.SourceMessageId == sourceMessageId
                          && ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
-                command.DeletionDelay);
+                command.DeletionDelay,
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]

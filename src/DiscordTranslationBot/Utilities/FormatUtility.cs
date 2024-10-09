@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Utilities;
 /// <summary>
 /// Utility for formatting.
 /// </summary>
-public static partial class FormatUtility
+internal static partial class FormatUtility
 {
     /// <summary>
     /// Remove special Discord syntax, emojis, and Markdown to only translate what is necessary

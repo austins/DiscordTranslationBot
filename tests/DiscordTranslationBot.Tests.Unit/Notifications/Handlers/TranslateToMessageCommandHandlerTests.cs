@@ -13,11 +13,11 @@ public sealed class TranslateToMessageCommandHandlerTests
 {
     private readonly IMessageHelper _messageHelper;
     private readonly TranslateToMessageCommandHandler _sut;
-    private readonly TranslationProviderBase _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public TranslateToMessageCommandHandlerTests()
     {
-        _translationProvider = Substitute.For<TranslationProviderBase>();
+        _translationProvider = Substitute.For<ITranslationProvider>();
 
         var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
         translationProviderFactory.PrimaryProvider.Returns(_translationProvider);

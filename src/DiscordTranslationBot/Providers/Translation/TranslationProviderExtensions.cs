@@ -62,7 +62,7 @@ internal static class TranslationProviderExtensions
         Uri apiUrl,
         IReadOnlyList<Type>? delegatingHandlerTypes = null)
         where TRefitClient : class
-        where TTranslationProvider : TranslationProviderBase
+        where TTranslationProvider : class, ITranslationProvider
     {
         var httpClientBuilder = services
             .AddRefitClient<TRefitClient>(RefitSettings)
@@ -87,6 +87,6 @@ internal static class TranslationProviderExtensions
         // Add the resilience handler last to ensure it wraps any previous delegating handlers.
         httpClientBuilder.AddStandardResilienceHandler();
 
-        services.AddSingleton<TranslationProviderBase, TTranslationProvider>();
+        services.AddSingleton<ITranslationProvider, TTranslationProvider>();
     }
 }

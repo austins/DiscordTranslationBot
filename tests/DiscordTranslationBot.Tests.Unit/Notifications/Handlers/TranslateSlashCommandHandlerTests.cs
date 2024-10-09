@@ -10,11 +10,11 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 public sealed class TranslateSlashCommandHandlerTests
 {
     private readonly TranslateSlashCommandHandler _sut;
-    private readonly TranslationProviderBase _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public TranslateSlashCommandHandlerTests()
     {
-        _translationProvider = Substitute.For<TranslationProviderBase>();
+        _translationProvider = Substitute.For<ITranslationProvider>();
 
         var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
         translationProviderFactory.PrimaryProvider.Returns(_translationProvider);

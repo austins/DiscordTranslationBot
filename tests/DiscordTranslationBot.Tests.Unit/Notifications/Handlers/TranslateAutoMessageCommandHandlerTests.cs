@@ -17,14 +17,14 @@ public sealed class TranslateAutoMessageCommandHandlerTests
     private readonly IMessage _message;
     private readonly MessageCommandExecutedNotification _notification;
     private readonly TranslateAutoMessageCommandHandler _sut;
-    private readonly IReadOnlyList<TranslationProviderBase> _translationProviders;
+    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     public TranslateAutoMessageCommandHandlerTests()
     {
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
 
-        _translationProviders = [Substitute.For<TranslationProviderBase>(), Substitute.For<TranslationProviderBase>()];
+        _translationProviders = [Substitute.For<ITranslationProvider>(), Substitute.For<ITranslationProvider>()];
 
         _message = Substitute.For<IMessage>();
         _message.Author.Id.Returns(2UL);

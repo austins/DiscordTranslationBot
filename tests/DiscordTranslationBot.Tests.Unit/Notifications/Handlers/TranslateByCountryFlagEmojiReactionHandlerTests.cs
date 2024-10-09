@@ -36,11 +36,11 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
     private readonly ISender _sender;
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
-    private readonly TranslationProviderBase _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public TranslateByCountryFlagEmojiReactionHandlerTests()
     {
-        _translationProvider = Substitute.For<TranslationProviderBase>();
+        _translationProvider = Substitute.For<ITranslationProvider>();
 
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);

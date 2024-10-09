@@ -12,13 +12,13 @@ public sealed class RegisterDiscordCommandsHandlerTests
     private const int ExpectedSlashCommandCount = 1;
     private readonly IDiscordClient _client;
     private readonly RegisterDiscordCommandsHandler _sut;
-    private readonly TranslationProviderBase _translationProvider;
+    private readonly ITranslationProvider _translationProvider;
 
     public RegisterDiscordCommandsHandlerTests()
     {
         _client = Substitute.For<IDiscordClient>();
 
-        _translationProvider = Substitute.For<TranslationProviderBase>();
+        _translationProvider = Substitute.For<ITranslationProvider>();
         _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
 
         var supportedLanguage = new SupportedLanguage

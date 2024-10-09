@@ -3,7 +3,7 @@ namespace DiscordTranslationBot.Providers.Translation.Models;
 /// <summary>
 /// Info about a translation provider's supported language.
 /// </summary>
-public sealed class SupportedLanguage : IEquatable<SupportedLanguage>
+internal sealed class SupportedLanguage : IEquatable<SupportedLanguage>
 {
     /// <summary>
     /// The language code.

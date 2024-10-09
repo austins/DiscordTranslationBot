@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 /// <summary>
 /// Supported language from the Azure Translator languages endpoint.
 /// </summary>
-public sealed class Language
+internal sealed class Language
 {
     /// <summary>
     /// The language name.

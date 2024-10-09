@@ -12,7 +12,7 @@ namespace DiscordTranslationBot.Commands.TempReplies;
 /// This is needed in cases where it's not possible to send an ephemeral message, which are only possible to send with
 /// message and slash commands, but not when sending a new message to a channel such as when we are handling a reaction.
 /// </remarks>
-public sealed class SendTempReply : ICommand
+internal sealed class SendTempReply : ICommand
 {
     /// <summary>
     /// The source message.
@@ -41,7 +41,7 @@ public sealed class SendTempReply : ICommand
 /// <summary>
 /// Handler for temp replies.
 /// </summary>
-public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
+internal sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
 {
     private readonly Log _log;
     private readonly IScheduler _scheduler;
@@ -86,29 +86,23 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
             typingState.Dispose();
         }
 
-        _scheduler.Schedule(
+        await _scheduler.ScheduleAsync(
             new DeleteTempReply
             {
                 Reply = reply,
                 SourceMessageId = command.SourceMessage.Id,
                 ReactionInfo = command.ReactionInfo
             },
-            command.DeletionDelay);
+            command.DeletionDelay,
+            cancellationToken);
 
         _log.ScheduledDeleteTempReply(reply.Id, command.DeletionDelay.TotalSeconds);
 
         return Unit.Value;
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send temp reply to message ID {sourceMessageId}.")]
         public partial void FailedToSendTempReply(Exception ex, ulong sourceMessageId);
 

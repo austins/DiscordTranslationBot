@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord ReactionAdded event.
 /// </summary>
-public sealed class ReactionAddedNotification : INotification
+internal sealed class ReactionAddedNotification : INotification
 {
     /// <summary>
     /// The user message.

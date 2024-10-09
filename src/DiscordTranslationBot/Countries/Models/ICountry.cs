@@ -1,6 +1,6 @@
 ﻿namespace DiscordTranslationBot.Countries.Models;
 
-public interface ICountry
+internal interface ICountry
 {
     /// <summary>
     /// The unicode string of the flag emoji.
