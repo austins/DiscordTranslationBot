@@ -1,4 +1,5 @@
 using Discord;
+using Discord.WebSocket;
 using DiscordTranslationBot.Commands.Logging;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.Logging;
@@ -28,6 +29,31 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
         };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        var logEntry = _logger.Entries[0];
+        logEntry.LogLevel.Should().Be(expectedLevel);
+        logEntry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
+        logEntry.Exception.Should().Be(command.LogMessage.Exception);
+    }
+
+    [Fact]
+    public async Task Handle_RedirectLogMessageToLogger_GatewayReconnectException_ChangesLogLevel()
+    {
+        // Arrange
+        var command = new RedirectLogMessageToLogger
+        {
+            LogMessage = new LogMessage(
+                LogSeverity.Error,
+                "source1",
+                "message1",
+                new GatewayReconnectException("test"))
+        };
+
+        const LogLevel expectedLevel = LogLevel.Information;
 
         // Act
         await _sut.Handle(command, CancellationToken.None);
