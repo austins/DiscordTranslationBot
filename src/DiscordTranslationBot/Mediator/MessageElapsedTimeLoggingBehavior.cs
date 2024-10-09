@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Mediator;
 /// </summary>
 /// <typeparam name="TMessage">The message type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>
-public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TResponse>
+internal sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TResponse>
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {
@@ -56,15 +56,8 @@ public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespons
         return result;
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(Level = LogLevel.Information, Message = "Executing message '{messageName}'...")]
         public partial void MessageExecuting(string messageName);
 

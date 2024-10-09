@@ -1,6 +1,6 @@
 ﻿namespace DiscordTranslationBot.Jobs;
 
-public sealed partial class SchedulerBackgroundService : BackgroundService
+internal sealed partial class SchedulerBackgroundService : BackgroundService
 {
     /// <summary>
     /// Interval for getting and executing the next task in order to reduce overloading resources and deadlocking.
@@ -26,13 +26,14 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
         {
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                if (_scheduler.TryGetNextTask(out var task))
+                var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
+                if (job != null)
                 {
                     _log.TaskExecuting();
 
                     try
                     {
-                        await task(stoppingToken);
+                        await job.Action(stoppingToken);
                         _log.TaskExecuted();
                     }
                     catch (Exception ex)
@@ -48,15 +49,8 @@ public sealed partial class SchedulerBackgroundService : BackgroundService
         }
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(Level = LogLevel.Information, Message = "Started scheduler background service.")]
         public partial void Started();
 

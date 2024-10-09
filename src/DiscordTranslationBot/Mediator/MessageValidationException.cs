@@ -2,7 +2,7 @@
 
 namespace DiscordTranslationBot.Mediator;
 
-public sealed class MessageValidationException : Exception
+internal sealed class MessageValidationException : Exception
 {
     public MessageValidationException(string messageName, IReadOnlyList<ValidationResult> validationResults)
         : base(BuildExceptionMessage(messageName, validationResults))

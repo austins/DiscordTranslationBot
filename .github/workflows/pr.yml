@@ -5,7 +5,7 @@ on:
         branches: [ master ]
 
 jobs:
-    analyze:
-        uses: ./.github/workflows/codeql.yml
+    #analyze:
+    #    uses: ./.github/workflows/codeql.yml
     test:
         uses: ./.github/workflows/test.yml

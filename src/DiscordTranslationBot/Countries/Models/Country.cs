@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Countries.Models;
 /// <summary>
 /// Details about a country.
 /// </summary>
-public sealed class Country : ICountry
+internal sealed class Country : ICountry
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Country" /> class.

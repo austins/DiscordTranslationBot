@@ -7,11 +7,12 @@ using Refit;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.LibreTranslate;
 
-public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
+public sealed class LibreTranslateProviderTests : IAsyncLifetime
 {
     private readonly ILibreTranslateClient _client;
     private readonly ICountry _country;
     private readonly LoggerFake<LibreTranslateProvider> _logger;
+    private readonly LibreTranslateProvider _sut;
 
     public LibreTranslateProviderTests()
     {
@@ -41,7 +42,17 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
 
         _logger = new LoggerFake<LibreTranslateProvider>();
 
-        Sut = new LibreTranslateProvider(_client, _logger);
+        _sut = new LibreTranslateProvider(_client, _logger);
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -85,7 +96,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Returns(response);
 
         // Act
-        var result = await Sut.TranslateAsync(targetLanguage, text, CancellationToken.None, sourceLanguage);
+        var result = await _sut.TranslateAsync(targetLanguage, text, CancellationToken.None, sourceLanguage);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -125,7 +136,7 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
             .Returns(response);
 
         // Act
-        var result = await Sut.TranslateByCountryAsync(_country, text, CancellationToken.None);
+        var result = await _sut.TranslateByCountryAsync(_country, text, CancellationToken.None);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -172,12 +183,14 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
+                    x => x.SourceLangCode == "auto"
+                         && x.TargetLangCode == _country.LangCodes.First()
+                         && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
-        await Sut
+        await _sut
             .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
@@ -204,12 +217,14 @@ public sealed class LibreTranslateProviderTests : TranslationProviderBaseTests
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
+                    x => x.SourceLangCode == "auto"
+                         && x.TargetLangCode == _country.LangCodes.First()
+                         && x.Text == text),
                 Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act & Assert
-        await Sut
+        await _sut
             .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();

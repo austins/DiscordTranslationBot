@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Base class for a translation provider's options.
 /// </summary>
-public abstract class TranslationProviderOptionsBase : IValidatableObject
+internal abstract class TranslationProviderOptionsBase : IValidatableObject
 {
     /// <summary>
     /// Flag indicating whether this provider is enabled.

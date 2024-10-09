@@ -11,7 +11,7 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 /// <summary>
 /// Handler for the "Translate (Auto)" message command.
 /// </summary>
-public sealed partial class TranslateAutoMessageCommandHandler
+internal sealed partial class TranslateAutoMessageCommandHandler
     : INotificationHandler<MessageCommandExecutedNotification>
 {
     private readonly IDiscordClient _client;
@@ -100,7 +100,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
 
                 if (targetLanguage is null)
                 {
-                    _log.UnsupportedLocale(userLocale, translationProvider.ProviderName);
+                    _log.UnsupportedLocale(userLocale, translationProvider.GetType().Name);
                     continue;
                 }
 
@@ -146,15 +146,8 @@ public sealed partial class TranslateAutoMessageCommandHandler
             options: new RequestOptions { CancelToken = cancellationToken });
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
 

@@ -111,15 +111,8 @@ internal sealed partial class DiscordEventListener
         return Task.CompletedTask;
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
         public partial void EventsInitialized();
 

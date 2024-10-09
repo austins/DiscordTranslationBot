@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <AnalysisLevel>latest-All</AnalysisLevel>
+        <TargetFramework>net9.0</TargetFramework>
+        <AnalysisLevel>9.0-All</AnalysisLevel>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

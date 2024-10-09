@@ -1,6 +1,6 @@
 ﻿namespace DiscordTranslationBot.Discord.Models;
 
-public sealed class JumpUrl
+internal sealed class JumpUrl
 {
     /// <summary>
     /// Indicates if this jump URL is for a direct-message channel.

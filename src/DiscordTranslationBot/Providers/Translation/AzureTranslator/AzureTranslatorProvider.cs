@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// Provider for Azure Translator.
 /// </summary>
-public sealed partial class AzureTranslatorProvider : TranslationProviderBase
+internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
 {
     /// <summary>
     /// Azure has a limit of 10,000 characters for text in a request.
@@ -28,7 +28,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         _log = new Log(logger);
     }
 
-    /// <inheritdoc cref="TranslationProviderBase.TranslateCommandLangCodes" />
+    /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
     public override IReadOnlySet<string> TranslateCommandLangCodes =>
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -54,9 +54,6 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             "it",
             "tr"
         };
-
-    /// <inheritdoc cref="TranslationProviderBase.ProviderName" />
-    public override string ProviderName => "Azure Translator";
 
     /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync" />
     /// <remarks>
@@ -101,7 +98,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             .ToHashSet();
     }
 
-    /// <inheritdoc cref="TranslationProviderBase.TranslateAsync" />
+    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
@@ -160,16 +157,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         return result;
     }
 
-    private new sealed partial class Log : TranslationProviderBase.Log
+    private new sealed partial class Log(ILogger logger) : TranslationProviderBase.Log(logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-            : base(logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(
             Level = LogLevel.Error,
             Message = "The text can't exceed {textCharacterLimit} characters including spaces. Length: {textLength}.")]

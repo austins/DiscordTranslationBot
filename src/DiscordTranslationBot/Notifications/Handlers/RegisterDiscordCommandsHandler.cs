@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class RegisterDiscordCommandsHandler
+internal sealed partial class RegisterDiscordCommandsHandler
     : INotificationHandler<ReadyNotification>,
         INotificationHandler<JoinedGuildNotification>
 {
@@ -71,7 +71,7 @@ public sealed partial class RegisterDiscordCommandsHandler
             {
                 // Use bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
                 await guild.BulkOverwriteApplicationCommandsAsync(
-                    [..discordCommandsToRegister],
+                    [.. discordCommandsToRegister],
                     new RequestOptions { CancelToken = cancellationToken });
 
                 _log.RegisteredCommandsForGuild(guild.Id);
@@ -145,15 +145,8 @@ public sealed partial class RegisterDiscordCommandsHandler
                 .Build());
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(
             Level = LogLevel.Error,
             Message = "Failed to register commands for guild ID {guildId} with error(s): {errors}")]

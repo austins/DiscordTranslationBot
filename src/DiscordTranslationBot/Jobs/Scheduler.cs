@@ -1,105 +1,67 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Threading.Channels;
 
 namespace DiscordTranslationBot.Jobs;
 
-public sealed partial class Scheduler : IScheduler
+internal sealed partial class Scheduler : IScheduler
 {
-    /// <summary>
-    /// The threshold of the count of dequeued tasks since trim that will allow trimming once exceeded.
-    /// </summary>
-    /// <remarks>
-    /// This is a simple solution to reduce unnecessary allocation for our use case.
-    /// If this threshold is not effective, we may adjust it or consider another solution.
-    /// </remarks>
-    private const int DequeuedSinceTrimThreshold = 100;
-
-    private readonly object _lock = new();
+    private readonly Channel<ScheduledJob> _channel;
     private readonly Log _log;
-
-    /// <summary>
-    /// The priority queue.
-    /// </summary>
-    /// <remarks>
-    /// This is not thread-safe, so locking must be implemented as tasks can be enqueued across threads.
-    /// </remarks>
-    private readonly PriorityQueue<Func<CancellationToken, Task>, DateTimeOffset> _queue = new();
-
     private readonly ISender _sender;
     private readonly TimeProvider _timeProvider;
-    private int _dequeuedSinceTrim;
 
     public Scheduler(ISender sender, TimeProvider timeProvider, ILogger<Scheduler> logger)
     {
         _sender = sender;
         _timeProvider = timeProvider;
         _log = new Log(logger);
-    }
 
-    public int Count
-    {
-        get
-        {
-            lock (_lock)
+        _channel = Channel.CreateUnboundedPrioritized(
+            new UnboundedPrioritizedChannelOptions<ScheduledJob>
             {
-                return _queue.Count;
-            }
-        }
+                Comparer = Comparer<ScheduledJob>.Create((x, y) => x.ExecuteAt.CompareTo(y.ExecuteAt))
+            });
     }
 
-    public void Schedule(ICommand command, DateTimeOffset executeAt)
+    public int Count => _channel.Reader.Count;
+
+    public async Task ScheduleAsync(ICommand command, DateTimeOffset executeAt, CancellationToken cancellationToken)
     {
         if (executeAt <= _timeProvider.GetUtcNow())
         {
             throw new InvalidOperationException("Commands can only be scheduled to execute in the future.");
         }
 
-        lock (_lock)
-        {
-            _queue.Enqueue(async ct => await _sender.Send(command, ct), executeAt);
-            _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), _queue.Count);
-        }
-    }
-
-    public void Schedule(ICommand command, TimeSpan executionDelay)
-    {
-        Schedule(command, _timeProvider.GetUtcNow() + executionDelay);
-    }
-
-    public bool TryGetNextTask([NotNullWhen(true)] out Func<CancellationToken, Task>? task)
-    {
-        lock (_lock)
-        {
-            if (_queue.TryPeek(out _, out var executeAt) && executeAt <= _timeProvider.GetUtcNow())
+        await _channel.Writer.WriteAsync(
+            new ScheduledJob
             {
-                task = _queue.Dequeue();
-                _log.DequeuedTask(executeAt.ToLocalTime(), _queue.Count);
+                Action = async ct => await _sender.Send(command, ct),
+                ExecuteAt = executeAt
+            },
+            cancellationToken);
 
-                // Optimize memory usage if number of dequeued before the next trim exceeds threshold.
-                _dequeuedSinceTrim++;
-                if (_dequeuedSinceTrim > DequeuedSinceTrimThreshold)
-                {
-                    _queue.TrimExcess();
-                    _log.TrimmedExcess(DequeuedSinceTrimThreshold);
-                    _dequeuedSinceTrim = 0;
-                }
-
-                return true;
-            }
-        }
-
-        task = null;
-        return false;
+        _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), Count);
     }
 
-    private sealed partial class Log
+    public Task ScheduleAsync(ICommand command, TimeSpan executionDelay, CancellationToken cancellationToken)
     {
-        private readonly ILogger _logger;
+        return ScheduleAsync(command, _timeProvider.GetUtcNow() + executionDelay, cancellationToken);
+    }
 
-        public Log(ILogger logger)
+    public async Task<ScheduledJob?> GetNextJobDueAsync(CancellationToken cancellationToken)
+    {
+        if (_channel.Reader.TryPeek(out var job) && job.ExecuteAt <= _timeProvider.GetUtcNow())
         {
-            _logger = logger;
+            job = await _channel.Reader.ReadAsync(cancellationToken);
+            _log.DequeuedTask(job.ExecuteAt.ToLocalTime(), Count);
+
+            return job;
         }
 
+        return null;
+    }
+
+    private sealed partial class Log(ILogger logger)
+    {
         [LoggerMessage(
             Level = LogLevel.Information,
             Message =
@@ -111,16 +73,10 @@ public sealed partial class Scheduler : IScheduler
             Message =
                 "Dequeued a task scheduled to be executed at {executeAt}. Remaining tasks in queue: {remainingTasks}.")]
         public partial void DequeuedTask(DateTimeOffset executeAt, int remainingTasks);
-
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message =
-                "The scheduler priority queue was trimmed after dequeue threshold of {dequeuedSinceTrimThreshold} was exceeded.")]
-        public partial void TrimmedExcess(int dequeuedSinceTrimThreshold);
     }
 }
 
-public interface IScheduler
+internal interface IScheduler
 {
     /// <summary>
     /// The count tasks in the queue.
@@ -131,21 +87,23 @@ public interface IScheduler
     /// Queues a Mediator command to run at a specific time.
     /// </summary>
     /// <param name="command">Mediator command to schedule.</param>
-    /// <param name="executeAt">Time to execute the task at.</param>
-    public void Schedule(ICommand command, DateTimeOffset executeAt);
+    /// <param name="executeAt">Time to execute the job at.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public Task ScheduleAsync(ICommand command, DateTimeOffset executeAt, CancellationToken cancellationToken);
 
     /// <summary>
     /// Queues a Mediator command to run at a specific time.
     /// </summary>
     /// <param name="command">Mediator command to schedule.</param>
-    /// <param name="executionDelay">Delay for executing the task from now.</param>
-    public void Schedule(ICommand command, TimeSpan executionDelay);
+    /// <param name="executionDelay">Delay for executing the job from now.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public Task ScheduleAsync(ICommand command, TimeSpan executionDelay, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Try to get the next scheduled task due to be executed.
-    /// If a task exists, it is dequeued.
+    /// Get the next scheduled job due to be executed.
+    /// If a job exists, it is dequeued.
     /// </summary>
-    /// <param name="task">Scheduled task.</param>
-    /// <returns>Scheduled task to be executed or null.</returns>
-    public bool TryGetNextTask([NotNullWhen(true)] out Func<CancellationToken, Task>? task);
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Scheduled job to be executed or null.</returns>
+    public Task<ScheduledJob?> GetNextJobDueAsync(CancellationToken cancellationToken);
 }

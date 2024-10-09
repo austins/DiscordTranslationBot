@@ -16,7 +16,7 @@ public sealed class SchedulerTests
     }
 
     [Fact]
-    public void Schedule_CommandWithExecuteAt_Success()
+    public async Task ScheduleAsync_CommandWithExecuteAt_Success()
     {
         // Arrange
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.MinValue);
@@ -25,7 +25,7 @@ public sealed class SchedulerTests
         var executeAt = DateTimeOffset.MinValue.AddDays(2);
 
         // Act
-        _sut.Schedule(command, executeAt);
+        await _sut.ScheduleAsync(command, executeAt, CancellationToken.None);
 
         // Assert
         _sut.Count.Should().Be(1);
@@ -34,7 +34,7 @@ public sealed class SchedulerTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Schedule_CommandWithExecuteAt_ThrowsIfInvalidTime(int seconds)
+    public async Task ScheduleAsync_CommandWithExecuteAt_ThrowsIfInvalidTime(int seconds)
     {
         // Arrange
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.MaxValue);
@@ -43,11 +43,14 @@ public sealed class SchedulerTests
         var executeAt = DateTimeOffset.MaxValue.AddSeconds(seconds);
 
         // Act + Assert
-        _sut.Invoking(x => x.Schedule(command, executeAt)).Should().Throw<InvalidOperationException>();
+        await _sut
+            .Invoking(x => x.ScheduleAsync(command, executeAt, CancellationToken.None))
+            .Should()
+            .ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public void Schedule_CommandWithExecutionDelay_Success()
+    public async Task ScheduleAsync_CommandWithExecutionDelay_Success()
     {
         // Arrange
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.MinValue);
@@ -56,7 +59,7 @@ public sealed class SchedulerTests
         var executionDelay = TimeSpan.FromHours(2);
 
         // Act
-        _sut.Schedule(command, executionDelay);
+        await _sut.ScheduleAsync(command, executionDelay, CancellationToken.None);
 
         // Assert
         _sut.Count.Should().Be(1);
@@ -65,7 +68,7 @@ public sealed class SchedulerTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Schedule_CommandWithExecutionDelay_ThrowsIfInvalidTime(int seconds)
+    public async Task ScheduleAsync_CommandWithExecutionDelay_ThrowsIfInvalidTime(int seconds)
     {
         // Arrange
         _timeProvider.GetUtcNow().Returns(DateTimeOffset.MaxValue);
@@ -74,23 +77,31 @@ public sealed class SchedulerTests
         var executeAt = TimeSpan.FromSeconds(seconds);
 
         // Act + Assert
-        _sut.Invoking(x => x.Schedule(command, executeAt)).Should().Throw<InvalidOperationException>();
+        await _sut
+            .Invoking(x => x.ScheduleAsync(command, executeAt, CancellationToken.None))
+            .Should()
+            .ThrowAsync<InvalidOperationException>();
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void TryGetNextTask_Success(bool hasTaskScheduled)
+    public async Task GetNextJobDueAsync_Success(bool hasTaskScheduled)
     {
         // Arrange
+        var executeAt1 = DateTimeOffset.MinValue.AddDays(2);
+        var executeAt2 = DateTimeOffset.MinValue.AddDays(3);
+
         if (hasTaskScheduled)
         {
             // Allow command to be scheduled.
             _timeProvider.GetUtcNow().Returns(DateTimeOffset.MinValue);
 
-            var command = Substitute.For<ICommand>();
-            var executeAt = DateTimeOffset.MinValue.AddDays(2);
-            _sut.Schedule(command, executeAt);
+            var command1 = Substitute.For<ICommand>();
+            await _sut.ScheduleAsync(command1, executeAt1, CancellationToken.None);
+
+            var command2 = Substitute.For<ICommand>();
+            await _sut.ScheduleAsync(command2, executeAt2, CancellationToken.None);
         }
 
         // Modify time so task is returned.
@@ -99,19 +110,25 @@ public sealed class SchedulerTests
         var countBeforeGet = _sut.Count;
 
         // Act
-        var result = _sut.TryGetNextTask(out var task);
+        var job1 = await _sut.GetNextJobDueAsync(CancellationToken.None);
+        var job2 = await _sut.GetNextJobDueAsync(CancellationToken.None);
 
         // Assert
         if (hasTaskScheduled)
         {
-            result.Should().BeTrue();
-            task.Should().NotBeNull();
-            countBeforeGet.Should().Be(1);
+            job1.Should().NotBeNull();
+            job1!.ExecuteAt.Should().Be(executeAt1);
+
+            job2.Should().NotBeNull();
+            job2!.ExecuteAt.Should().Be(executeAt2);
+
+            countBeforeGet.Should().Be(2);
         }
         else
         {
-            result.Should().BeFalse();
-            task.Should().BeNull();
+            job1.Should().BeNull();
+            job2.Should().BeNull();
+
             countBeforeGet.Should().Be(0);
         }
 

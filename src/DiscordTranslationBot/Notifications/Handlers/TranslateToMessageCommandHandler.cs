@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class TranslateToMessageCommandHandler
+internal sealed partial class TranslateToMessageCommandHandler
     : INotificationHandler<MessageCommandExecutedNotification>,
         INotificationHandler<SelectMenuExecutedNotification>,
         INotificationHandler<ButtonExecutedNotification>
@@ -30,8 +30,8 @@ public sealed partial class TranslateToMessageCommandHandler
     public async ValueTask Handle(ButtonExecutedNotification notification, CancellationToken cancellationToken)
     {
         var buttonId = notification.Interaction.Data.CustomId;
-        if (buttonId != MessageCommandConstants.TranslateTo.TranslateButtonId
-            && buttonId != MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
+        if (buttonId is not (MessageCommandConstants.TranslateTo.TranslateButtonId
+            or MessageCommandConstants.TranslateTo.TranslateAndShareButtonId))
         {
             return;
         }
@@ -205,15 +205,8 @@ public sealed partial class TranslateToMessageCommandHandler
             .Build();
     }
 
-    private sealed partial class Log
+    private sealed partial class Log(ILogger logger)
     {
-        private readonly ILogger _logger;
-
-        public Log(ILogger logger)
-        {
-            _logger = logger;
-        }
-
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
