@@ -31,10 +31,10 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
     private readonly IMessageChannel _channel;
-
-    private readonly IMediator _mediator;
     private readonly IUserMessage _message;
     private readonly ReactionAddedNotification _notification;
+
+    private readonly ISender _sender;
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
     private readonly TranslationProviderBase _translationProvider;
 
@@ -59,7 +59,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _message.Channel.Returns(_channel);
         ((IGuildChannel)_channel).Guild.Id.Returns(1UL);
 
-        _mediator = Substitute.For<IMediator>();
+        _sender = Substitute.For<ISender>();
 
         var messageHelper = Substitute.For<IMessageHelper>();
         messageHelper
@@ -84,7 +84,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
             translationProviderFactory,
-            _mediator,
+            _sender,
             messageHelper,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
@@ -153,7 +153,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), Arg.Any<CancellationToken>());
+        await _sender.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         await _sut.Handle(_notification, CancellationToken.None);
 
         // Assert
-        await _mediator.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
+        await _sender.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -205,7 +205,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
+        await _sender.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Received(1)
             .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
 
-        await _mediator
+        await _sender
             .Received(1)
             .Send(
                 Arg.Is<SendTempReply>(

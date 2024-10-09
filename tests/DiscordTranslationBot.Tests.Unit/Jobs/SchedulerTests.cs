@@ -5,16 +5,14 @@ namespace DiscordTranslationBot.Tests.Unit.Jobs;
 
 public sealed class SchedulerTests
 {
-    private readonly IMediator _mediator;
     private readonly Scheduler _sut;
     private readonly TimeProvider _timeProvider;
 
     public SchedulerTests()
     {
-        _mediator = Substitute.For<IMediator>();
         _timeProvider = Substitute.For<TimeProvider>();
 
-        _sut = new Scheduler(_mediator, _timeProvider, new LoggerFake<Scheduler>());
+        _sut = new Scheduler(Substitute.For<ISender>(), _timeProvider, new LoggerFake<Scheduler>());
     }
 
     [Fact]

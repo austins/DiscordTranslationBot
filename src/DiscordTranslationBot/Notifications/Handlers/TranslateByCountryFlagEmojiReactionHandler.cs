@@ -17,8 +17,8 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;
-    private readonly IMediator _mediator;
     private readonly IMessageHelper _messageHelper;
+    private readonly ISender _sender;
     private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
@@ -26,19 +26,19 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     /// </summary>
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
-    /// <param name="mediator">Mediator to use.</param>
+    /// <param name="sender">Mediator sender to use.</param>
     /// <param name="messageHelper">Message helper to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
         ITranslationProviderFactory translationProviderFactory,
-        IMediator mediator,
+        ISender sender,
         IMessageHelper messageHelper,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
-        _mediator = mediator;
+        _sender = sender;
         _messageHelper = messageHelper;
         _log = new Log(logger);
     }
@@ -99,7 +99,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                 {
                     _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), country.Name);
 
-                    await _mediator.Send(
+                    await _sender.Send(
                         new SendTempReply
                         {
                             Text = ex.Message,
@@ -131,7 +131,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         {
             _log.FailureToDetectSourceLanguage();
 
-            await _mediator.Send(
+            await _sender.Send(
                 new SendTempReply
                 {
                     Text = "Couldn't detect the source language to translate from or the result is the same.",
@@ -144,7 +144,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         }
 
         // Send the reply message. Note: we can't send an ephemeral message as those are only for command interactions.
-        await _mediator.Send(
+        await _sender.Send(
             new SendTempReply
             {
                 Text = _messageHelper.BuildTranslationReplyWithReference(

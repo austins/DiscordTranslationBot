@@ -15,7 +15,6 @@ public sealed partial class Scheduler : IScheduler
 
     private readonly object _lock = new();
     private readonly Log _log;
-    private readonly IMediator _mediator;
 
     /// <summary>
     /// The priority queue.
@@ -25,12 +24,13 @@ public sealed partial class Scheduler : IScheduler
     /// </remarks>
     private readonly PriorityQueue<Func<CancellationToken, Task>, DateTimeOffset> _queue = new();
 
+    private readonly ISender _sender;
     private readonly TimeProvider _timeProvider;
     private int _dequeuedSinceTrim;
 
-    public Scheduler(IMediator mediator, TimeProvider timeProvider, ILogger<Scheduler> logger)
+    public Scheduler(ISender sender, TimeProvider timeProvider, ILogger<Scheduler> logger)
     {
-        _mediator = mediator;
+        _sender = sender;
         _timeProvider = timeProvider;
         _log = new Log(logger);
     }
@@ -55,7 +55,7 @@ public sealed partial class Scheduler : IScheduler
 
         lock (_lock)
         {
-            _queue.Enqueue(async ct => await _mediator.Send(command, ct), executeAt);
+            _queue.Enqueue(async ct => await _sender.Send(command, ct), executeAt);
             _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), _queue.Count);
         }
     }
