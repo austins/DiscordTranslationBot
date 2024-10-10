@@ -7,7 +7,7 @@ using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Services;
 
-internal sealed partial class MessageHelper : IMessageHelper
+public sealed partial class MessageHelper : IMessageHelper
 {
     public const string DmChannelId = "@me";
 
@@ -65,7 +65,7 @@ internal sealed partial class MessageHelper : IMessageHelper
     private static partial Regex JumpUrlRegex();
 }
 
-internal interface IMessageHelper
+public interface IMessageHelper
 {
     /// <summary>
     /// Get a jump URL for a message.

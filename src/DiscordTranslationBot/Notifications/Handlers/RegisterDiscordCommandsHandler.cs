@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-internal sealed partial class RegisterDiscordCommandsHandler
+public sealed partial class RegisterDiscordCommandsHandler
     : INotificationHandler<ReadyNotification>,
         INotificationHandler<JoinedGuildNotification>
 {

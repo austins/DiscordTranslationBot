@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 /// <summary>
 /// Translation data from the Azure Translator translate endpoint.
 /// </summary>
-internal sealed class TranslationData
+public sealed class TranslationData
 {
     /// <summary>
     /// The translated text.

@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord ButtonExecuted event.
 /// </summary>
-internal sealed class ButtonExecutedNotification : INotification
+public sealed class ButtonExecutedNotification : INotification
 {
     /// <summary>
     /// The button component interaction.

@@ -2,7 +2,7 @@
 
 namespace DiscordTranslationBot.Extensions;
 
-internal static class ValidationExtensions
+public static class ValidationExtensions
 {
     /// <summary>
     /// Validates an object instance with any Data Annotations validation attributes, and the

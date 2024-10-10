@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// Options for the Azure Translator provider.
 /// </summary>
-internal sealed class AzureTranslatorOptions : TranslationProviderOptionsBase
+public sealed class AzureTranslatorOptions : TranslationProviderOptionsBase
 {
     /// <summary>
     /// The secret key for the Azure Translator API.

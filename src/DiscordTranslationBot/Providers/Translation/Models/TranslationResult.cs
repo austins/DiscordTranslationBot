@@ -3,7 +3,7 @@ namespace DiscordTranslationBot.Providers.Translation.Models;
 /// <summary>
 /// Translation data to use in a Discord message.
 /// </summary>
-internal sealed class TranslationResult
+public sealed class TranslationResult
 {
     /// <summary>
     /// The detected language code from the provider's automatic detection.

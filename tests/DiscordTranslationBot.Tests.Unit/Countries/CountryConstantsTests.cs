@@ -12,5 +12,6 @@ public sealed class CountryConstantsTests
 
         // Act & Assert
         supportedCountries.Should().NotThrow();
+        supportedCountries().Should().NotBeEmpty();
     }
 }

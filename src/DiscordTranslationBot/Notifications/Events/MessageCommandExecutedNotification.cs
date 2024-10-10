@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord MessageCommandExecuted event.
 /// </summary>
-internal sealed class MessageCommandExecutedNotification : INotification
+public sealed class MessageCommandExecutedNotification : INotification
 {
     /// <summary>
     /// The message command interaction.

@@ -4,7 +4,7 @@ namespace DiscordTranslationBot.Providers.Translation.Models;
 /// The result from a translate endpoint response.
 /// </summary>
 #pragma warning disable CA1040
-internal interface ITranslateResult
+public interface ITranslateResult
 {
 }
 #pragma warning restore CA1040

@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 /// <summary>
 /// API client for LibreTranslate.
 /// </summary>
-internal interface ILibreTranslateClient
+public interface ILibreTranslateClient
 {
     /// <summary>
     /// Get supported languages.

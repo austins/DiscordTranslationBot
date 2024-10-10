@@ -8,7 +8,7 @@ using Humanizer;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-internal sealed partial class TranslateToMessageCommandHandler
+public sealed partial class TranslateToMessageCommandHandler
     : INotificationHandler<MessageCommandExecutedNotification>,
         INotificationHandler<SelectMenuExecutedNotification>,
         INotificationHandler<ButtonExecutedNotification>

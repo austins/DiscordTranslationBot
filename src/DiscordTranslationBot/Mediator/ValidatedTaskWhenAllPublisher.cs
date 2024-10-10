@@ -2,7 +2,7 @@
 
 namespace DiscordTranslationBot.Mediator;
 
-internal sealed class ValidatedTaskWhenAllPublisher : INotificationPublisher
+public sealed class ValidatedTaskWhenAllPublisher : INotificationPublisher
 {
     private readonly TaskWhenAllPublisher _taskWhenAllPublisher = new();
 

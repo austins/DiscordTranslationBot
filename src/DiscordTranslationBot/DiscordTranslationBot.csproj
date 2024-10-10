@@ -31,9 +31,4 @@
     <ItemGroup>
         <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="$(AssemblyName).Tests.Unit"/>
-        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
-    </ItemGroup>
 </Project>

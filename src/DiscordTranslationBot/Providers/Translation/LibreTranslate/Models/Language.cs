@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 /// <summary>
 /// Supported language from the LibreTranslate languages endpoint.
 /// </summary>
-internal sealed class Language
+public sealed class Language
 {
     /// <summary>
     /// The language code.

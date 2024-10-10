@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Mediator;
 /// </summary>
 /// <typeparam name="TMessage">The message type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>
-internal sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TResponse>
+public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TResponse>
     : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {

@@ -3,7 +3,7 @@ using DiscordTranslationBot.Providers.Translation.Models;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
-internal sealed partial class TranslationProviderFactory : ITranslationProviderFactory
+public sealed partial class TranslationProviderFactory : ITranslationProviderFactory
 {
     private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
@@ -134,7 +134,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
     }
 }
 
-internal interface ITranslationProviderFactory
+public interface ITranslationProviderFactory
 {
     public IReadOnlyList<ITranslationProvider> Providers { get; }
 

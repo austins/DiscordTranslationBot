@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord SelectMenuExecuted event.
 /// </summary>
-internal sealed class SelectMenuExecutedNotification : INotification
+public sealed class SelectMenuExecutedNotification : INotification
 {
     /// <summary>
     /// The select menu component interaction.

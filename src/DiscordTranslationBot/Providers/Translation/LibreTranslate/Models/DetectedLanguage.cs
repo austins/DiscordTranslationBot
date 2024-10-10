@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 /// <summary>
 /// The detected language from the LibreTranslate translate endpoint.
 /// </summary>
-internal sealed class DetectedLanguage
+public sealed class DetectedLanguage
 {
     /// <summary>
     /// The detected language code.

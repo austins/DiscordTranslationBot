@@ -3,7 +3,7 @@ using Discord.WebSocket;
 
 namespace DiscordTranslationBot.Commands.Logging;
 
-internal sealed class RedirectLogMessageToLogger : ICommand
+public sealed class RedirectLogMessageToLogger : ICommand
 {
     /// <summary>
     /// The Discord log message.
@@ -14,7 +14,7 @@ internal sealed class RedirectLogMessageToLogger : ICommand
 /// <summary>
 /// Handler for redirecting Discord log messages to the logger.
 /// </summary>
-internal sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<RedirectLogMessageToLogger>
+public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<RedirectLogMessageToLogger>
 {
     private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
 

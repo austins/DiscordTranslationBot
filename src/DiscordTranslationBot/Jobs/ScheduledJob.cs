@@ -1,6 +1,6 @@
 ﻿namespace DiscordTranslationBot.Jobs;
 
-internal sealed class ScheduledJob
+public sealed class ScheduledJob
 {
     public required Func<CancellationToken, ValueTask> Action { get; init; }
 

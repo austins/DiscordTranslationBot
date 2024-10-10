@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord joined guild event.
 /// </summary>
-internal sealed class JoinedGuildNotification : INotification
+public sealed class JoinedGuildNotification : INotification
 {
     /// <summary>
     /// The guild that the bot joined.

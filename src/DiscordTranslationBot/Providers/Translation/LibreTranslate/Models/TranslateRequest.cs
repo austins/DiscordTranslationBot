@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 /// <summary>
 /// Translate request for the LibreTranslate translate endpoint.
 /// </summary>
-internal sealed class TranslateRequest : ITranslateRequest
+public sealed class TranslateRequest : ITranslateRequest
 {
     /// <summary>
     /// The language code to translate from.

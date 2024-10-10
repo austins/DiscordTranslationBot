@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 /// <summary>
 /// Provider for LibreTranslate.
 /// </summary>
-internal sealed class LibreTranslateProvider : TranslationProviderBase
+public sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly ILibreTranslateClient _client;
     private readonly Log _log;

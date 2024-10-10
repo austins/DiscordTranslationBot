@@ -2,7 +2,7 @@
 
 namespace DiscordTranslationBot.Jobs;
 
-internal sealed partial class Scheduler : IScheduler
+public sealed partial class Scheduler : IScheduler
 {
     private readonly Channel<ScheduledJob> _channel;
     private readonly Log _log;
@@ -76,7 +76,7 @@ internal sealed partial class Scheduler : IScheduler
     }
 }
 
-internal interface IScheduler
+public interface IScheduler
 {
     /// <summary>
     /// The count tasks in the queue.

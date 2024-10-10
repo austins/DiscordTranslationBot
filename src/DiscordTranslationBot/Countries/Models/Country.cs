@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Countries.Models;
 /// <summary>
 /// Details about a country.
 /// </summary>
-internal sealed class Country : ICountry
+public sealed class Country : ICountry
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Country" /> class.
@@ -38,5 +38,23 @@ internal sealed class Country : ICountry
     public string Name { get; }
 
     /// <inheritdoc cref="ICountry.LangCodes" />
+    public IReadOnlySet<string> LangCodes { get; }
+}
+
+public interface ICountry
+{
+    /// <summary>
+    /// The unicode string of the flag emoji.
+    /// </summary>
+    public string EmojiUnicode { get; }
+
+    /// <summary>
+    /// The name of the country.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// The language codes for the country.
+    /// </summary>
     public IReadOnlySet<string> LangCodes { get; }
 }

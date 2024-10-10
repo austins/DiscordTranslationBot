@@ -12,7 +12,7 @@ namespace DiscordTranslationBot.Commands.TempReplies;
 /// This is needed in cases where it's not possible to send an ephemeral message, which are only possible to send with
 /// message and slash commands, but not when sending a new message to a channel such as when we are handling a reaction.
 /// </remarks>
-internal sealed class SendTempReply : ICommand
+public sealed class SendTempReply : ICommand
 {
     /// <summary>
     /// The source message.
@@ -41,7 +41,7 @@ internal sealed class SendTempReply : ICommand
 /// <summary>
 /// Handler for temp replies.
 /// </summary>
-internal sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
+public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply>
 {
     private readonly Log _log;
     private readonly IScheduler _scheduler;

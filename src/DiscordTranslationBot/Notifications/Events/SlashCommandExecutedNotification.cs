@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Notifications.Events;
 /// <summary>
 /// Notification for the Discord SlashCommandExecuted event.
 /// </summary>
-internal sealed class SlashCommandExecutedNotification : INotification
+public sealed class SlashCommandExecutedNotification : INotification
 {
     /// <summary>
     /// The slash command interaction.

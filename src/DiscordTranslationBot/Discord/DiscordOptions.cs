@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Discord;
 /// <summary>
 /// The configuration options for Discord.
 /// </summary>
-internal sealed class DiscordOptions
+public sealed class DiscordOptions
 {
     /// <summary>
     /// Configuration section name for <see cref="DiscordOptions" />.

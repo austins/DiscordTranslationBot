@@ -3,7 +3,7 @@ namespace DiscordTranslationBot.Providers.Translation.Models;
 /// <summary>
 /// Interface for a translate request for a provider's translate endpoint.
 /// </summary>
-internal interface ITranslateRequest
+public interface ITranslateRequest
 {
     /// <summary>
     /// The text to translate.

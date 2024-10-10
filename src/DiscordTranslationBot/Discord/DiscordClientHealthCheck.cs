@@ -3,7 +3,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace DiscordTranslationBot.Discord;
 
-internal sealed class DiscordClientHealthCheck : IHealthCheck
+public sealed class DiscordClientHealthCheck : IHealthCheck
 {
     public const string HealthCheckName = "DiscordClient";
 

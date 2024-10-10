@@ -11,7 +11,7 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 /// <summary>
 /// Handler for the "Translate (Auto)" message command.
 /// </summary>
-internal sealed partial class TranslateAutoMessageCommandHandler
+public sealed partial class TranslateAutoMessageCommandHandler
     : INotificationHandler<MessageCommandExecutedNotification>
 {
     private readonly IDiscordClient _client;

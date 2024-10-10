@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// The configuration options for translation providers.
 /// </summary>
-internal sealed class TranslationProvidersOptions : IValidatableObject
+public sealed class TranslationProvidersOptions : IValidatableObject
 {
     /// <summary>
     /// Configuration section name for <see cref="TranslationProvidersOptions" />.
