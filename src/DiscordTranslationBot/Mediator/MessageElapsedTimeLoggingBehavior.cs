@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
 using DiscordTranslationBot.Commands.Logging;
+using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
 

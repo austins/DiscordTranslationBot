@@ -1,9 +1,9 @@
-using System.Net;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
 using Refit;
+using System.Net;
 using Languages = DiscordTranslationBot.Providers.Translation.AzureTranslator.Models.Languages;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.AzureTranslator;

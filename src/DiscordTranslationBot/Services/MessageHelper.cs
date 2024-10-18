@@ -1,8 +1,8 @@
-﻿using System.Globalization;
-using System.Text.RegularExpressions;
 using Discord;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Services;

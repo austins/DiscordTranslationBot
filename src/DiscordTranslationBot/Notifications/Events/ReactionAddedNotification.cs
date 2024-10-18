@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using Discord;
 using DiscordTranslationBot.Discord.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Notifications.Events;
 

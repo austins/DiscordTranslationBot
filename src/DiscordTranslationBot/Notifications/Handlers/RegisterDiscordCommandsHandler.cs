@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using Humanizer;
+using System.Text.Json;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 

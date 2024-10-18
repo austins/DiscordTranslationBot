@@ -1,9 +1,9 @@
-using System.Net;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
 using Refit;
+using System.Net;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.LibreTranslate;
 

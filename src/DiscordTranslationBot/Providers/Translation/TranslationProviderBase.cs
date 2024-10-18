@@ -1,7 +1,7 @@
-using System.Net;
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Net;
 
 namespace DiscordTranslationBot.Providers.Translation;
 

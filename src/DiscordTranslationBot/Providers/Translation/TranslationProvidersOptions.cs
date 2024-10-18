@@ -1,7 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Providers.Translation;
 

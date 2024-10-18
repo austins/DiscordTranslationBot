@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
 using Markdig;
 using NeoSmart.Unicode;
+using System.Text.RegularExpressions;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Utilities;

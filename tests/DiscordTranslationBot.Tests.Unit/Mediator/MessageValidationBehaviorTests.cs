@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using DiscordTranslationBot.Mediator;
 using Mediator;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 

@@ -1,8 +1,8 @@
-﻿using System.Net;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
+using System.Net;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 

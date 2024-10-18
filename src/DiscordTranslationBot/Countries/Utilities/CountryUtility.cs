@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
 using DiscordTranslationBot.Countries.Models;
 using NeoSmart.Unicode;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DiscordTranslationBot.Countries.Utilities;
 

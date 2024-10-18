@@ -1,9 +1,9 @@
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Refit;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 
 namespace DiscordTranslationBot.Providers.Translation;
 

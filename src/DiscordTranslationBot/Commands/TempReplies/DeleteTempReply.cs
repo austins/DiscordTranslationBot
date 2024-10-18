@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Discord.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
