@@ -13,12 +13,9 @@ env:
     IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-    #analyze:
-    #    uses: ./.github/workflows/codeql.yml
     test:
         uses: ./.github/workflows/test.yml
     docker:
-        #needs: [ analyze, test ]
         needs: test
         runs-on: ubuntu-latest
         steps:
