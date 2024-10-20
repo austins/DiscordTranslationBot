@@ -120,4 +120,6 @@ dotnet_diagnostic.CA1724.severity = none
 dotnet_diagnostic.IDE0072.severity = none
 dotnet_diagnostic.IDE0046.severity = none
 dotnet_diagnostic.SA1313.severity = none
+dotnet_sort_system_directives_first = false
 dotnet_diagnostic.SA1208.severity = none
+dotnet_diagnostic.SA1210.severity = error
