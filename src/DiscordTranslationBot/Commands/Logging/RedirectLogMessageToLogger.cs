@@ -37,7 +37,7 @@ public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<
         // Map the Discord log message severities to the logger log levels accordingly.
         var logLevel = command.LogMessage.Exception switch
         {
-            GatewayReconnectException => LogLevel.Information,
+            GatewayReconnectException => LogLevel.Information, // Most likely Discord requested the client to reconnect.
             _ => command.LogMessage.Severity switch
             {
                 LogSeverity.Debug => LogLevel.Trace,
@@ -54,11 +54,11 @@ public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<
             logLevel,
             command.LogMessage.Exception,
             command.LogMessage.Source,
-            command.LogMessage.Message);
+            command.LogMessage.Message ?? command.LogMessage.Exception?.Message ?? string.Empty);
 
         return Unit.ValueTask;
     }
 
-    [LoggerMessage(Message = "Discord {source}: {message}")]
-    private partial void LogDiscordMessage(LogLevel level, Exception ex, string source, string message);
+    [LoggerMessage(Message = "Discord: [{source}] {message}")]
+    private partial void LogDiscordMessage(LogLevel level, Exception? ex, string source, string message);
 }

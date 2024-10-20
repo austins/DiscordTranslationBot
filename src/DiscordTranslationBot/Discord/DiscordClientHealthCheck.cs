@@ -18,23 +18,21 @@ public sealed class DiscordClientHealthCheck : IHealthCheck
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
-        var data = new Dictionary<string, object>
-        {
-            { nameof(IDiscordClient.ConnectionState), _client.ConnectionState }
-        };
+        var description = _client.ConnectionState.ToString();
 
         if (_client.ConnectionState is ConnectionState.Connected)
         {
             // The guilds list should already be cached by now.
-            data.Add(
-                "GuildCount",
-                (await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })).Count);
+            var guildCount =
+                (await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })).Count;
 
-            return HealthCheckResult.Healthy(data: data);
+            return HealthCheckResult.Healthy(
+                description,
+                new Dictionary<string, object> { { "GuildCount", guildCount } });
         }
 
         return _client.ConnectionState is ConnectionState.Connecting or ConnectionState.Disconnecting
-            ? HealthCheckResult.Degraded(data: data)
-            : HealthCheckResult.Unhealthy(data: data);
+            ? HealthCheckResult.Degraded(description)
+            : HealthCheckResult.Unhealthy(description);
     }
 }

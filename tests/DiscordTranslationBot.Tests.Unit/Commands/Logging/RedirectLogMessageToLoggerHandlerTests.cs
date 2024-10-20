@@ -36,7 +36,7 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         // Assert
         var logEntry = _logger.Entries[0];
         logEntry.LogLevel.Should().Be(expectedLevel);
-        logEntry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
+        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
         logEntry.Exception.Should().Be(command.LogMessage.Exception);
     }
 
@@ -61,7 +61,26 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         // Assert
         var logEntry = _logger.Entries[0];
         logEntry.LogLevel.Should().Be(expectedLevel);
-        logEntry.Message.Should().Be($"Discord {command.LogMessage.Source}: {command.LogMessage.Message}");
+        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
+        logEntry.Exception.Should().Be(command.LogMessage.Exception);
+    }
+
+    [Fact]
+    public async Task Handle_RedirectLogMessageToLogger_NullMessage()
+    {
+        // Arrange
+        var command = new RedirectLogMessageToLogger
+        {
+            LogMessage = new LogMessage(LogSeverity.Info, "source1", null)
+        };
+
+        // Act
+        await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        var logEntry = _logger.Entries[0];
+        logEntry.LogLevel.Should().Be(LogLevel.Information);
+        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] ");
         logEntry.Exception.Should().Be(command.LogMessage.Exception);
     }
 }
