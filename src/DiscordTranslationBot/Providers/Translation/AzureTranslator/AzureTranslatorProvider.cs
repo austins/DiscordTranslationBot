@@ -29,7 +29,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
-    public override IReadOnlySet<string> TranslateCommandLangCodes =>
+    public override IReadOnlySet<string> TranslateCommandLangCodes { get; } =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "en",

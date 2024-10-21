@@ -13,7 +13,7 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
     public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
         new HashSet<SupportedLanguage>();
 
-    public virtual IReadOnlySet<string>? TranslateCommandLangCodes => null;
+    public virtual IReadOnlySet<string>? TranslateCommandLangCodes { get; }
 
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
