@@ -85,6 +85,30 @@ to `true` for those you which to
 enable. When a provider is enabled, you must provide the related config settings for the provider or the app will exit
 with an error._
 
+## Telemetry
+
+This app logs general information, warnings, and errors that may occur during runtime, along with metrics and traces for
+performance and detection of any issues from code or external calls; the bot does not log contents of messages.
+
+You can configure the app to persist logging, metric, and trace output using the OpenTelemetry protocol by enabling the
+following option via an environment variable:
+
+```
+Telemetry__Enabled=true
+```
+
+Then you'll need to configure the OpenTelemetry Exporter. Here are some example environment variables for a global
+endpoint:
+
+```
+OTEL_EXPORTER_OTLP_ENDPOINT=
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_HEADERS=
+```
+
+Refer to the [OpenTelemetry documentation](https://opentelemetry.io/docs/zero-code/net/configuration/#otlp) for other
+environment variables.
+
 ## License
 
 See LICENSE file in this repo.
