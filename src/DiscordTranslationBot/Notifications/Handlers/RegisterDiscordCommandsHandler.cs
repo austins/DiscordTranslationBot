@@ -32,12 +32,10 @@ public sealed partial class RegisterDiscordCommandsHandler
         _log = new Log(logger);
     }
 
-#pragma warning disable AsyncFixer01
     public async ValueTask Handle(JoinedGuildNotification notification, CancellationToken cancellationToken)
     {
         await RegisterDiscordCommandsAsync([notification.Guild], cancellationToken);
     }
-#pragma warning restore AsyncFixer01
 
     public async ValueTask Handle(ReadyNotification notification, CancellationToken cancellationToken)
     {

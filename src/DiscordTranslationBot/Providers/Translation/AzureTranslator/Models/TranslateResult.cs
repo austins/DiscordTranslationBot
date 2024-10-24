@@ -1,4 +1,3 @@
-using DiscordTranslationBot.Providers.Translation.Models;
 using System.Text.Json.Serialization;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
@@ -6,7 +5,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 /// <summary>
 /// The result from the Azure Translator translate endpoint.
 /// </summary>
-public sealed class TranslateResult : ITranslateResult
+public sealed class TranslateResult
 {
     /// <summary>
     /// The automatically detected language.
