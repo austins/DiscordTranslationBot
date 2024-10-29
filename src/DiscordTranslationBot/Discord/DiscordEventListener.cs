@@ -98,7 +98,6 @@ internal sealed partial class DiscordEventListener
             {
                 try
                 {
-                    _log.PublishingNotification(notificationName);
                     await _mediator.Publish(notification, cancellationToken);
                 }
                 catch (Exception ex)
@@ -115,9 +114,6 @@ internal sealed partial class DiscordEventListener
     {
         [LoggerMessage(Level = LogLevel.Information, Message = "Discord events initialized.")]
         public partial void EventsInitialized();
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Publishing notification '{notificationName}'...")]
-        public partial void PublishingNotification(string notificationName);
 
         [LoggerMessage(
             Level = LogLevel.Error,

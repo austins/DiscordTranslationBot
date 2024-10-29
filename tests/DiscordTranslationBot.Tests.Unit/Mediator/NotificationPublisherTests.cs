@@ -4,9 +4,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
-public sealed class ValidatedTaskWhenAllPublisherTests
+public sealed class NotificationPublisherTests
 {
-    private readonly ValidatedTaskWhenAllPublisher _sut = new();
+    private readonly LoggerFake<NotificationPublisher> _logger;
+    private readonly NotificationPublisher _sut;
+
+    public NotificationPublisherTests()
+    {
+        _logger = new LoggerFake<NotificationPublisher>();
+        _sut = new NotificationPublisher(_logger);
+    }
 
     [Fact]
     public async Task Publish_ValidNotification_Success()
@@ -18,6 +25,19 @@ public sealed class ValidatedTaskWhenAllPublisherTests
 
         // Act + Assert
         await _sut.Awaiting(x => x.Publish(handlers, notification, CancellationToken.None)).Should().NotThrowAsync();
+
+        var notificationName = notification.GetType().Name;
+
+        var publishingLog = _logger.Entries[0];
+        publishingLog.LogLevel.Should().Be(LogLevel.Information);
+        publishingLog.Message.Should().Be($"Publishing notification '{notificationName}'...");
+
+        var handlersExecutedLog = _logger.Entries[1];
+        handlersExecutedLog.LogLevel.Should().Be(LogLevel.Information);
+        handlersExecutedLog
+            .Message
+            .Should()
+            .StartWith($"Executed notification handlers for '{notificationName}'. Elapsed time:");
     }
 
     [Fact]
