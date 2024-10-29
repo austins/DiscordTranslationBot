@@ -47,11 +47,11 @@ public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespons
         var messageName = message.GetType().Name;
         _log.MessageExecuting(messageName);
 
-        var stopwatch = Stopwatch.StartNew();
+        var startingTimestamp = Stopwatch.GetTimestamp();
         var result = await next(message, cancellationToken);
-        stopwatch.Stop();
+        var elapsed = Stopwatch.GetElapsedTime(startingTimestamp);
 
-        _log.MessageExecuted(messageName, stopwatch.ElapsedMilliseconds);
+        _log.MessageExecuted(messageName, elapsed.TotalMilliseconds);
 
         return result;
     }
@@ -64,6 +64,6 @@ public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespons
         [LoggerMessage(
             Level = LogLevel.Information,
             Message = "Executed message '{messageName}'. Elapsed time: {elapsedMilliseconds}ms.")]
-        public partial void MessageExecuted(string messageName, long elapsedMilliseconds);
+        public partial void MessageExecuted(string messageName, double elapsedMilliseconds);
     }
 }
