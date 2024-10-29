@@ -63,7 +63,7 @@ public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespons
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Executed message '{messageName}'. Elapsed time: {elapsedMilliseconds}ms.")]
-        public partial void MessageExecuted(string messageName, double elapsedMilliseconds);
+            Message = "Executed message '{messageName}'. Elapsed time: {elapsedMs}ms.")]
+        public partial void MessageExecuted(string messageName, double elapsedMs);
     }
 }
