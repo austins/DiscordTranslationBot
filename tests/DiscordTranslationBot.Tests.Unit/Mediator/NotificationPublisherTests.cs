@@ -37,7 +37,7 @@ public sealed class NotificationPublisherTests
         handlersExecutedLog
             .Message
             .Should()
-            .StartWith($"Executed notification handlers for '{notificationName}'. Elapsed time:");
+            .StartWith($"Executed notification handler(s) for '{notificationName}'. Elapsed time:");
     }
 
     [Fact]

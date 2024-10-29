@@ -41,7 +41,7 @@ public sealed partial class NotificationPublisher : INotificationPublisher
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Executed notification handlers for '{notificationName}'. Elapsed time: {elapsedMs}ms.")]
+            Message = "Executed notification handler(s) for '{notificationName}'. Elapsed time: {elapsedMs}ms.")]
         public partial void NotificationHandlersExecuted(string notificationName, double elapsedMs);
     }
 }
