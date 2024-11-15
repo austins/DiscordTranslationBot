@@ -33,7 +33,7 @@ public sealed class TranslationProviderFactoryTests
     public async Task Providers_ReturnsIfInitialized()
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
         await _sut.InitializeProvidersAsync(CancellationToken.None);
 
         // Act + Assert
@@ -46,8 +46,8 @@ public sealed class TranslationProviderFactoryTests
     public async Task InitializeProvidersAsync_Success()
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
-        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
 
         // Act
         var result = await _sut.InitializeProvidersAsync(CancellationToken.None);
@@ -86,8 +86,8 @@ public sealed class TranslationProviderFactoryTests
     public async Task GetSupportedLanguagesForOptions_Success()
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
-        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(x => { });
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
         await _sut.InitializeProvidersAsync(CancellationToken.None);
 
         var expected = new List<SupportedLanguage>
