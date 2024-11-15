@@ -11,6 +11,9 @@ public sealed partial class MessageHelper : IMessageHelper
 {
     public const string DmChannelId = "@me";
 
+    [GeneratedRegex($@"https:\/\/discord\.com\/channels\/({DmChannelId}|\d+)\/(\d+)\/(\d+)")]
+    private static partial Regex JumpUrlRegex { get; }
+
     public Uri GetJumpUrl(IMessage message)
     {
         return new Uri(message.GetJumpUrl(), UriKind.Absolute);
@@ -19,7 +22,7 @@ public sealed partial class MessageHelper : IMessageHelper
     public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message)
     {
         var jumpUrls = new List<JumpUrl>();
-        foreach (var groups in JumpUrlRegex().Matches(message.CleanContent).Select(m => m.Groups))
+        foreach (var groups in JumpUrlRegex.Matches(message.CleanContent).Select(m => m.Groups))
         {
             var isDmChannel = groups[1].Value == DmChannelId;
 
@@ -60,9 +63,6 @@ public sealed partial class MessageHelper : IMessageHelper
 
         return replyText;
     }
-
-    [GeneratedRegex($@"https:\/\/discord\.com\/channels\/({DmChannelId}|\d+)\/(\d+)\/(\d+)")]
-    private static partial Regex JumpUrlRegex();
 }
 
 public interface IMessageHelper
