@@ -1,7 +1,7 @@
 ###################################################
 ## Build stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:46332395f3dd8cb9a0b1a7e59788c6972514bc12fe9eb0652d7c3c7e241cbcc8 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:1e2d0919b9489be1306a955bc506b74a95fd0c5fb9cb8bd58b96bea82d600152 AS build
 
 # Publish app.
 WORKDIR /app
