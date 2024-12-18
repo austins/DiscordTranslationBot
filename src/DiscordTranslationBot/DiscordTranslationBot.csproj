@@ -7,7 +7,7 @@
         <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1"/>
         <PackageReference Include="Discord.Net" Version="3.16.0"/>
         <PackageReference Include="Humanizer.Core" Version="2.14.1"/>
-        <PackageReference Include="Markdig.Signed" Version="0.38.0"/>
+        <PackageReference Include="Markdig.Signed" Version="0.39.0"/>
         <PackageReference Include="Mediator.Abstractions" Version="3.0.0-preview.27"/>
         <PackageReference Include="Mediator.SourceGenerator" Version="3.0.0-preview.27">
             <PrivateAssets>all</PrivateAssets>
