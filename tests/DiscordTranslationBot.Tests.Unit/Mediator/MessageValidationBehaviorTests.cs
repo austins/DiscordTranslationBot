@@ -21,7 +21,7 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
             .Should()
             .NotThrowAsync();
     }
@@ -38,7 +38,7 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
             .Should()
             .NotThrowAsync();
     }
@@ -55,7 +55,7 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), CancellationToken.None))
+            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<MessageValidationException>()
             .Where(

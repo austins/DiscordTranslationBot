@@ -21,7 +21,7 @@ public sealed class TranslationProviderBaseTests
 
         // Act & Assert
         await sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<LanguageNotSupportedForCountryException>();
     }

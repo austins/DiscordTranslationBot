@@ -51,7 +51,7 @@ public sealed class DeleteTempReplyHandlerTests
         }
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
@@ -97,7 +97,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns((IUserMessage?)null);
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
@@ -138,7 +138,7 @@ public sealed class DeleteTempReplyHandlerTests
                     DiscordErrorCode.UnknownMessage));
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
@@ -180,7 +180,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns(sourceMessage);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().ThrowAsync<Exception>();
+        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();

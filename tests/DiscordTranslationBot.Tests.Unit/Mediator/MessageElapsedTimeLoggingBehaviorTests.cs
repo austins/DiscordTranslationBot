@@ -21,7 +21,7 @@ public sealed class MessageElapsedTimeLoggingBehaviorTests
         var message = Substitute.For<IMessage>();
 
         // Act
-        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), CancellationToken.None);
+        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Entries.Count.Should().Be(2);

@@ -38,7 +38,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.CustomId.Returns("incorrect_button_id");
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().DeferAsync();
@@ -86,7 +86,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification
@@ -161,7 +161,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, default)
+            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -170,7 +170,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 });
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification
@@ -282,7 +282,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, default)
+            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -291,7 +291,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 });
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         if (buttonId == MessageCommandConstants.TranslateTo.TranslateButtonId)
@@ -323,7 +323,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.Name.Returns("incorrect_message_command_name");
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().RespondAsync();
@@ -341,7 +341,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.Message.Content.Returns(" ");
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification
@@ -370,7 +370,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Do(x => messageComponents = x.Arg<MessageComponent>());
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification
@@ -401,7 +401,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.CustomId.Returns("incorrect_select_menu_id");
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().UpdateAsync(default);
@@ -423,7 +423,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         receivedProperties.Components.Value.Components.Should().HaveCount(2);

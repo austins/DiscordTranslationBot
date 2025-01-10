@@ -45,7 +45,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new JoinedGuildNotification { Guild = Substitute.For<IGuild>() };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -70,7 +70,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -93,7 +93,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;

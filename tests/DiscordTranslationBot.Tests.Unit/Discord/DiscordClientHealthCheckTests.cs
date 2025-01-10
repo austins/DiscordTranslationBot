@@ -28,7 +28,7 @@ public sealed class DiscordClientHealthCheckTests
         var expectedData = new Dictionary<string, object> { { "GuildCount", guilds.Count } };
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Healthy);
@@ -47,7 +47,7 @@ public sealed class DiscordClientHealthCheckTests
         var expectedDescription = _client.ConnectionState.ToString();
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Degraded);
@@ -66,7 +66,7 @@ public sealed class DiscordClientHealthCheckTests
         var expectedDescription = _client.ConnectionState.ToString();
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), CancellationToken.None);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
         result.Status.Should().Be(HealthStatus.Unhealthy);

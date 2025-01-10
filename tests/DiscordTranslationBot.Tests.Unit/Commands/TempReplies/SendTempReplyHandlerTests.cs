@@ -45,7 +45,7 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
 
         // Act
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
@@ -80,7 +80,7 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ThrowsAsyncForAnyArgs(exception);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, CancellationToken.None)).Should().ThrowAsync<Exception>();
+        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
 
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();

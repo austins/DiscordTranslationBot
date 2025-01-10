@@ -45,14 +45,14 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _sut = new LibreTranslateProvider(_client, _logger);
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        await _sut.InitializeSupportedLanguagesAsync(CancellationToken.None);
+        await _sut.InitializeSupportedLanguagesAsync(TestContext.Current.CancellationToken);
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act
-        var result = await _sut.TranslateAsync(targetLanguage, text, CancellationToken.None, sourceLanguage);
+        var result = await _sut.TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -136,7 +136,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act
-        var result = await _sut.TranslateByCountryAsync(_country, text, CancellationToken.None);
+        var result = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -152,19 +152,19 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         response.IsSuccessStatusCode.Returns(true);
         response.Content.Returns([]);
 
-        _client.GetLanguagesAsync(default).ReturnsForAnyArgs(response);
+        _client.GetLanguagesAsync(Arg.Any<CancellationToken>()).Returns(response);
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new LibreTranslateProvider(_client, _logger);
 
         // Act & Assert
         await sut
-            .Invoking(x => x.InitializeSupportedLanguagesAsync(CancellationToken.None))
+            .Invoking(x => x.InitializeSupportedLanguagesAsync(TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("Languages endpoint returned no language codes.");
 
-        await _client.Received(1).GetLanguagesAsync(default);
+        await _client.Received(1).GetLanguagesAsync(Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -191,11 +191,11 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 
-        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -225,10 +225,10 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
 
         // Act & Assert
         await _sut
-            .Invoking(x => x.TranslateByCountryAsync(_country, text, CancellationToken.None))
+            .Invoking(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<InvalidOperationException>();
 
-        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, Arg.Any<CancellationToken>());
     }
 }

@@ -92,7 +92,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _translationProvider
@@ -125,7 +125,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         _ = notification.Interaction.Data.Received(1).Name;
@@ -151,7 +151,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await interaction.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
@@ -161,12 +161,8 @@ public sealed class TranslateSlashCommandHandlerTests
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProvider
-            .DidNotReceive()
-            .TranslateAsync(
-                Arg.Any<SupportedLanguage>(),
-                Arg.Any<string>(),
-                Arg.Any<CancellationToken>(),
-                Arg.Any<SupportedLanguage>());
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -236,7 +232,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _translationProvider

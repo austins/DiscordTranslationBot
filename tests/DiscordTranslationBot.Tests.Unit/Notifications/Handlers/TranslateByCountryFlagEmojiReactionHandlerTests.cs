@@ -105,14 +105,16 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         // Act
-        await _sut.Handle(notification, CancellationToken.None);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _message
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -122,12 +124,14 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _message.Author.Id.Returns(BotUserId);
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -146,7 +150,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Returns(translationResult);
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _translationProvider
@@ -163,10 +167,13 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _message.Content.Returns(string.Empty);
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
+
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -175,14 +182,14 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     {
         // Arrange
         _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns((TranslationResult)null!);
+            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs((TranslationResult)null!);
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
-        await _sender.DidNotReceive().Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
+        await _sender.DidNotReceiveWithAnyArgs().Send(default!, Arg.Any<CancellationToken>());
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -198,7 +205,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _translationProvider
@@ -224,7 +231,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Returns(translationResult);
 
         // Act
-        await _sut.Handle(_notification, CancellationToken.None);
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _translationProvider

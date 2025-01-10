@@ -24,7 +24,7 @@ public sealed class NotificationPublisherTests
         var notification = new NotificationFake { Value = 1 };
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Publish(handlers, notification, CancellationToken.None)).Should().NotThrowAsync();
+        await _sut.Awaiting(x => x.Publish(handlers, notification, TestContext.Current.CancellationToken)).Should().NotThrowAsync();
 
         var notificationName = notification.GetType().Name;
 
@@ -50,7 +50,7 @@ public sealed class NotificationPublisherTests
 
         // Act + Assert
         await _sut
-            .Awaiting(x => x.Publish(handlers, notification, CancellationToken.None))
+            .Awaiting(x => x.Publish(handlers, notification, TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<MessageValidationException>();
     }
