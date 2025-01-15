@@ -46,7 +46,7 @@ public sealed class LibreTranslateProviderTests
     }
 
     [Before(Test)]
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    public async Task Initialize(CancellationToken cancellationToken)
     {
         await _sut.InitializeSupportedLanguagesAsync(cancellationToken);
     }
