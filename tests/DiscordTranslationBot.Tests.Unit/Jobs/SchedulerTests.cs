@@ -115,10 +115,10 @@ public sealed class SchedulerTests
         if (hasTaskScheduled)
         {
             job1.ShouldNotBeNull();
-            job1!.ExecuteAt.ShouldBe(executeAt1);
+            job1.ExecuteAt.ShouldBe(executeAt1);
 
             job2.ShouldNotBeNull();
-            job2!.ExecuteAt.ShouldBe(executeAt2);
+            job2.ExecuteAt.ShouldBe(executeAt2);
 
             countBeforeGet.ShouldBe(2);
         }
