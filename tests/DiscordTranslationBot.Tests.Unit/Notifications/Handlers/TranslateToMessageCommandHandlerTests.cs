@@ -94,8 +94,8 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties.Content.Should().Be("No text to translate.");
-        receivedProperties.Components.Value.Should().BeNull();
+        receivedProperties.Content.Value.ShouldBe("No text to translate.");
+        receivedProperties.Components.Value.ShouldBeNull();
     }
 
     [Theory]
@@ -178,12 +178,10 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties
-            .Content
-            .Should()
-            .Be("Couldn't detect the source language to translate from or the result is the same.");
+        receivedProperties.Content.Value.ShouldBe(
+            "Couldn't detect the source language to translate from or the result is the same.");
 
-        receivedProperties.Components.Value.Should().BeNull();
+        receivedProperties.Components.Value.ShouldBeNull();
     }
 
     [Theory]
@@ -301,15 +299,15 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Received(1)
                 .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-            receivedProperties!.Content.Should().Be(translationReplytext);
-            receivedProperties.Components.Value.Should().BeNull();
+            receivedProperties!.Content.Value.ShouldBe(translationReplytext);
+            receivedProperties.Components.Value.ShouldBeNull();
         }
         else if (buttonId == MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
         {
             await notification.Interaction.Received(1).DeleteOriginalResponseAsync(Arg.Any<RequestOptions?>());
             await notification.Interaction.Message.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
-            receivedSentMessagetext.Should().Be(translationReplytext);
-            receivedReferencedMessageId.Should().Be(referencedMessageId);
+            receivedSentMessagetext.ShouldBe(translationReplytext);
+            receivedReferencedMessageId.ShouldBe(referencedMessageId);
         }
     }
 
@@ -382,15 +380,17 @@ public sealed class TranslateToMessageCommandHandlerTests
                 ephemeral: true,
                 options: Arg.Any<RequestOptions?>());
 
-        messageComponents!.Components.Should().HaveCount(2);
+        messageComponents!.Components.Count.ShouldBe(2);
 
         var firstRowComponents = messageComponents.Components.ElementAt(0).Components;
-        firstRowComponents.Should().HaveCount(1).And.AllBeOfType<SelectMenuComponent>();
+        firstRowComponents.Count.ShouldBe(1);
+        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
 
         var lastRowComponents = messageComponents.Components.ElementAt(1).Components;
-        lastRowComponents.Should().HaveCount(2).And.AllBeOfType<ButtonComponent>();
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.Should().BeTrue();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.Should().BeTrue();
+        lastRowComponents.Count.ShouldBe(2);
+        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeTrue();
+        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeTrue();
     }
 
     [Fact]
@@ -426,14 +426,16 @@ public sealed class TranslateToMessageCommandHandlerTests
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
-        receivedProperties.Components.Value.Components.Should().HaveCount(2);
+        receivedProperties.Components.Value.Components.Count.ShouldBe(2);
 
         var firstRowComponents = receivedProperties.Components.Value.Components.ElementAt(0).Components;
-        firstRowComponents.Should().HaveCount(1).And.AllBeOfType<SelectMenuComponent>();
+        firstRowComponents.Count.ShouldBe(1);
+        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
 
         var lastRowComponents = receivedProperties.Components.Value.Components.ElementAt(1).Components;
-        lastRowComponents.Should().HaveCount(2).And.AllBeOfType<ButtonComponent>();
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.Should().BeFalse();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.Should().BeFalse();
+        lastRowComponents.Count.ShouldBe(2);
+        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeFalse();
+        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeFalse();
     }
 }

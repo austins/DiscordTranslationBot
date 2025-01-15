@@ -17,8 +17,8 @@ public sealed class MessageCommandExecutedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
     [Fact]
@@ -31,7 +31,10 @@ public sealed class MessageCommandExecutedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(notification.Interaction)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(notification.Interaction));
     }
 }

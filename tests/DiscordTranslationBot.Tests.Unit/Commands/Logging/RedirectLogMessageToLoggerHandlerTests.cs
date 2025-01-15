@@ -35,9 +35,9 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.Should().Be(expectedLevel);
-        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
-        logEntry.Exception.Should().Be(command.LogMessage.Exception);
+        logEntry.LogLevel.ShouldBe(expectedLevel);
+        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
+        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
     }
 
     [Fact]
@@ -60,9 +60,9 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.Should().Be(expectedLevel);
-        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
-        logEntry.Exception.Should().Be(command.LogMessage.Exception);
+        logEntry.LogLevel.ShouldBe(expectedLevel);
+        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
+        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
     }
 
     [Fact]
@@ -76,8 +76,8 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.Should().Be(LogLevel.Information);
-        logEntry.Message.Should().Be($"Discord: [{command.LogMessage.Source}] ");
-        logEntry.Exception.Should().Be(command.LogMessage.Exception);
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] ");
+        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
     }
 }

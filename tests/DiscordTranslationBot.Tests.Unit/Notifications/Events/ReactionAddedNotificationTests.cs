@@ -27,8 +27,8 @@ public sealed class ReactionAddedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
     [Fact]
@@ -46,14 +46,11 @@ public sealed class ReactionAddedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
+        isValid.ShouldBeFalse();
 
-        validationResults
-            .Should()
-            .ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.Message)))
-            .And
-            .ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.Channel)))
-            .And
-            .ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.ReactionInfo)));
+        validationResults.Count.ShouldBe(3);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Message)), 1);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Channel)), 1);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.ReactionInfo)), 1);
     }
 }

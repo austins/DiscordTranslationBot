@@ -15,8 +15,8 @@ public sealed class DiscordOptionsTests
         var isValid = options.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
     [Theory]
@@ -32,7 +32,10 @@ public sealed class DiscordOptionsTests
         var isValid = options.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(options.BotToken)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(options.BotToken));
     }
 }

@@ -20,10 +20,8 @@ public sealed class TranslationProviderBaseTests
         var sut = new TranslationProviderFake();
 
         // Act & Assert
-        await sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<LanguageNotSupportedForCountryException>();
+        await Should.ThrowAsync<LanguageNotSupportedForCountryException>(
+            async () => await sut.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken));
     }
 
     private sealed class TranslationProviderFake : TranslationProviderBase

@@ -33,8 +33,8 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
     [Fact]
@@ -51,8 +51,11 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.SourceMessage)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(command.SourceMessage));
     }
 
     [Theory]
@@ -73,8 +76,11 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.Text)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(command.Text));
     }
 
     [Theory]
@@ -100,7 +106,10 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.DeletionDelay)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(command.DeletionDelay));
     }
 }

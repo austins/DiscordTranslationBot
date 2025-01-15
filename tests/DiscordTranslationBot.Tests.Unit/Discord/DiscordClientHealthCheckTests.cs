@@ -31,9 +31,9 @@ public sealed class DiscordClientHealthCheckTests
         var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Healthy);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEquivalentTo(expectedData);
+        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEquivalentTo(expectedData);
     }
 
     [Theory]
@@ -50,9 +50,9 @@ public sealed class DiscordClientHealthCheckTests
         var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Degraded);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEmpty();
+        result.Status.ShouldBe(HealthStatus.Degraded);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEmpty();
 
         await _client.DidNotReceiveWithAnyArgs().GetGuildsAsync();
     }
@@ -69,9 +69,9 @@ public sealed class DiscordClientHealthCheckTests
         var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Unhealthy);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEmpty();
+        result.Status.ShouldBe(HealthStatus.Unhealthy);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEmpty();
 
         await _client.DidNotReceiveWithAnyArgs().GetGuildsAsync();
     }

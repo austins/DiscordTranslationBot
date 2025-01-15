@@ -49,6 +49,6 @@ public sealed class FormatUtilityTests
         var result = FormatUtility.SanitizeText(text);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 }

@@ -47,7 +47,7 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrl(message);
 
         // Assert
-        result.AbsoluteUri.Should().Be(expected.AbsoluteUri);
+        result.AbsoluteUri.ShouldBe(expected.AbsoluteUri);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrlsInMessage(mainMessage);
 
         // Assert
-        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        result.ShouldBeEquivalentTo(expected);
     }
 
     [Theory]
@@ -134,6 +134,7 @@ public sealed class MessageHelperTests
 
         var expected =
             $"{(interactionUserId is null ? "You" : $"<@{interactionUserId}>")} translated {messageJumpUrl} by <@{authorId}>";
+
         if (detectedLanguageCode is not null)
         {
             expected += $" from *{translationResult.DetectedLanguageName}*";
@@ -145,7 +146,7 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
     [Fact]
@@ -181,6 +182,6 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 }

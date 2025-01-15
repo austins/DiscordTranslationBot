@@ -1,5 +1,7 @@
-﻿using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Models;
+﻿using DiscordTranslationBot.Providers.Translation.Models;
+#pragma warning disable IDE0005
+using DiscordTranslationBot.Providers.Translation;
+#pragma warning restore IDE0005
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
@@ -23,10 +25,10 @@ public sealed class TranslationProviderFactoryTests
     public void Providers_ThrowsIfNotInitialized()
     {
         // Act + Assert
-        _sut.Invoking(x => x.Providers).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.PrimaryProvider).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.LastProvider).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.GetSupportedLanguagesForOptions()).Should().Throw<InvalidOperationException>();
+        Should.Throw<InvalidOperationException>(() => _sut.Providers);
+        Should.Throw<InvalidOperationException>(() => _sut.PrimaryProvider);
+        Should.Throw<InvalidOperationException>(() => _sut.LastProvider);
+        Should.Throw<InvalidOperationException>(() => _sut.GetSupportedLanguagesForOptions());
     }
 
     [Fact]
@@ -37,9 +39,15 @@ public sealed class TranslationProviderFactoryTests
         await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
         // Act + Assert
-        _sut.Providers.Should().BeEquivalentTo([_primaryProvider, _lastProvider]);
-        _sut.PrimaryProvider.Should().Be(_primaryProvider);
-        _sut.LastProvider.Should().Be(_lastProvider);
+        _sut.Providers.ShouldBeEquivalentTo(
+            new List<ITranslationProvider>
+            {
+                _primaryProvider,
+                _lastProvider
+            });
+
+        _sut.PrimaryProvider.ShouldBe(_primaryProvider);
+        _sut.LastProvider.ShouldBe(_lastProvider);
     }
 
     [Fact]
@@ -53,7 +61,7 @@ public sealed class TranslationProviderFactoryTests
         var result = await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeTrue();
+        result.ShouldBeTrue();
         await _primaryProvider.Received(1).InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>());
         await _lastProvider.Received(1).InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>());
     }
@@ -69,17 +77,13 @@ public sealed class TranslationProviderFactoryTests
         var result = await sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
 
-        logger.Entries.Count.Should().Be(1);
+        var logEntry = logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
 
-        var logEntry = logger.Entries[0];
-        logEntry.LogLevel.Should().Be(LogLevel.Error);
-
-        logEntry
-            .Message
-            .Should()
-            .Be("No translation providers enabled. Please configure and enable at least one translation provider.");
+        logEntry.Message.ShouldBe(
+            "No translation providers enabled. Please configure and enable at least one translation provider.");
     }
 
     [Fact]
@@ -110,7 +114,7 @@ public sealed class TranslationProviderFactoryTests
         var result = _sut.GetSupportedLanguagesForOptions();
 
         // Assert
-        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        result.ToList().ShouldBeEquivalentTo(expected);
         _ = _primaryProvider.Received().TranslateCommandLangCodes;
         _ = _primaryProvider.Received().SupportedLanguages;
         _ = _lastProvider.DidNotReceive().TranslateCommandLangCodes;

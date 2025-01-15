@@ -56,10 +56,9 @@ public sealed class DeleteTempReplyHandlerTests
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
 
         await command
             .Reply
@@ -102,10 +101,9 @@ public sealed class DeleteTempReplyHandlerTests
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
 
         await command
             .Reply
@@ -143,12 +141,9 @@ public sealed class DeleteTempReplyHandlerTests
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Information
-                     && x.Message == $"Temp reply ID {replyId} was not found and likely manually deleted.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Temp reply ID {replyId} was not found and likely manually deleted.");
     }
 
     [Fact]
@@ -180,18 +175,14 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns(sourceMessage);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
+        await _sut.Handle(command, TestContext.Current.CancellationToken).AsTask().ShouldThrowAsync<Exception>();
 
-        // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Error
-                     && ReferenceEquals(x.Exception, exception)
-                     && x.Message == $"Failed to delete temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
+        logEntry.Exception.ShouldBe(exception);
+        logEntry.Message.ShouldBe($"Failed to delete temp reply ID {replyId}.");
 
         await command
             .Reply

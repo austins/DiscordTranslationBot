@@ -18,8 +18,8 @@ public sealed class CountryUtilityTests
         var result = CountryUtility.TryGetCountryByEmoji(emojiUnicode, out var country);
 
         // Assert
-        result.Should().BeTrue();
-        country.Should().Be(expectedCountry);
+        result.ShouldBeTrue();
+        country.ShouldBe(expectedCountry);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class CountryUtilityTests
         var result = CountryUtility.TryGetCountryByEmoji(emojiUnicode, out var country);
 
         // Assert
-        result.Should().BeFalse();
-        country.Should().BeNull();
+        result.ShouldBeFalse();
+        country.ShouldBeNull();
     }
 }

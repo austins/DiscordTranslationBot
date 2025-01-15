@@ -24,20 +24,21 @@ public sealed class NotificationPublisherTests
         var notification = new NotificationFake { Value = 1 };
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Publish(handlers, notification, TestContext.Current.CancellationToken)).Should().NotThrowAsync();
+        await _sut
+            .Publish(handlers, notification, TestContext.Current.CancellationToken)
+            .AsTask()
+            .ShouldNotThrowAsync();
 
         var notificationName = notification.GetType().Name;
 
         var publishingLog = _logger.Entries[0];
-        publishingLog.LogLevel.Should().Be(LogLevel.Information);
-        publishingLog.Message.Should().Be($"Publishing notification '{notificationName}'...");
+        publishingLog.LogLevel.ShouldBe(LogLevel.Information);
+        publishingLog.Message.ShouldBe($"Publishing notification '{notificationName}'...");
 
         var handlersExecutedLog = _logger.Entries[1];
-        handlersExecutedLog.LogLevel.Should().Be(LogLevel.Information);
-        handlersExecutedLog
-            .Message
-            .Should()
-            .StartWith($"Executed notification handler(s) for '{notificationName}'. Elapsed time:");
+        handlersExecutedLog.LogLevel.ShouldBe(LogLevel.Information);
+        handlersExecutedLog.Message.ShouldStartWith(
+            $"Executed notification handler(s) for '{notificationName}'. Elapsed time:");
     }
 
     [Fact]
@@ -50,9 +51,9 @@ public sealed class NotificationPublisherTests
 
         // Act + Assert
         await _sut
-            .Awaiting(x => x.Publish(handlers, notification, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<MessageValidationException>();
+            .Publish(handlers, notification, TestContext.Current.CancellationToken)
+            .AsTask()
+            .ShouldThrowAsync<MessageValidationException>();
     }
 
     private sealed class NotificationFake : INotification

@@ -21,9 +21,9 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
-            .Should()
-            .NotThrowAsync();
+            .Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken)
+            .AsTask()
+            .ShouldNotThrowAsync();
     }
 
     [Fact]
@@ -38,9 +38,9 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
-            .Should()
-            .NotThrowAsync();
+            .Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken)
+            .AsTask()
+            .ShouldNotThrowAsync();
     }
 
     [Fact]
@@ -54,13 +54,15 @@ public sealed class MessageValidationBehaviorTests
         };
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<MessageValidationException>()
-            .Where(
-                x => x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(message.Name)))
-                     && x.ValidationResults.Any(y => y.MemberNames.Contains(nameof(message.Value))));
+        var exception = await Should.ThrowAsync<MessageValidationException>(
+            async () => await _sut.Handle(
+                message,
+                (_, _) => ValueTask.FromResult(true),
+                TestContext.Current.CancellationToken));
+
+        exception.ValidationResults.Count.ShouldBe(2);
+        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Name)), 1);
+        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Value)), 1);
     }
 
     private sealed class MessageFake : IMessage

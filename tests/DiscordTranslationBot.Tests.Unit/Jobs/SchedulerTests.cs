@@ -28,7 +28,7 @@ public sealed class SchedulerTests
         await _sut.ScheduleAsync(command, executeAt, TestContext.Current.CancellationToken);
 
         // Assert
-        _sut.Count.Should().Be(1);
+        _sut.Count.ShouldBe(1);
     }
 
     [Theory]
@@ -44,9 +44,8 @@ public sealed class SchedulerTests
 
         // Act + Assert
         await _sut
-            .Invoking(x => x.ScheduleAsync(command, executeAt, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+            .ScheduleAsync(command, executeAt, TestContext.Current.CancellationToken)
+            .ShouldThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public sealed class SchedulerTests
         await _sut.ScheduleAsync(command, executionDelay, TestContext.Current.CancellationToken);
 
         // Assert
-        _sut.Count.Should().Be(1);
+        _sut.Count.ShouldBe(1);
     }
 
     [Theory]
@@ -78,9 +77,8 @@ public sealed class SchedulerTests
 
         // Act + Assert
         await _sut
-            .Invoking(x => x.ScheduleAsync(command, executeAt, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+            .ScheduleAsync(command, executeAt, TestContext.Current.CancellationToken)
+            .ShouldThrowAsync<InvalidOperationException>();
     }
 
     [Theory]
@@ -116,22 +114,22 @@ public sealed class SchedulerTests
         // Assert
         if (hasTaskScheduled)
         {
-            job1.Should().NotBeNull();
-            job1!.ExecuteAt.Should().Be(executeAt1);
+            job1.ShouldNotBeNull();
+            job1!.ExecuteAt.ShouldBe(executeAt1);
 
-            job2.Should().NotBeNull();
-            job2!.ExecuteAt.Should().Be(executeAt2);
+            job2.ShouldNotBeNull();
+            job2!.ExecuteAt.ShouldBe(executeAt2);
 
-            countBeforeGet.Should().Be(2);
+            countBeforeGet.ShouldBe(2);
         }
         else
         {
-            job1.Should().BeNull();
-            job2.Should().BeNull();
+            job1.ShouldBeNull();
+            job2.ShouldBeNull();
 
-            countBeforeGet.Should().Be(0);
+            countBeforeGet.ShouldBe(0);
         }
 
-        _sut.Count.Should().Be(0);
+        _sut.Count.ShouldBe(0);
     }
 }

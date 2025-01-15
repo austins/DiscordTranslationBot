@@ -80,19 +80,16 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ThrowsAsyncForAnyArgs(exception);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
+        await _sut.Handle(command, TestContext.Current.CancellationToken).AsTask().ShouldThrowAsync<Exception>();
 
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Error
-                     && ReferenceEquals(x.Exception, exception)
-                     && x.Message.Contains($"message ID {sourceMessageId}"));
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
+        logEntry.Exception.ShouldBe(exception);
+        logEntry.Message.ShouldContain($"message ID {sourceMessageId}");
 
-        _scheduler.ReceivedCalls().Should().BeEmpty();
+        _scheduler.ReceivedCalls().ShouldBeEmpty();
     }
 }
