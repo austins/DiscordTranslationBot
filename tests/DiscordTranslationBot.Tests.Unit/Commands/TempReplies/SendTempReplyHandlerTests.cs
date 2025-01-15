@@ -59,7 +59,7 @@ public sealed class SendTempReplyHandlerTests
                          && x.SourceMessageId == sourceMessageId
                          && ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
                 command.DeletionDelay,
-                Arg.Any<CancellationToken>());
+                cancellationToken);
     }
 
     [Test]

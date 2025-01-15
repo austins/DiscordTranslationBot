@@ -70,7 +70,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
         _translationProviders[0]
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -143,13 +143,13 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
 
         _translationProviders[0]
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
 
         _translationProviders[1].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
         _translationProviders[1]
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -211,7 +211,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
             translationProvider
-                .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+                .TranslateAsync(default!, default!, default)
                 .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
         }
 
@@ -248,7 +248,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
 
         _translationProviders[0]
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {

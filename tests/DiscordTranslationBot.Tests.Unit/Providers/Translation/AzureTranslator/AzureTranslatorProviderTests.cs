@@ -84,7 +84,7 @@ public sealed class AzureTranslatorProviderTests
             .TranslateAsync(
                 expected.TargetLanguageCode,
                 Arg.Is<IList<TranslateRequest>>(x => x[0].Text == text),
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 sourceLanguage.LangCode)
             .Returns(response);
 
@@ -126,7 +126,7 @@ public sealed class AzureTranslatorProviderTests
             .TranslateAsync(
                 expected.TargetLanguageCode,
                 Arg.Is<IList<TranslateRequest>>(x => x[0].Text == text),
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 Arg.Any<string?>())
             .Returns(response);
 
@@ -148,7 +148,7 @@ public sealed class AzureTranslatorProviderTests
         response.IsSuccessStatusCode.Returns(true);
         response.Content.Returns(new Languages { LangCodes = new Dictionary<string, Language>() });
 
-        _client.GetLanguagesAsync(Arg.Any<CancellationToken>()).Returns(response);
+        _client.GetLanguagesAsync(cancellationToken).Returns(response);
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
         var sut = new AzureTranslatorProvider(_client, _logger);
@@ -160,7 +160,7 @@ public sealed class AzureTranslatorProviderTests
 
         exception.Message.ShouldBe("Languages endpoint returned no language codes.");
 
-        await _client.Received(1).GetLanguagesAsync(Arg.Any<CancellationToken>());
+        await _client.Received(1).GetLanguagesAsync(cancellationToken);
     }
 
     [Test]
@@ -173,7 +173,7 @@ public sealed class AzureTranslatorProviderTests
         // Act & Assert
         await _sut.TranslateByCountryAsync(_country, text, cancellationToken).ShouldThrowAsync<ArgumentException>();
 
-        await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
     }
 
     [Test]
@@ -193,14 +193,14 @@ public sealed class AzureTranslatorProviderTests
         response.IsSuccessStatusCode.Returns(false);
         response.StatusCode.Returns(statusCode);
 
-        _client.TranslateAsync(default!, default!, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(response);
+        _client.TranslateAsync(default!, default!, default).ReturnsForAnyArgs(response);
 
         // Act & Assert
         await _sut
             .TranslateByCountryAsync(_country, text, cancellationToken)
             .ShouldThrowAsync<InvalidOperationException>();
 
-        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, default);
     }
 
     [Test]
@@ -221,13 +221,13 @@ public sealed class AzureTranslatorProviderTests
             }
         ]);
 
-        _client.TranslateAsync(default!, default!, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(response);
+        _client.TranslateAsync(default!, default!, default).ReturnsForAnyArgs(response);
 
         // Act & Assert
         await _sut
             .TranslateByCountryAsync(_country, text, cancellationToken)
             .ShouldThrowAsync<InvalidOperationException>();
 
-        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, default);
     }
 }

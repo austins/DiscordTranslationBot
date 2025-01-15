@@ -77,7 +77,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
             .Returns(
                 new TranslationResult
@@ -100,7 +100,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
         await interaction.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
@@ -160,9 +160,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceiveWithAnyArgs()
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
     }
 
     [Test]
@@ -218,7 +216,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
             .Returns(
                 new TranslationResult
@@ -241,7 +239,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .TranslateAsync(
                 Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
                 text,
-                Arg.Any<CancellationToken>(),
+                cancellationToken,
                 Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
 
         await interaction

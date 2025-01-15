@@ -113,9 +113,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceiveWithAnyArgs()
-            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
     }
 
     [Test]
@@ -131,9 +129,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider
-            .DidNotReceiveWithAnyArgs()
-            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
     }
 
     [Test]
@@ -148,7 +144,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
             .Returns(translationResult);
 
         // Act
@@ -157,9 +153,9 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _translationProvider
             .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
 
-        await _sender.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), Arg.Any<CancellationToken>());
+        await _sender.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), cancellationToken);
     }
 
     [Test]
@@ -173,9 +169,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _translationProvider
-            .DidNotReceiveWithAnyArgs()
-            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>());
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
 
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
@@ -186,14 +180,14 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     {
         // Arrange
         _translationProvider
-            .TranslateByCountryAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateByCountryAsync(default!, default!, default)
             .ReturnsForAnyArgs((TranslationResult)null!);
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _sender.DidNotReceiveWithAnyArgs().Send(default!, Arg.Any<CancellationToken>());
+        await _sender.DidNotReceiveWithAnyArgs().Send(default!, cancellationToken);
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -206,7 +200,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         const string exMessage = "exception message";
 
         _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
             .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
 
         // Act
@@ -215,9 +209,9 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _translationProvider
             .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
 
-        await _sender.Received(1).Send(Arg.Any<SendTempReply>(), Arg.Any<CancellationToken>());
+        await _sender.Received(1).Send(Arg.Any<SendTempReply>(), cancellationToken);
     }
 
     [Test]
@@ -233,7 +227,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         };
 
         _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>())
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
             .Returns(translationResult);
 
         // Act
@@ -242,13 +236,13 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _translationProvider
             .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, Arg.Any<CancellationToken>());
+            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
 
         await _sender
             .Received(1)
             .Send(
                 Arg.Is<SendTempReply>(
                     x => x.Text == "Couldn't detect the source language to translate from or the result is the same."),
-                Arg.Any<CancellationToken>());
+                cancellationToken);
     }
 }

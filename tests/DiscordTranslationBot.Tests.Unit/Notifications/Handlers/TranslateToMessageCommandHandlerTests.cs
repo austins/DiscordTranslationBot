@@ -165,7 +165,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -284,7 +284,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -369,7 +369,7 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         notification
             .Interaction
-            .WhenForAnyArgs(x => x.RespondAsync(components: Arg.Any<MessageComponent>()))
+            .WhenForAnyArgs(x => x.RespondAsync())
             .Do(x => messageComponents = x.Arg<MessageComponent>());
 
         // Act
