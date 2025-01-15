@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class JoinedGuildNotificationTests
 {
-    [Fact]
+    [Test]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
@@ -20,7 +20,7 @@ public sealed class JoinedGuildNotificationTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Guild_Validates_WithErrors()
     {
         // Arrange

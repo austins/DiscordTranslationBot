@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
 public sealed class TranslationProvidersOptionsTests
 {
-    [Fact]
+    [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
         // Arrange
@@ -31,10 +31,10 @@ public sealed class TranslationProvidersOptionsTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments(" ")]
     public void Invalid_ProviderOptions_HasValidationErrors(string? stringValue)
     {
         // Arrange

@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Tests.Unit.Discord;
 
 public sealed class DiscordOptionsTests
 {
-    [Fact]
+    [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
         // Arrange
@@ -19,10 +19,10 @@ public sealed class DiscordOptionsTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
+    [Test]
+    [Arguments(null)]
+    [Arguments("")]
+    [Arguments(" ")]
     public void Invalid_BotToken_HasValidationError(string? botToken)
     {
         // Arrange

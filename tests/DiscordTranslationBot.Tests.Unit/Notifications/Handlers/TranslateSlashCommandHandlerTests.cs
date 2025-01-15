@@ -24,8 +24,8 @@ public sealed class TranslateSlashCommandHandlerTests
             new LoggerFake<TranslateSlashCommandHandler>());
     }
 
-    [Fact]
-    public async Task Handle_SlashCommandExecutedNotification_Success()
+    [Test]
+    public async Task Handle_SlashCommandExecutedNotification_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var targetLanguage = new SupportedLanguage
@@ -92,7 +92,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await _translationProvider
@@ -112,8 +112,8 @@ public sealed class TranslateSlashCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
-    public async Task Handle_SlashCommandExecutedEvent_NotTranslateCommand_Returns()
+    [Test]
+    public async Task Handle_SlashCommandExecutedEvent_NotTranslateCommand_Returns(CancellationToken cancellationToken)
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
@@ -125,15 +125,15 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         _ = notification.Interaction.Data.Received(1).Name;
         _ = notification.Interaction.Data.DidNotReceive().Options;
     }
 
-    [Fact]
-    public async Task Handle_SlashCommandExecutedEvent_Returns_SourceTextIsEmpty()
+    [Test]
+    public async Task Handle_SlashCommandExecutedEvent_Returns_SourceTextIsEmpty(CancellationToken cancellationToken)
     {
         // Arrange
         var data = Substitute.For<IApplicationCommandInteractionData>();
@@ -151,7 +151,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await interaction.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
@@ -165,8 +165,9 @@ public sealed class TranslateSlashCommandHandlerTests
             .TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguage()
+    [Test]
+    public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguage(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var targetLanguage = new SupportedLanguage
@@ -232,7 +233,7 @@ public sealed class TranslateSlashCommandHandlerTests
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await _translationProvider

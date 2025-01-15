@@ -14,14 +14,14 @@ public sealed class MessageElapsedTimeLoggingBehaviorTests
         _sut = new MessageElapsedTimeLoggingBehavior<IMessage, bool>(_logger);
     }
 
-    [Fact]
-    public async Task Handle_Success_Logs()
+    [Test]
+    public async Task Handle_Success_Logs(CancellationToken cancellationToken)
     {
         // Arrange
         var message = Substitute.For<IMessage>();
 
         // Act
-        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken);
+        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken);
 
         // Assert
         _logger.Entries.Count.ShouldBe(2);

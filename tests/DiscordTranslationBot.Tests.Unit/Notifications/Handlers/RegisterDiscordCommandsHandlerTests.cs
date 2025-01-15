@@ -38,14 +38,14 @@ public sealed class RegisterDiscordCommandsHandlerTests
             new LoggerFake<RegisterDiscordCommandsHandler>());
     }
 
-    [Fact]
-    public async Task Handle_JoinedGuildNotification_Success()
+    [Test]
+    public async Task Handle_JoinedGuildNotification_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new JoinedGuildNotification { Guild = Substitute.For<IGuild>() };
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -60,8 +60,8 @@ public sealed class RegisterDiscordCommandsHandlerTests
                 Arg.Any<RequestOptions>());
     }
 
-    [Fact]
-    public async Task Handle_ReadyNotification_Success()
+    [Test]
+    public async Task Handle_ReadyNotification_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var guild = Substitute.For<IGuild>();
@@ -70,7 +70,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -84,8 +84,8 @@ public sealed class RegisterDiscordCommandsHandlerTests
                 Arg.Any<RequestOptions>());
     }
 
-    [Fact]
-    public async Task Handle_ReadyNotification_NoGuilds_Returns()
+    [Test]
+    public async Task Handle_ReadyNotification_NoGuilds_Returns(CancellationToken cancellationToken)
     {
         // Arrange
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns([]);
@@ -93,7 +93,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;

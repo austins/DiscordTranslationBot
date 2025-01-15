@@ -7,9 +7,9 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class DeleteTempReplyTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void Valid_ValidatesWithoutErrors(bool hasReactionInfo)
     {
         // Arrange
@@ -34,7 +34,7 @@ public sealed class DeleteTempReplyTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Reply_HasValidationError()
     {
         // Arrange

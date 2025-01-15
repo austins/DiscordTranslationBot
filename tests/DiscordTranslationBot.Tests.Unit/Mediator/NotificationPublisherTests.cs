@@ -15,8 +15,8 @@ public sealed class NotificationPublisherTests
         _sut = new NotificationPublisher(_logger);
     }
 
-    [Fact]
-    public async Task Publish_ValidNotification_Success()
+    [Test]
+    public async Task Publish_ValidNotification_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var handlers = new NotificationHandlers<NotificationFake>([new NotificationHandlerFake()], false);
@@ -24,10 +24,7 @@ public sealed class NotificationPublisherTests
         var notification = new NotificationFake { Value = 1 };
 
         // Act + Assert
-        await _sut
-            .Publish(handlers, notification, TestContext.Current.CancellationToken)
-            .AsTask()
-            .ShouldNotThrowAsync();
+        await _sut.Publish(handlers, notification, cancellationToken).AsTask().ShouldNotThrowAsync();
 
         var notificationName = notification.GetType().Name;
 
@@ -41,8 +38,8 @@ public sealed class NotificationPublisherTests
             $"Executed notification handler(s) for '{notificationName}'. Elapsed time:");
     }
 
-    [Fact]
-    public async Task Publish_InvalidNotification_Throws()
+    [Test]
+    public async Task Publish_InvalidNotification_Throws(CancellationToken cancellationToken)
     {
         // Arrange
         var handlers = new NotificationHandlers<NotificationFake>([new NotificationHandlerFake()], false);
@@ -51,7 +48,7 @@ public sealed class NotificationPublisherTests
 
         // Act + Assert
         await _sut
-            .Publish(handlers, notification, TestContext.Current.CancellationToken)
+            .Publish(handlers, notification, cancellationToken)
             .AsTask()
             .ShouldThrowAsync<MessageValidationException>();
     }

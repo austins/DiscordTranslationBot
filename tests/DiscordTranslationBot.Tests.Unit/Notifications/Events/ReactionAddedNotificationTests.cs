@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class ReactionAddedNotificationTests
 {
-    [Fact]
+    [Test]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
@@ -31,7 +31,7 @@ public sealed class ReactionAddedNotificationTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Validates_WithErrors()
     {
         // Arrange

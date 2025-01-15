@@ -15,14 +15,17 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
-    [Theory]
-    [InlineData(LogSeverity.Debug, LogLevel.Trace)]
-    [InlineData(LogSeverity.Verbose, LogLevel.Debug)]
-    [InlineData(LogSeverity.Info, LogLevel.Information)]
-    [InlineData(LogSeverity.Warning, LogLevel.Warning)]
-    [InlineData(LogSeverity.Error, LogLevel.Error)]
-    [InlineData(LogSeverity.Critical, LogLevel.Critical)]
-    public async Task Handle_RedirectLogMessageToLogger_Success(LogSeverity severity, LogLevel expectedLevel)
+    [Test]
+    [Arguments(LogSeverity.Debug, LogLevel.Trace)]
+    [Arguments(LogSeverity.Verbose, LogLevel.Debug)]
+    [Arguments(LogSeverity.Info, LogLevel.Information)]
+    [Arguments(LogSeverity.Warning, LogLevel.Warning)]
+    [Arguments(LogSeverity.Error, LogLevel.Error)]
+    [Arguments(LogSeverity.Critical, LogLevel.Critical)]
+    public async Task Handle_RedirectLogMessageToLogger_Success(
+        LogSeverity severity,
+        LogLevel expectedLevel,
+        CancellationToken cancellationToken)
     {
         // Arrange
         var command = new RedirectLogMessageToLogger
@@ -31,7 +34,7 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         };
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
@@ -40,8 +43,9 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         logEntry.Exception.ShouldBe(command.LogMessage.Exception);
     }
 
-    [Fact]
-    public async Task Handle_RedirectLogMessageToLogger_GatewayReconnectException_ChangesLogLevel()
+    [Test]
+    public async Task Handle_RedirectLogMessageToLogger_GatewayReconnectException_ChangesLogLevel(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var command = new RedirectLogMessageToLogger
@@ -56,7 +60,7 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         const LogLevel expectedLevel = LogLevel.Information;
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
@@ -65,14 +69,14 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         logEntry.Exception.ShouldBe(command.LogMessage.Exception);
     }
 
-    [Fact]
-    public async Task Handle_RedirectLogMessageToLogger_NullMessage()
+    [Test]
+    public async Task Handle_RedirectLogMessageToLogger_NullMessage(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new RedirectLogMessageToLogger { LogMessage = new LogMessage(LogSeverity.Info, "source1", null) };
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];

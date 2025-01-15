@@ -4,7 +4,7 @@ namespace DiscordTranslationBot.Tests.Unit.Countries;
 
 public sealed class CountryConstantsTests
 {
-    [Fact]
+    [Test]
     public void SupportedCountries_InitializesWithValidFlagEmojis_DoesNotThrow()
     {
         // Arrange

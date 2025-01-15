@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class SlashCommandExecutedNotificationTests
 {
-    [Fact]
+    [Test]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
@@ -21,7 +21,7 @@ public sealed class SlashCommandExecutedNotificationTests
         validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Interaction_Validates_WithErrors()
     {
         // Arrange

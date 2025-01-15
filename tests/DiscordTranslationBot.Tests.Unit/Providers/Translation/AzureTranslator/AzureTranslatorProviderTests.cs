@@ -8,7 +8,7 @@ using Languages = DiscordTranslationBot.Providers.Translation.AzureTranslator.Mo
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.AzureTranslator;
 
-public sealed class AzureTranslatorProviderTests : IAsyncLifetime
+public sealed class AzureTranslatorProviderTests
 {
     private readonly IAzureTranslatorClient _client;
     private readonly ICountry _country;
@@ -42,18 +42,14 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _sut = new AzureTranslatorProvider(_client, _logger);
     }
 
-    public async ValueTask InitializeAsync()
+    [Before(Test)]
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        await _sut.InitializeSupportedLanguagesAsync(TestContext.Current.CancellationToken);
+        await _sut.InitializeSupportedLanguagesAsync(cancellationToken);
     }
 
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
-
-    [Fact]
-    public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
+    [Test]
+    public async Task TranslateAsync_WithSourceLanguage_Returns_Expected(CancellationToken cancellationToken)
     {
         // Arrange
         var targetLanguage = new SupportedLanguage
@@ -93,18 +89,14 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act
-        var result = await _sut.TranslateAsync(
-            targetLanguage,
-            text,
-            TestContext.Current.CancellationToken,
-            sourceLanguage);
+        var result = await _sut.TranslateAsync(targetLanguage, text, cancellationToken, sourceLanguage);
 
         // Assert
         result.ShouldBeEquivalentTo(expected);
     }
 
-    [Fact]
-    public async Task TranslateByCountryAsync_Returns_Expected()
+    [Test]
+    public async Task TranslateByCountryAsync_Returns_Expected(CancellationToken cancellationToken)
     {
         // Arrange
         const string text = "test";
@@ -139,14 +131,15 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act
-        var result = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        var result = await _sut.TranslateByCountryAsync(_country, text, cancellationToken);
 
         // Assert
         result.ShouldBeEquivalentTo(expected);
     }
 
-    [Fact]
-    public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes()
+    [Test]
+    public async Task InitializeSupportedLanguagesAsync_Throws_InvalidOperationException_WhenNoSupportedLanguageCodes(
+        CancellationToken cancellationToken)
     {
         // Arrange
         _client.ClearSubstitute();
@@ -162,7 +155,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 
         // Act & Assert
         var exception = await sut
-            .InitializeSupportedLanguagesAsync(TestContext.Current.CancellationToken)
+            .InitializeSupportedLanguagesAsync(cancellationToken)
             .ShouldThrowAsync<InvalidOperationException>();
 
         exception.Message.ShouldBe("Languages endpoint returned no language codes.");
@@ -170,28 +163,28 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         await _client.Received(1).GetLanguagesAsync(Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
+    [Test]
+    public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var text = new string('a', AzureTranslatorProvider.TextCharacterLimit);
 
         // Act & Assert
-        await _sut
-            .TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken)
-            .ShouldThrowAsync<ArgumentException>();
+        await _sut.TranslateByCountryAsync(_country, text, cancellationToken).ShouldThrowAsync<ArgumentException>();
 
         await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData(HttpStatusCode.Unauthorized)]
-    [InlineData(HttpStatusCode.Forbidden)]
-    [InlineData(HttpStatusCode.TooManyRequests)]
-    [InlineData(HttpStatusCode.InternalServerError)]
-    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    [Test]
+    [Arguments(HttpStatusCode.Unauthorized)]
+    [Arguments(HttpStatusCode.Forbidden)]
+    [Arguments(HttpStatusCode.TooManyRequests)]
+    [Arguments(HttpStatusCode.InternalServerError)]
+    [Arguments(HttpStatusCode.ServiceUnavailable)]
     public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
-        HttpStatusCode statusCode)
+        HttpStatusCode statusCode,
+        CancellationToken cancellationToken)
     {
         // Arrange
         const string text = "test";
@@ -204,14 +197,15 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 
         // Act & Assert
         await _sut
-            .TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken)
+            .TranslateByCountryAsync(_country, text, cancellationToken)
             .ShouldThrowAsync<InvalidOperationException>();
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations()
+    [Test]
+    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations(
+        CancellationToken cancellationToken)
     {
         // Arrange
         const string text = "test";
@@ -231,7 +225,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 
         // Act & Assert
         await _sut
-            .TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken)
+            .TranslateByCountryAsync(_country, text, cancellationToken)
             .ShouldThrowAsync<InvalidOperationException>();
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, Arg.Any<CancellationToken>());
