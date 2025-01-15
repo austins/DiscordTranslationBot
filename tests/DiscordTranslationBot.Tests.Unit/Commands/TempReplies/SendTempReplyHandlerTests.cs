@@ -19,10 +19,10 @@ public sealed class SendTempReplyHandlerTests
         _sut = new SendTempReplyHandler(_scheduler, _logger);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Handle_SendTempReply_Success(bool hasReaction)
+    [Test]
+    [Arguments(true)]
+    [Arguments(false)]
+    public async Task Handle_SendTempReply_Success(bool hasReaction, CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -45,7 +45,7 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ReturnsForAnyArgs(reply);
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
@@ -59,11 +59,11 @@ public sealed class SendTempReplyHandlerTests
                          && x.SourceMessageId == sourceMessageId
                          && ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
                 command.DeletionDelay,
-                Arg.Any<CancellationToken>());
+                cancellationToken);
     }
 
-    [Fact]
-    public async Task Handle_SendTempReply_FailedToSendTempMessage()
+    [Test]
+    public async Task Handle_SendTempReply_FailedToSendTempMessage(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -80,19 +80,16 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ThrowsAsyncForAnyArgs(exception);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
+        await _sut.Handle(command, cancellationToken).AsTask().ShouldThrowAsync<Exception>();
 
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Error
-                     && ReferenceEquals(x.Exception, exception)
-                     && x.Message.Contains($"message ID {sourceMessageId}"));
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
+        logEntry.Exception.ShouldBe(exception);
+        logEntry.Message.ShouldContain($"message ID {sourceMessageId}");
 
-        _scheduler.ReceivedCalls().Should().BeEmpty();
+        _scheduler.ReceivedCalls().ShouldBeEmpty();
     }
 }

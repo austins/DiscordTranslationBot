@@ -1,5 +1,8 @@
-﻿using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Models;
+﻿using DiscordTranslationBot.Providers.Translation.Models;
+#pragma warning disable IDE0005
+using DiscordTranslationBot.Providers.Translation;
+
+#pragma warning restore IDE0005
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
@@ -19,76 +22,78 @@ public sealed class TranslationProviderFactoryTests
             new LoggerFake<TranslationProviderFactory>());
     }
 
-    [Fact]
+    [Test]
     public void Providers_ThrowsIfNotInitialized()
     {
         // Act + Assert
-        _sut.Invoking(x => x.Providers).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.PrimaryProvider).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.LastProvider).Should().Throw<InvalidOperationException>();
-        _sut.Invoking(x => x.GetSupportedLanguagesForOptions()).Should().Throw<InvalidOperationException>();
+        Should.Throw<InvalidOperationException>(() => _sut.Providers);
+        Should.Throw<InvalidOperationException>(() => _sut.PrimaryProvider);
+        Should.Throw<InvalidOperationException>(() => _sut.LastProvider);
+        Should.Throw<InvalidOperationException>(() => _sut.GetSupportedLanguagesForOptions());
     }
 
-    [Fact]
-    public async Task Providers_ReturnsIfInitialized()
+    [Test]
+    public async Task Providers_ReturnsIfInitialized(CancellationToken cancellationToken)
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
-        await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        await _sut.InitializeProvidersAsync(cancellationToken);
 
         // Act + Assert
-        _sut.Providers.Should().BeEquivalentTo([_primaryProvider, _lastProvider]);
-        _sut.PrimaryProvider.Should().Be(_primaryProvider);
-        _sut.LastProvider.Should().Be(_lastProvider);
+        _sut.Providers.ShouldBeEquivalentTo(
+            new List<ITranslationProvider>
+            {
+                _primaryProvider,
+                _lastProvider
+            });
+
+        _sut.PrimaryProvider.ShouldBe(_primaryProvider);
+        _sut.LastProvider.ShouldBe(_lastProvider);
     }
 
-    [Fact]
-    public async Task InitializeProvidersAsync_Success()
+    [Test]
+    public async Task InitializeProvidersAsync_Success(CancellationToken cancellationToken)
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
-        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
 
         // Act
-        var result = await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
+        var result = await _sut.InitializeProvidersAsync(cancellationToken);
 
         // Assert
-        result.Should().BeTrue();
-        await _primaryProvider.Received(1).InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>());
-        await _lastProvider.Received(1).InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>());
+        result.ShouldBeTrue();
+        await _primaryProvider.Received(1).InitializeSupportedLanguagesAsync(cancellationToken);
+        await _lastProvider.Received(1).InitializeSupportedLanguagesAsync(cancellationToken);
     }
 
-    [Fact]
-    public async Task InitializeProvidersAsync_NoProviders_ReturnsFalse()
+    [Test]
+    public async Task InitializeProvidersAsync_NoProviders_ReturnsFalse(CancellationToken cancellationToken)
     {
         // Arrange
         var logger = new LoggerFake<TranslationProviderFactory>();
         var sut = new TranslationProviderFactory([], logger);
 
         // Act
-        var result = await sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
+        var result = await sut.InitializeProvidersAsync(cancellationToken);
 
         // Assert
-        result.Should().BeFalse();
+        result.ShouldBeFalse();
 
-        logger.Entries.Count.Should().Be(1);
+        var logEntry = logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
 
-        var logEntry = logger.Entries[0];
-        logEntry.LogLevel.Should().Be(LogLevel.Error);
-
-        logEntry
-            .Message
-            .Should()
-            .Be("No translation providers enabled. Please configure and enable at least one translation provider.");
+        logEntry.Message.ShouldBe(
+            "No translation providers enabled. Please configure and enable at least one translation provider.");
     }
 
-    [Fact]
-    public async Task GetSupportedLanguagesForOptions_Success()
+    [Test]
+    public async Task GetSupportedLanguagesForOptions_Success(CancellationToken cancellationToken)
     {
         // Arrange
-        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
-        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(Arg.Any<CancellationToken>())).Do(_ => { });
-        await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        await _sut.InitializeProvidersAsync(cancellationToken);
 
         var expected = new List<SupportedLanguage>
         {
@@ -110,7 +115,7 @@ public sealed class TranslationProviderFactoryTests
         var result = _sut.GetSupportedLanguagesForOptions();
 
         // Assert
-        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        result.ToList().ShouldBeEquivalentTo(expected);
         _ = _primaryProvider.Received().TranslateCommandLangCodes;
         _ = _primaryProvider.Received().SupportedLanguages;
         _ = _lastProvider.DidNotReceive().TranslateCommandLangCodes;

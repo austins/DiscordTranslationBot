@@ -30,24 +30,26 @@ public sealed class TranslateToMessageCommandHandlerTests
             new LoggerFake<TranslateToMessageCommandHandler>());
     }
 
-    [Fact]
-    public async Task Handle_ButtonExecutedNotification_ReturnsIfIncorrectButtonIds()
+    [Test]
+    public async Task Handle_ButtonExecutedNotification_ReturnsIfIncorrectButtonIds(CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
         notification.Interaction.Data.CustomId.Returns("incorrect_button_id");
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().DeferAsync();
     }
 
-    [Theory]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
-    public async Task Handle_ButtonExecutedNotification_EmptySourceText(string buttonId)
+    [Test]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateButtonId)]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
+    public async Task Handle_ButtonExecutedNotification_EmptySourceText(
+        string buttonId,
+        CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
@@ -86,7 +88,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification
@@ -94,14 +96,16 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties.Content.Should().Be("No text to translate.");
-        receivedProperties.Components.Value.Should().BeNull();
+        receivedProperties.Content.Value.ShouldBe("No text to translate.");
+        receivedProperties.Components.Value.ShouldBeNull();
     }
 
-    [Theory]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
-    public async Task Handle_ButtonExecutedNotification_FailureToDetectSourceLanguage(string buttonId)
+    [Test]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateButtonId)]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
+    public async Task Handle_ButtonExecutedNotification_FailureToDetectSourceLanguage(
+        string buttonId,
+        CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
@@ -161,7 +165,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -170,7 +174,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 });
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification
@@ -178,18 +182,16 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties
-            .Content
-            .Should()
-            .Be("Couldn't detect the source language to translate from or the result is the same.");
+        receivedProperties.Content.Value.ShouldBe(
+            "Couldn't detect the source language to translate from or the result is the same.");
 
-        receivedProperties.Components.Value.Should().BeNull();
+        receivedProperties.Components.Value.ShouldBeNull();
     }
 
-    [Theory]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
-    [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
-    public async Task Handle_ButtonExecutedNotification_Success(string buttonId)
+    [Test]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateButtonId)]
+    [Arguments(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
+    public async Task Handle_ButtonExecutedNotification_Success(string buttonId, CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
@@ -282,7 +284,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             });
 
         _translationProvider
-            .TranslateAsync(default!, default!, Arg.Any<CancellationToken>())
+            .TranslateAsync(default!, default!, default)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -291,7 +293,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 });
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         if (buttonId == MessageCommandConstants.TranslateTo.TranslateButtonId)
@@ -301,20 +303,21 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Received(1)
                 .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-            receivedProperties!.Content.Should().Be(translationReplytext);
-            receivedProperties.Components.Value.Should().BeNull();
+            receivedProperties!.Content.Value.ShouldBe(translationReplytext);
+            receivedProperties.Components.Value.ShouldBeNull();
         }
         else if (buttonId == MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
         {
             await notification.Interaction.Received(1).DeleteOriginalResponseAsync(Arg.Any<RequestOptions?>());
             await notification.Interaction.Message.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
-            receivedSentMessagetext.Should().Be(translationReplytext);
-            receivedReferencedMessageId.Should().Be(referencedMessageId);
+            receivedSentMessagetext.ShouldBe(translationReplytext);
+            receivedReferencedMessageId.ShouldBe(referencedMessageId);
         }
     }
 
-    [Fact]
-    public async Task Handle_MessageCommandExecutedNotification_ReturnsIfIncorrectCommandName()
+    [Test]
+    public async Task Handle_MessageCommandExecutedNotification_ReturnsIfIncorrectCommandName(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var notification =
@@ -323,14 +326,14 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.Name.Returns("incorrect_message_command_name");
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().RespondAsync();
     }
 
-    [Fact]
-    public async Task Handle_MessageCommandExecutedNotification_EmptySourceText()
+    [Test]
+    public async Task Handle_MessageCommandExecutedNotification_EmptySourceText(CancellationToken cancellationToken)
     {
         // Arrange
         var notification =
@@ -341,7 +344,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Data.Message.Content.Returns(" ");
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification
@@ -350,8 +353,8 @@ public sealed class TranslateToMessageCommandHandlerTests
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions?>());
     }
 
-    [Fact]
-    public async Task Handle_MessageCommandExecutedNotification_Success()
+    [Test]
+    public async Task Handle_MessageCommandExecutedNotification_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var notification =
@@ -366,11 +369,11 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         notification
             .Interaction
-            .WhenForAnyArgs(x => x.RespondAsync(components: Arg.Any<MessageComponent>()))
+            .WhenForAnyArgs(x => x.RespondAsync())
             .Do(x => messageComponents = x.Arg<MessageComponent>());
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification
@@ -382,33 +385,36 @@ public sealed class TranslateToMessageCommandHandlerTests
                 ephemeral: true,
                 options: Arg.Any<RequestOptions?>());
 
-        messageComponents!.Components.Should().HaveCount(2);
+        messageComponents!.Components.Count.ShouldBe(2);
 
         var firstRowComponents = messageComponents.Components.ElementAt(0).Components;
-        firstRowComponents.Should().HaveCount(1).And.AllBeOfType<SelectMenuComponent>();
+        firstRowComponents.Count.ShouldBe(1);
+        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
 
         var lastRowComponents = messageComponents.Components.ElementAt(1).Components;
-        lastRowComponents.Should().HaveCount(2).And.AllBeOfType<ButtonComponent>();
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.Should().BeTrue();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.Should().BeTrue();
+        lastRowComponents.Count.ShouldBe(2);
+        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeTrue();
+        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeTrue();
     }
 
-    [Fact]
-    public async Task Handle_SelectMenuExecutedNotification_ReturnsIfIncorrectSelectMenuId()
+    [Test]
+    public async Task Handle_SelectMenuExecutedNotification_ReturnsIfIncorrectSelectMenuId(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new SelectMenuExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
         notification.Interaction.Data.CustomId.Returns("incorrect_select_menu_id");
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         await notification.Interaction.DidNotReceiveWithAnyArgs().UpdateAsync(default);
     }
 
-    [Fact]
-    public async Task Handle_SelectMenuExecutedNotification_UpdatesExpected()
+    [Test]
+    public async Task Handle_SelectMenuExecutedNotification_UpdatesExpected(CancellationToken cancellationToken)
     {
         // Arrange
         var notification = new SelectMenuExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
@@ -423,17 +429,19 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
 
         // Act
-        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
-        receivedProperties.Components.Value.Components.Should().HaveCount(2);
+        receivedProperties.Components.Value.Components.Count.ShouldBe(2);
 
         var firstRowComponents = receivedProperties.Components.Value.Components.ElementAt(0).Components;
-        firstRowComponents.Should().HaveCount(1).And.AllBeOfType<SelectMenuComponent>();
+        firstRowComponents.Count.ShouldBe(1);
+        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
 
         var lastRowComponents = receivedProperties.Components.Value.Components.ElementAt(1).Components;
-        lastRowComponents.Should().HaveCount(2).And.AllBeOfType<ButtonComponent>();
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.Should().BeFalse();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.Should().BeFalse();
+        lastRowComponents.Count.ShouldBe(2);
+        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeFalse();
+        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeFalse();
     }
 }

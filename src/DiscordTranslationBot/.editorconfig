@@ -1,4 +1,3 @@
 ﻿[*.cs]
-
 # S3871: Exception types should be "public"
 dotnet_diagnostic.S3871.severity = none

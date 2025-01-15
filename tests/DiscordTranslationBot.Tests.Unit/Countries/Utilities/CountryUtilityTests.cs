@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Countries.Utilities;
 
 public sealed class CountryUtilityTests
 {
-    [Fact]
+    [Test]
     public void TryGetCountryByEmoji_Success()
     {
         // Arrange
@@ -18,11 +18,11 @@ public sealed class CountryUtilityTests
         var result = CountryUtility.TryGetCountryByEmoji(emojiUnicode, out var country);
 
         // Assert
-        result.Should().BeTrue();
-        country.Should().Be(expectedCountry);
+        result.ShouldBeTrue();
+        country.ShouldBe(expectedCountry);
     }
 
-    [Fact]
+    [Test]
     public void TryGetCountryByEmoji_NotAnEmoji()
     {
         // Arrange
@@ -32,7 +32,7 @@ public sealed class CountryUtilityTests
         var result = CountryUtility.TryGetCountryByEmoji(emojiUnicode, out var country);
 
         // Assert
-        result.Should().BeFalse();
-        country.Should().BeNull();
+        result.ShouldBeFalse();
+        country.ShouldBeNull();
     }
 }

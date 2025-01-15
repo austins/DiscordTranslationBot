@@ -7,8 +7,9 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
 public sealed class TranslationProviderBaseTests
 {
-    [Fact]
-    public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
+    [Test]
+    public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound(
+        CancellationToken cancellationToken)
     {
         // Arrange
         var country = Substitute.For<ICountry>();
@@ -20,10 +21,8 @@ public sealed class TranslationProviderBaseTests
         var sut = new TranslationProviderFake();
 
         // Act & Assert
-        await sut
-            .Invoking(x => x.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<LanguageNotSupportedForCountryException>();
+        await Should.ThrowAsync<LanguageNotSupportedForCountryException>(
+            async () => await sut.TranslateByCountryAsync(country, text, cancellationToken));
     }
 
     private sealed class TranslationProviderFake : TranslationProviderBase

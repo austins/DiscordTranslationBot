@@ -15,8 +15,8 @@ public sealed class DiscordClientHealthCheckTests
         _sut = new DiscordClientHealthCheck(_client);
     }
 
-    [Fact]
-    public async Task CheckHealthAsync_Returns_Healthy()
+    [Test]
+    public async Task CheckHealthAsync_Returns_Healthy(CancellationToken cancellationToken)
     {
         // Arrange
         _client.ConnectionState.Returns(ConnectionState.Connected);
@@ -28,18 +28,18 @@ public sealed class DiscordClientHealthCheckTests
         var expectedData = new Dictionary<string, object> { { "GuildCount", guilds.Count } };
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), cancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Healthy);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEquivalentTo(expectedData);
+        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEquivalentTo(expectedData);
     }
 
-    [Theory]
-    [InlineData(ConnectionState.Connecting)]
-    [InlineData(ConnectionState.Disconnecting)]
-    public async Task CheckHealthAsync_Returns_Degraded(ConnectionState state)
+    [Test]
+    [Arguments(ConnectionState.Connecting)]
+    [Arguments(ConnectionState.Disconnecting)]
+    public async Task CheckHealthAsync_Returns_Degraded(ConnectionState state, CancellationToken cancellationToken)
     {
         // Arrange
         _client.ConnectionState.Returns(state);
@@ -47,18 +47,18 @@ public sealed class DiscordClientHealthCheckTests
         var expectedDescription = _client.ConnectionState.ToString();
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), cancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Degraded);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEmpty();
+        result.Status.ShouldBe(HealthStatus.Degraded);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEmpty();
 
         await _client.DidNotReceiveWithAnyArgs().GetGuildsAsync();
     }
 
-    [Fact]
-    public async Task CheckHealthAsync_Returns_Unhealthy()
+    [Test]
+    public async Task CheckHealthAsync_Returns_Unhealthy(CancellationToken cancellationToken)
     {
         // Arrange
         _client.ConnectionState.Returns(ConnectionState.Disconnected);
@@ -66,12 +66,12 @@ public sealed class DiscordClientHealthCheckTests
         var expectedDescription = _client.ConnectionState.ToString();
 
         // Act
-        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
+        var result = await _sut.CheckHealthAsync(new HealthCheckContext(), cancellationToken);
 
         // Assert
-        result.Status.Should().Be(HealthStatus.Unhealthy);
-        result.Description.Should().Be(expectedDescription);
-        result.Data.Should().BeEmpty();
+        result.Status.ShouldBe(HealthStatus.Unhealthy);
+        result.Description.ShouldBe(expectedDescription);
+        result.Data.ShouldBeEmpty();
 
         await _client.DidNotReceiveWithAnyArgs().GetGuildsAsync();
     }

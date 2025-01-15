@@ -7,9 +7,9 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class DeleteTempReplyTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void Valid_ValidatesWithoutErrors(bool hasReactionInfo)
     {
         // Arrange
@@ -30,11 +30,11 @@ public sealed class DeleteTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Reply_HasValidationError()
     {
         // Arrange
@@ -53,7 +53,10 @@ public sealed class DeleteTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(command.Reply)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(command.Reply));
     }
 }

@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class JoinedGuildNotificationTests
 {
-    [Fact]
+    [Test]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
@@ -16,11 +16,11 @@ public sealed class JoinedGuildNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeTrue();
-        validationResults.Should().BeEmpty();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
-    [Fact]
+    [Test]
     public void Invalid_Guild_Validates_WithErrors()
     {
         // Arrange
@@ -30,7 +30,10 @@ public sealed class JoinedGuildNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.Should().BeFalse();
-        validationResults.Should().OnlyContain(x => x.MemberNames.All(y => y == nameof(notification.Guild)));
+        isValid.ShouldBeFalse();
+
+        var result = validationResults.ShouldHaveSingleItem();
+        var memberName = result.MemberNames.ShouldHaveSingleItem();
+        memberName.ShouldBe(nameof(notification.Guild));
     }
 }

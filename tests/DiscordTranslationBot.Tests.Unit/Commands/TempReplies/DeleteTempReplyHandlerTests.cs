@@ -18,10 +18,10 @@ public sealed class DeleteTempReplyHandlerTests
         _sut = new DeleteTempReplyHandler(_logger);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Handle_DeleteTempReply_Success(bool hasReactionInfo)
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task Handle_DeleteTempReply_Success(bool hasReactionInfo, CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -51,15 +51,14 @@ public sealed class DeleteTempReplyHandlerTests
         }
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
 
         await command
             .Reply
@@ -72,8 +71,8 @@ public sealed class DeleteTempReplyHandlerTests
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions?>());
     }
 
-    [Fact]
-    public async Task Handle_DeleteTempReply_NoSourceMessageFound_Success()
+    [Test]
+    public async Task Handle_DeleteTempReply_NoSourceMessageFound_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -97,15 +96,14 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns((IUserMessage?)null);
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(x => x.LogLevel == LogLevel.Information && x.Message == $"Deleted temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
 
         await command
             .Reply
@@ -114,8 +112,8 @@ public sealed class DeleteTempReplyHandlerTests
             .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>());
     }
 
-    [Fact]
-    public async Task Handle_DeleteTempReply_TempMessageNotFound()
+    [Test]
+    public async Task Handle_DeleteTempReply_TempMessageNotFound(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -138,21 +136,18 @@ public sealed class DeleteTempReplyHandlerTests
                     DiscordErrorCode.UnknownMessage));
 
         // Act
-        await _sut.Handle(command, TestContext.Current.CancellationToken);
+        await _sut.Handle(command, cancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Information
-                     && x.Message == $"Temp reply ID {replyId} was not found and likely manually deleted.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Information);
+        logEntry.Message.ShouldBe($"Temp reply ID {replyId} was not found and likely manually deleted.");
     }
 
-    [Fact]
-    public async Task Handle_DeleteTempReply_FailedToDeleteTempMessage()
+    [Test]
+    public async Task Handle_DeleteTempReply_FailedToDeleteTempMessage(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -180,18 +175,14 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns(sourceMessage);
 
         // Act + Assert
-        await _sut.Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken)).Should().ThrowAsync<Exception>();
+        await _sut.Handle(command, cancellationToken).AsTask().ShouldThrowAsync<Exception>();
 
-        // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        _logger
-            .Entries
-            .Should()
-            .ContainSingle(
-                x => x.LogLevel == LogLevel.Error
-                     && ReferenceEquals(x.Exception, exception)
-                     && x.Message == $"Failed to delete temp reply ID {replyId}.");
+        var logEntry = _logger.Entries.ShouldHaveSingleItem();
+        logEntry.LogLevel.ShouldBe(LogLevel.Error);
+        logEntry.Exception.ShouldBe(exception);
+        logEntry.Message.ShouldBe($"Failed to delete temp reply ID {replyId}.");
 
         await command
             .Reply

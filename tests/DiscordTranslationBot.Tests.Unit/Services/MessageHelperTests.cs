@@ -9,9 +9,9 @@ public sealed class MessageHelperTests
 {
     private readonly MessageHelper _sut = new();
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Test]
+    [Arguments(false)]
+    [Arguments(true)]
     public void GetJumpUrl_ReturnsExpected(bool isDmChannel)
     {
         // Arrange
@@ -47,10 +47,10 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrl(message);
 
         // Assert
-        result.AbsoluteUri.Should().Be(expected.AbsoluteUri);
+        result.AbsoluteUri.ShouldBe(expected.AbsoluteUri);
     }
 
-    [Fact]
+    [Test]
     public void GetJumpUrlsInMessage_ReturnsExpected()
     {
         // Arrange
@@ -99,13 +99,13 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrlsInMessage(mainMessage);
 
         // Assert
-        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        result.ShouldBeEquivalentTo(expected);
     }
 
-    [Theory]
-    [InlineData(null, null)]
-    [InlineData(1UL, null)]
-    [InlineData(1UL, "en-US")]
+    [Test]
+    [Arguments(null, null)]
+    [Arguments(1UL, null)]
+    [Arguments(1UL, "en-US")]
     public void BuildTranslationReplyWithReference_ReturnsExpected(
         ulong? interactionUserId,
         string? detectedLanguageCode)
@@ -134,6 +134,7 @@ public sealed class MessageHelperTests
 
         var expected =
             $"{(interactionUserId is null ? "You" : $"<@{interactionUserId}>")} translated {messageJumpUrl} by <@{authorId}>";
+
         if (detectedLanguageCode is not null)
         {
             expected += $" from *{translationResult.DetectedLanguageName}*";
@@ -145,10 +146,10 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
-    [Fact]
+    [Test]
     public void BuildTranslationReplyWithReference_SameUser_ReturnsExpected()
     {
         // Arrange
@@ -181,6 +182,6 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 }
