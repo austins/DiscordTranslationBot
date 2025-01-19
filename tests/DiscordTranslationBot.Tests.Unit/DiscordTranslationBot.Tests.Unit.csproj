@@ -11,7 +11,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Shouldly" Version="4.2.1"/>
-        <PackageReference Include="TUnit.Engine" Version="0.6.121"/>
+        <PackageReference Include="TUnit.Engine" Version="0.6.137"/>
     </ItemGroup>
 
     <ItemGroup>
