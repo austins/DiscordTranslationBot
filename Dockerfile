@@ -23,6 +23,9 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     LANG=en_US.UTF-8
 RUN apk add --no-cache icu-data-full icu-libs
 
+# Expose port.
+EXPOSE 8080
+
 # Configure healthcheck.
 RUN apk add --no-cache curl
 HEALTHCHECK --interval=2m CMD curl --fail http://localhost:8080/_health || exit 1
