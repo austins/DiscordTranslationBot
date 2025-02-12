@@ -1,7 +1,7 @@
 ###################################################
 ## Build stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:a9d99ca1f16b123abd916a9e95b4304c3d3e03e86781e24ca565119badd5cad6 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:dcdfd35ae667ee8057d7cfea1de5dbd9b85902025073e9ad605120e5cdd0839c AS build
 
 # Publish app.
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN dotnet publish ./src/DiscordTranslationBot -c Release -o ./out
 ###################################################
 ## Runtime image creation stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:5b2b4d6ef37864167055e4e215eb10bd77217148068f7c055c900ca22d14c945
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:e4cc3821d0022f47a7656afb6847f138e062659b1a193ab53bb2661cabfecfde
 
 # Copy published build.
 WORKDIR /app
