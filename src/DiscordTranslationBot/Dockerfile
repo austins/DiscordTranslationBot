@@ -5,7 +5,8 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:dcdfd35ae667ee8057d7cfea1de5
 
 # Publish app.
 WORKDIR /app
-COPY . .
+COPY .editorconfig Directory.Build.props ./
+COPY ./src/DiscordTranslationBot ./src/DiscordTranslationBot 
 RUN dotnet publish ./src/DiscordTranslationBot -c Release -o ./out
 
 ###################################################
