@@ -1,3 +1,4 @@
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Refit;
@@ -34,7 +35,7 @@ internal static class TranslationProviderExtensions
     {
         // Set up configuration.
         var section = configuration.GetSection(TranslationProvidersOptions.SectionName);
-        services.AddOptions<TranslationProvidersOptions>().Bind(section).ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<TranslationProvidersOptions>().Bind(section).ValidateFluentValidation().ValidateOnStart();
 
         var options = section.Get<TranslationProvidersOptions>();
 

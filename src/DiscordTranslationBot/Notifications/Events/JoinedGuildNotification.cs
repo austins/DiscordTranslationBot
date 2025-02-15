@@ -1,5 +1,4 @@
 using Discord;
-using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Notifications.Events;
 
@@ -11,6 +10,13 @@ public sealed class JoinedGuildNotification : INotification
     /// <summary>
     /// The guild that the bot joined.
     /// </summary>
-    [Required]
     public required IGuild Guild { get; init; }
+}
+
+public sealed class JoinedGuildNotificationValidator : AbstractValidator<JoinedGuildNotification>
+{
+    public JoinedGuildNotificationValidator()
+    {
+        RuleFor(x => x.Guild).NotNull();
+    }
 }

@@ -1,15 +1,16 @@
-﻿using DiscordTranslationBot.Extensions;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
 
 public sealed partial class NotificationPublisher : INotificationPublisher
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly Log _log;
     private readonly TaskWhenAllPublisher _taskWhenAllPublisher = new();
 
-    public NotificationPublisher(ILogger<NotificationPublisher> logger)
+    public NotificationPublisher(IServiceProvider serviceProvider, ILogger<NotificationPublisher> logger)
     {
+        _serviceProvider = serviceProvider;
         _log = new Log(logger);
     }
 
@@ -19,9 +20,10 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         CancellationToken cancellationToken)
         where TNotification : INotification
     {
-        if (!notification.TryValidate(out var validationResults))
+        var validator = _serviceProvider.GetService<IValidator<TNotification>>();
+        if (validator is not null)
         {
-            throw new MessageValidationException(notification.GetType().Name, validationResults);
+            await validator.ValidateAndThrowAsync(notification, cancellationToken);
         }
 
         var notificationName = notification.GetType().Name;

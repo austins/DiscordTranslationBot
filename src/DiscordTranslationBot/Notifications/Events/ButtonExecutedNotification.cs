@@ -1,5 +1,4 @@
 using Discord;
-using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Notifications.Events;
 
@@ -11,6 +10,13 @@ public sealed class ButtonExecutedNotification : INotification
     /// <summary>
     /// The button component interaction.
     /// </summary>
-    [Required]
     public required IComponentInteraction Interaction { get; init; }
+}
+
+public sealed class ButtonExecutedNotificationValidator : AbstractValidator<ButtonExecutedNotification>
+{
+    public ButtonExecutedNotificationValidator()
+    {
+        RuleFor(x => x.Interaction).NotNull();
+    }
 }

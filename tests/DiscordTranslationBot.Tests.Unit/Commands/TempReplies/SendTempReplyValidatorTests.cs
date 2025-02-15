@@ -1,20 +1,22 @@
 using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
-using DiscordTranslationBot.Extensions;
+using FluentValidation.TestHelper;
 using System.Globalization;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
-public sealed class SendTempReplyTests
+public sealed class SendTempReplyValidatorTests
 {
+    private readonly SendTempReplyValidator _sut = new();
+
     [Test]
     [Arguments("00:00:01")]
     [Arguments("00:00:10")]
     [Arguments("00:00:30.678")]
     [Arguments("00:01:00")]
     [Arguments("00:01:30")]
-    public void Valid_ValidatesWithoutErrors(string deletionDelay)
+    public async Task Valid_ValidatesWithoutErrors(string deletionDelay, CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -30,15 +32,14 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Test]
-    public void Invalid_SourceMessage_HasValidationError()
+    public async Task Invalid_SourceMessage_HasValidationError(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -48,21 +49,17 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeFalse();
-
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.SourceMessage));
+        result.ShouldHaveValidationErrorFor(x => x.SourceMessage);
     }
 
     [Test]
     [Arguments(null)]
     [Arguments("")]
     [Arguments(" ")]
-    public void Invalid_Text_HasValidationError(string? text)
+    public async Task Invalid_Text_HasValidationError(string? text, CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -73,21 +70,19 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeFalse();
-
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.Text));
+        result.ShouldHaveValidationErrorFor(x => x.Text);
     }
 
     [Test]
     [Arguments("00:00:00")] // 0 seconds
     [Arguments("00:00:00.5")] // 0.5 seconds
     [Arguments("00:01:30.1")] // 1 minute 30.1 seconds
-    public void Invalid_DeletionDelay_HasValidationError(string deletionDelay)
+    public async Task Invalid_DeletionDelay_HasValidationError(
+        string deletionDelay,
+        CancellationToken cancellationToken)
     {
         // Arrange
         var command = new SendTempReply
@@ -103,13 +98,9 @@ public sealed class SendTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeFalse();
-
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.DeletionDelay));
+        result.ShouldHaveValidationErrorFor(x => x.DeletionDelay);
     }
 }

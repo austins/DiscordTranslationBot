@@ -1,16 +1,18 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Discord.Models;
-using DiscordTranslationBot.Extensions;
+using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
-public sealed class DeleteTempReplyTests
+public sealed class DeleteTempReplyValidatorTests
 {
+    private readonly DeleteTempReplyValidator _sut = new();
+
     [Test]
     [Arguments(false)]
     [Arguments(true)]
-    public void Valid_ValidatesWithoutErrors(bool hasReactionInfo)
+    public async Task Valid_ValidatesWithoutErrors(bool hasReactionInfo, CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -27,15 +29,14 @@ public sealed class DeleteTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Test]
-    public void Invalid_Reply_HasValidationError()
+    public async Task Invalid_Reply_HasValidationError(CancellationToken cancellationToken)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -50,13 +51,9 @@ public sealed class DeleteTempReplyTests
         };
 
         // Act
-        var isValid = command.TryValidate(out var validationResults);
+        var result = await _sut.TestValidateAsync(command, cancellationToken: cancellationToken);
 
         // Assert
-        isValid.ShouldBeFalse();
-
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.Reply));
+        result.ShouldHaveValidationErrorFor(x => x.Reply);
     }
 }

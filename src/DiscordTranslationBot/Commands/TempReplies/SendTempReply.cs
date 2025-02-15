@@ -1,7 +1,6 @@
 using Discord;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Jobs;
-using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
@@ -17,7 +16,6 @@ public sealed class SendTempReply : ICommand
     /// <summary>
     /// The source message.
     /// </summary>
-    [Required]
     public required IUserMessage SourceMessage { get; init; }
 
     /// <summary>
@@ -28,14 +26,22 @@ public sealed class SendTempReply : ICommand
     /// <summary>
     /// The reply text.
     /// </summary>
-    [Required]
     public required string Text { get; init; }
 
     /// <summary>
     /// The delay after which the reply will be deleted.
     /// </summary>
-    [Range(typeof(TimeSpan), "00:00:01", "00:01:30")]
     public TimeSpan DeletionDelay { get; init; } = TimeSpan.FromSeconds(15);
+}
+
+public sealed class SendTempReplyValidator : AbstractValidator<SendTempReply>
+{
+    public SendTempReplyValidator()
+    {
+        RuleFor(x => x.SourceMessage).NotNull();
+        RuleFor(x => x.Text).NotEmpty();
+        RuleFor(x => x.DeletionDelay).InclusiveBetween(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(90));
+    }
 }
 
 /// <summary>

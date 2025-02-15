@@ -1,7 +1,6 @@
 using Discord;
 using Discord.Net;
 using DiscordTranslationBot.Discord.Models;
-using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Commands.TempReplies;
 
@@ -14,7 +13,6 @@ public sealed class DeleteTempReply : ICommand
     /// <summary>
     /// The temp reply to delete.
     /// </summary>
-    [Required]
     public required IUserMessage Reply { get; init; }
 
     /// <summary>
@@ -26,6 +24,14 @@ public sealed class DeleteTempReply : ICommand
     /// The reaction associated with the source message, if any.
     /// </summary>
     public ReactionInfo? ReactionInfo { get; init; }
+}
+
+public sealed class DeleteTempReplyValidator : AbstractValidator<DeleteTempReply>
+{
+    public DeleteTempReplyValidator()
+    {
+        RuleFor(x => x.Reply).NotNull();
+    }
 }
 
 public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempReply>

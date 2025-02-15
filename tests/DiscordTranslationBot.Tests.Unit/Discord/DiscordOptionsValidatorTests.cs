@@ -1,10 +1,12 @@
 using DiscordTranslationBot.Discord;
-using DiscordTranslationBot.Extensions;
+using FluentValidation.TestHelper;
 
 namespace DiscordTranslationBot.Tests.Unit.Discord;
 
-public sealed class DiscordOptionsTests
+public sealed class DiscordOptionsValidatorTests
 {
+    private readonly DiscordOptionsValidator _sut = new();
+
     [Test]
     public void Valid_Options_ValidatesWithoutErrors()
     {
@@ -12,11 +14,10 @@ public sealed class DiscordOptionsTests
         var options = new DiscordOptions { BotToken = "token" };
 
         // Act
-        var isValid = options.TryValidate(out var validationResults);
+        var result = _sut.TestValidate(options);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Test]
@@ -29,13 +30,9 @@ public sealed class DiscordOptionsTests
         var options = new DiscordOptions { BotToken = botToken! };
 
         // Act
-        var isValid = options.TryValidate(out var validationResults);
+        var result = _sut.TestValidate(options);
 
         // Assert
-        isValid.ShouldBeFalse();
-
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(options.BotToken));
+        result.ShouldHaveValidationErrorFor(x => x.BotToken);
     }
 }

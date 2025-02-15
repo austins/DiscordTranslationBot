@@ -1,6 +1,8 @@
 using DiscordTranslationBot.Mediator;
+using FluentValidation;
+using FluentValidation.Results;
+using FluentValidation.TestHelper;
 using Mediator;
-using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
@@ -12,7 +14,11 @@ public sealed class NotificationPublisherTests
     public NotificationPublisherTests()
     {
         _logger = new LoggerFake<NotificationPublisher>();
-        _sut = new NotificationPublisher(_logger);
+
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        serviceProvider.GetService(typeof(IValidator<NotificationFake>)).Returns(new NotificationFakeValidator());
+
+        _sut = new NotificationPublisher(serviceProvider, _logger);
     }
 
     [Test]
@@ -24,7 +30,7 @@ public sealed class NotificationPublisherTests
         var notification = new NotificationFake { Value = 1 };
 
         // Act + Assert
-        await _sut.Publish(handlers, notification, cancellationToken).AsTask().ShouldNotThrowAsync();
+        await Should.NotThrowAsync(async () => await _sut.Publish(handlers, notification, cancellationToken));
 
         var notificationName = notification.GetType().Name;
 
@@ -47,16 +53,26 @@ public sealed class NotificationPublisherTests
         var notification = new NotificationFake { Value = null };
 
         // Act + Assert
-        await _sut
-            .Publish(handlers, notification, cancellationToken)
-            .AsTask()
-            .ShouldThrowAsync<MessageValidationException>();
+        var exception = await Should.ThrowAsync<ValidationException>(
+            async () => await _sut.Publish(handlers, notification, cancellationToken));
+
+        var validationResult = new TestValidationResult<NotificationFake>(new ValidationResult(exception.Errors));
+        validationResult.ShouldHaveValidationErrorFor(x => x.Value);
     }
 
     private sealed class NotificationFake : INotification
     {
-        [Required]
         public int? Value { get; init; }
+    }
+
+    private sealed class NotificationFakeValidator : AbstractValidator<NotificationFake>
+    {
+#pragma warning disable S1144
+        public NotificationFakeValidator()
+#pragma warning restore S1144
+        {
+            RuleFor(x => x.Value).NotEmpty();
+        }
     }
 
     private sealed class NotificationHandlerFake : INotificationHandler<NotificationFake>

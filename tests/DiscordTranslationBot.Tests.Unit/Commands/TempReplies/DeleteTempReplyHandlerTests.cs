@@ -175,7 +175,7 @@ public sealed class DeleteTempReplyHandlerTests
             .Returns(sourceMessage);
 
         // Act + Assert
-        await _sut.Handle(command, cancellationToken).AsTask().ShouldThrowAsync<Exception>();
+        await Should.ThrowAsync<Exception>(async () => await _sut.Handle(command, cancellationToken));
 
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 

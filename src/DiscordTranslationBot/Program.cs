@@ -20,11 +20,13 @@ builder.Logging.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff ");
 builder.AddTelemetry();
 
 // Configuration.
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(ServiceLifetime.Singleton);
+
 builder
     .Services
     .AddOptions<DiscordOptions>()
     .Bind(builder.Configuration.GetRequiredSection(DiscordOptions.SectionName))
-    .ValidateDataAnnotations()
+    .ValidateFluentValidation()
     .ValidateOnStart();
 
 // Main services.

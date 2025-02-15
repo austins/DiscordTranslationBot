@@ -154,9 +154,9 @@ public sealed class AzureTranslatorProviderTests
         var sut = new AzureTranslatorProvider(_client, _logger);
 
         // Act & Assert
-        var exception = await sut
-            .InitializeSupportedLanguagesAsync(cancellationToken)
-            .ShouldThrowAsync<InvalidOperationException>();
+        var exception =
+            await Should.ThrowAsync<InvalidOperationException>(
+                () => sut.InitializeSupportedLanguagesAsync(cancellationToken));
 
         exception.Message.ShouldBe("Languages endpoint returned no language codes.");
 
@@ -171,7 +171,8 @@ public sealed class AzureTranslatorProviderTests
         var text = new string('a', AzureTranslatorProvider.TextCharacterLimit);
 
         // Act & Assert
-        await _sut.TranslateByCountryAsync(_country, text, cancellationToken).ShouldThrowAsync<ArgumentException>();
+        await Should.ThrowAsync<ArgumentException>(
+            () => _sut.TranslateByCountryAsync(_country, text, cancellationToken));
 
         await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
     }
@@ -196,9 +197,8 @@ public sealed class AzureTranslatorProviderTests
         _client.TranslateAsync(default!, default!, default).ReturnsForAnyArgs(response);
 
         // Act & Assert
-        await _sut
-            .TranslateByCountryAsync(_country, text, cancellationToken)
-            .ShouldThrowAsync<InvalidOperationException>();
+        await Should.ThrowAsync<InvalidOperationException>(
+            () => _sut.TranslateByCountryAsync(_country, text, cancellationToken));
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, default);
     }
@@ -224,9 +224,8 @@ public sealed class AzureTranslatorProviderTests
         _client.TranslateAsync(default!, default!, default).ReturnsForAnyArgs(response);
 
         // Act & Assert
-        await _sut
-            .TranslateByCountryAsync(_country, text, cancellationToken)
-            .ShouldThrowAsync<InvalidOperationException>();
+        await Should.ThrowAsync<InvalidOperationException>(
+            () => _sut.TranslateByCountryAsync(_country, text, cancellationToken));
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, default);
     }
