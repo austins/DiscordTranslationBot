@@ -23,7 +23,7 @@ public sealed class MessageValidationBehaviorTests
     }
 
     [Test]
-    public async Task Handle_ValidMessage_NoValidator_Success(CancellationToken cancellationToken)
+    public async Task Handle_Message_NoValidator_Success(CancellationToken cancellationToken)
     {
         // Arrange
         var serviceProvider = Substitute.For<IServiceProvider>();
