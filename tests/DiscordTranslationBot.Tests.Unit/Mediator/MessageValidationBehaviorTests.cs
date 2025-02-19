@@ -23,7 +23,22 @@ public sealed class MessageValidationBehaviorTests
     }
 
     [Test]
-    public async Task Handle_ValidMessage_NoValidator_Success(CancellationToken cancellationToken)
+    public async Task Handle_ValidMessage_Success()
+    {
+        // Arrange
+        _validator
+            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
+            .Returns(new ValidationResult());
+
+        // Act & Assert
+        await Should.NotThrowAsync(
+            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
+
+        await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ValidMessage_NoValidator_Success()
     {
         // Arrange
         var serviceProvider = Substitute.For<IServiceProvider>();
@@ -33,38 +48,29 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await Should.NotThrowAsync(
-            async () => await sut.Handle(_message, (_, _) => ValueTask.FromResult(true), cancellationToken));
+            async () => await sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
 
-        await _validator.DidNotReceive().ValidateAsync(Arg.Any<IValidationContext>(), cancellationToken);
+        await _validator.DidNotReceive().ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_ValidMessage_Success(CancellationToken cancellationToken)
-    {
-        // Arrange
-        _validator.ValidateAsync(Arg.Any<IValidationContext>(), cancellationToken).Returns(new ValidationResult());
-
-        // Act & Assert
-        await Should.NotThrowAsync(
-            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), cancellationToken));
-
-        await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), cancellationToken);
-    }
-
-    [Test]
-    public async Task Handle_InvalidMessage_Throws(CancellationToken cancellationToken)
+    public async Task Handle_InvalidMessage_Throws()
     {
         // Arrange
         _validator
-            .ValidateAsync(Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message), cancellationToken)
+            .ValidateAsync(
+                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
+                Arg.Any<CancellationToken>())
             .ThrowsAsync(new ValidationException([new ValidationFailure("test", "test")]));
 
         // Act & Assert
         await Should.ThrowAsync<ValidationException>(
-            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), cancellationToken));
+            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
 
         await _validator
             .Received(1)
-            .ValidateAsync(Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message), cancellationToken);
+            .ValidateAsync(
+                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
+                Arg.Any<CancellationToken>());
     }
 }
