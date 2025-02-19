@@ -155,8 +155,9 @@ public sealed class LibreTranslateProviderTests
         var sut = new LibreTranslateProvider(_client, _logger);
 
         // Act & Assert
-        var exception = await Should.ThrowAsync<InvalidOperationException>(
-            () => sut.InitializeSupportedLanguagesAsync(cancellationToken));
+        var exception = await sut
+            .InitializeSupportedLanguagesAsync(cancellationToken)
+            .ShouldThrowAsync<InvalidOperationException>();
 
         exception.Message.ShouldBe("Languages endpoint returned no language codes.");
 
@@ -187,8 +188,9 @@ public sealed class LibreTranslateProviderTests
             .Returns(response);
 
         // Act & Assert
-        await Should.ThrowAsync<InvalidOperationException>(
-            () => _sut.TranslateByCountryAsync(_country, text, cancellationToken));
+        await _sut
+            .TranslateByCountryAsync(_country, text, cancellationToken)
+            .ShouldThrowAsync<InvalidOperationException>();
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }
@@ -220,8 +222,9 @@ public sealed class LibreTranslateProviderTests
             .Returns(response);
 
         // Act & Assert
-        await Should.ThrowAsync<InvalidOperationException>(
-            () => _sut.TranslateByCountryAsync(_country, text, cancellationToken));
+        await _sut
+            .TranslateByCountryAsync(_country, text, cancellationToken)
+            .ShouldThrowAsync<InvalidOperationException>();
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default);
     }

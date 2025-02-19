@@ -1,4 +1,5 @@
 using Discord;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Notifications.Events;
 
@@ -10,13 +11,6 @@ public sealed class SelectMenuExecutedNotification : INotification
     /// <summary>
     /// The select menu component interaction.
     /// </summary>
+    [Required]
     public required IComponentInteraction Interaction { get; init; }
-}
-
-public sealed class SelectMenuExecutedNotificationValidator : AbstractValidator<SelectMenuExecutedNotification>
-{
-    public SelectMenuExecutedNotificationValidator()
-    {
-        RuleFor(x => x.Interaction).NotNull();
-    }
 }

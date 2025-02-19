@@ -45,7 +45,7 @@ public sealed class SchedulerTests
         var executeAt = DateTimeOffset.MaxValue.AddSeconds(seconds);
 
         // Act + Assert
-        await Should.ThrowAsync<Exception>(() => _sut.ScheduleAsync(command, executeAt, cancellationToken));
+        await _sut.ScheduleAsync(command, executeAt, cancellationToken).ShouldThrowAsync<InvalidOperationException>();
     }
 
     [Test]
@@ -78,8 +78,7 @@ public sealed class SchedulerTests
         var executeAt = TimeSpan.FromSeconds(seconds);
 
         // Act + Assert
-        await Should.ThrowAsync<InvalidOperationException>(
-            () => _sut.ScheduleAsync(command, executeAt, cancellationToken));
+        await _sut.ScheduleAsync(command, executeAt, cancellationToken).ShouldThrowAsync<InvalidOperationException>();
     }
 
     [Test]

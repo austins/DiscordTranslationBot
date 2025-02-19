@@ -1,76 +1,73 @@
 using DiscordTranslationBot.Mediator;
-using FluentValidation;
-using FluentValidation.Results;
 using Mediator;
+using System.ComponentModel.DataAnnotations;
 
 namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
 public sealed class MessageValidationBehaviorTests
 {
-    private readonly IMessage _message;
     private readonly MessageValidationBehavior<IMessage, bool> _sut;
-    private readonly IValidator<IMessage> _validator;
 
     public MessageValidationBehaviorTests()
     {
-        _message = Substitute.For<IMessage>();
-        _validator = Substitute.For<IValidator<IMessage>>();
-
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IMessage>)).Returns(_validator);
-
-        _sut = new MessageValidationBehavior<IMessage, bool>(serviceProvider);
+        _sut = new MessageValidationBehavior<IMessage, bool>();
     }
 
     [Test]
-    public async Task Handle_ValidMessage_Success()
+    public async Task Handle_ValidMessage_NotValidatable_Success(CancellationToken cancellationToken)
     {
         // Arrange
-        _validator
-            .ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>())
-            .Returns(new ValidationResult());
+        var message = Substitute.For<IMessage>();
 
         // Act & Assert
-        await Should.NotThrowAsync(
-            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
-
-        await _validator.Received(1).ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+        await _sut
+            .Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken)
+            .AsTask()
+            .ShouldNotThrowAsync();
     }
 
     [Test]
-    public async Task Handle_ValidMessage_NoValidator_Success()
+    public async Task Handle_ValidMessage_Success(CancellationToken cancellationToken)
     {
         // Arrange
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(IValidator<IMessage>)).Returns(null);
-
-        var sut = new MessageValidationBehavior<IMessage, bool>(serviceProvider);
+        var message = new MessageFake
+        {
+            Name = "Test",
+            Value = 1
+        };
 
         // Act & Assert
-        await Should.NotThrowAsync(
-            async () => await sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
-
-        await _validator.DidNotReceive().ValidateAsync(Arg.Any<IValidationContext>(), Arg.Any<CancellationToken>());
+        await _sut
+            .Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken)
+            .AsTask()
+            .ShouldNotThrowAsync();
     }
 
     [Test]
-    public async Task Handle_InvalidMessage_Throws()
+    public async Task Handle_InvalidMessage_Throws(CancellationToken cancellationToken)
     {
         // Arrange
-        _validator
-            .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
-                Arg.Any<CancellationToken>())
-            .ThrowsAsync(new ValidationException([new ValidationFailure("test", "test")]));
+        var message = new MessageFake
+        {
+            Name = null,
+            Value = 0
+        };
 
         // Act & Assert
-        await Should.ThrowAsync<ValidationException>(
-            async () => await _sut.Handle(_message, (_, _) => ValueTask.FromResult(true), CancellationToken.None));
+        var exception = await Should.ThrowAsync<MessageValidationException>(
+            async () => await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken));
 
-        await _validator
-            .Received(1)
-            .ValidateAsync(
-                Arg.Is<IValidationContext>(x => x.InstanceToValidate == _message),
-                Arg.Any<CancellationToken>());
+        exception.ValidationResults.Count.ShouldBe(2);
+        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Name)), 1);
+        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Value)), 1);
+    }
+
+    private sealed class MessageFake : IMessage
+    {
+        [Required]
+        public string? Name { get; init; }
+
+        [Range(0, int.MaxValue, MinimumIsExclusive = true)]
+        public required int Value { get; init; }
     }
 }

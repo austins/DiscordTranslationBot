@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace DiscordTranslationBot.Discord;
 
 /// <summary>
@@ -13,13 +15,6 @@ public sealed class DiscordOptions
     /// <summary>
     /// The token for the Discord bot.
     /// </summary>
+    [Required]
     public required string BotToken { get; init; }
-}
-
-public sealed class DiscordOptionsValidator : AbstractValidator<DiscordOptions>
-{
-    public DiscordOptionsValidator()
-    {
-        RuleFor(x => x.BotToken).NotEmpty();
-    }
 }

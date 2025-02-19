@@ -80,7 +80,7 @@ public sealed class SendTempReplyHandlerTests
         command.SourceMessage.Channel.SendMessageAsync().ThrowsAsyncForAnyArgs(exception);
 
         // Act + Assert
-        await Should.ThrowAsync<Exception>(async () => await _sut.Handle(command, cancellationToken));
+        await _sut.Handle(command, cancellationToken).AsTask().ShouldThrowAsync<Exception>();
 
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();

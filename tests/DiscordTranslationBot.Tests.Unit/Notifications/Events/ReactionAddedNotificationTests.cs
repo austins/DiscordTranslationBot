@@ -1,17 +1,15 @@
 ﻿using Discord;
 using DiscordTranslationBot.Discord.Models;
+using DiscordTranslationBot.Extensions;
 using DiscordTranslationBot.Notifications.Events;
-using FluentValidation.TestHelper;
 using Emoji = NeoSmart.Unicode.Emoji;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
-public sealed class ReactionAddedNotificationValidatorTests
+public sealed class ReactionAddedNotificationTests
 {
-    private readonly ReactionAddedNotificationValidator _sut = new();
-
     [Test]
-    public async Task Valid_Validates_WithNoErrors(CancellationToken cancellationToken)
+    public void Valid_Validates_WithNoErrors()
     {
         // Arrange
         var notification = new ReactionAddedNotification
@@ -26,14 +24,15 @@ public sealed class ReactionAddedNotificationValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(notification, cancellationToken: cancellationToken);
+        var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        result.ShouldNotHaveAnyValidationErrors();
+        isValid.ShouldBeTrue();
+        validationResults.ShouldBeEmpty();
     }
 
     [Test]
-    public async Task Invalid_Validates_WithErrors(CancellationToken cancellationToken)
+    public void Invalid_Validates_WithErrors()
     {
         // Arrange
         var notification = new ReactionAddedNotification
@@ -44,11 +43,14 @@ public sealed class ReactionAddedNotificationValidatorTests
         };
 
         // Act
-        var result = await _sut.TestValidateAsync(notification, cancellationToken: cancellationToken);
+        var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Message);
-        result.ShouldHaveValidationErrorFor(x => x.Channel);
-        result.ShouldHaveValidationErrorFor(x => x.ReactionInfo);
+        isValid.ShouldBeFalse();
+
+        validationResults.Count.ShouldBe(3);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Message)), 1);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Channel)), 1);
+        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.ReactionInfo)), 1);
     }
 }
