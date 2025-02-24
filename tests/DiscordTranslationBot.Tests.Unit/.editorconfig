@@ -13,3 +13,6 @@ dotnet_diagnostic.CA2201.severity = none
 
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = none
+
+# IDISP004: Don't ignore created IDisposable
+dotnet_diagnostic.IDISP004.severity = none
