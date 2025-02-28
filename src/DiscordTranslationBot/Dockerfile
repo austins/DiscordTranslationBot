@@ -32,7 +32,7 @@ EXPOSE 8080
 
 # Configure healthcheck.
 RUN apk add --no-cache curl
-HEALTHCHECK --interval=2m CMD curl --fail http://localhost:8080/_health || exit 1
+HEALTHCHECK --start-period=2m --start-interval=5s --interval=5m CMD curl --fail http://localhost:8080/_health || exit 1
 
 # Configure running the app.
 ENTRYPOINT ["dotnet", "DiscordTranslationBot.dll"]
