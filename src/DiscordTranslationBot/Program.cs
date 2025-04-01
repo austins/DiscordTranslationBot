@@ -28,6 +28,13 @@ builder
     .ValidateOnStart();
 
 // Main services.
+builder.Host.UseDefaultServiceProvider(
+    o =>
+    {
+        o.ValidateOnBuild = true;
+        o.ValidateScopes = true;
+    });
+
 builder
     .Services
     .AddTranslationProviders(builder.Configuration)
