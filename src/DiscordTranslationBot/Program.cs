@@ -13,6 +13,14 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+// Host
+builder.Host.UseDefaultServiceProvider(
+    o =>
+    {
+        o.ValidateOnBuild = true;
+        o.ValidateScopes = true;
+    });
+
 // Logging.
 builder.Logging.AddSimpleConsole(o => o.TimestampFormat = "HH:mm:ss.fff ");
 
@@ -28,13 +36,6 @@ builder
     .ValidateOnStart();
 
 // Main services.
-builder.Host.UseDefaultServiceProvider(
-    o =>
-    {
-        o.ValidateOnBuild = true;
-        o.ValidateScopes = true;
-    });
-
 builder
     .Services
     .AddTranslationProviders(builder.Configuration)
