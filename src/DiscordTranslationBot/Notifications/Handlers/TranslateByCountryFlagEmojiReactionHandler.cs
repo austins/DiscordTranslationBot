@@ -83,6 +83,8 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
         {
+            _log.TranslatorAttempt(translationProvider.GetType().Name);
+
             try
             {
                 translationResult = await translationProvider.TranslateByCountryAsync(
@@ -97,7 +99,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                 // Send message if this is the last available translation provider.
                 if (ReferenceEquals(translationProvider, _translationProviderFactory.LastProvider))
                 {
-                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType(), country.Name);
+                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType().Name, country.Name);
 
                     await _sender.Send(
                         new SendTempReply
@@ -113,7 +115,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             }
             catch (Exception ex)
             {
-                _log.TranslationFailure(ex, translationProvider.GetType());
+                _log.TranslationFailure(ex, translationProvider.GetType().Name);
             }
         }
 
@@ -171,11 +173,14 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         [LoggerMessage(
             Level = LogLevel.Warning,
             Message =
-                "Target language code not supported. Provider {providerType} doesn't support the language code or the country {countryName} has no mapping for the language code.")]
-        public partial void LanguageNotSupportedForCountry(Exception ex, Type providerType, string countryName);
+                "Target language code not supported. Provider {providerName} doesn't support the language code or the country {countryName} has no mapping for the language code.")]
+        public partial void LanguageNotSupportedForCountry(Exception ex, string providerName, string countryName);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
-        public partial void TranslationFailure(Exception ex, Type providerType);
+        [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
+        public partial void TranslatorAttempt(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
+        public partial void TranslationFailure(Exception ex, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,

@@ -121,7 +121,7 @@ public sealed partial class TranslateToMessageCommandHandler
         }
         catch (Exception ex)
         {
-            _log.TranslationFailure(ex, translationProvider.GetType());
+            _log.TranslationFailure(ex, translationProvider.GetType().Name);
         }
     }
 
@@ -212,8 +212,8 @@ public sealed partial class TranslateToMessageCommandHandler
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceText();
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
-        public partial void TranslationFailure(Exception ex, Type providerType);
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
+        public partial void TranslationFailure(Exception ex, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,

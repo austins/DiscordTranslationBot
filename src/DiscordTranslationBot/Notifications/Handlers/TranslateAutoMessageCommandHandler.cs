@@ -82,6 +82,8 @@ public sealed partial class TranslateAutoMessageCommandHandler
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
         {
+            _log.TranslatorAttempt(translationProvider.GetType().Name);
+
             try
             {
                 var targetLanguage =
@@ -113,7 +115,7 @@ public sealed partial class TranslateAutoMessageCommandHandler
             }
             catch (Exception ex)
             {
-                _log.TranslationFailure(ex, translationProvider.GetType());
+                _log.TranslationFailure(ex, translationProvider.GetType().Name);
             }
         }
 
@@ -159,8 +161,11 @@ public sealed partial class TranslateAutoMessageCommandHandler
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerType}.")]
-        public partial void TranslationFailure(Exception ex, Type providerType);
+        [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
+        public partial void TranslatorAttempt(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
+        public partial void TranslationFailure(Exception ex, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
