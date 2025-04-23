@@ -31,10 +31,8 @@ Which providers are enabled can be configured per the instructions below.
 
 ### Optional: Run LibreTranslate
 
-1. Follow the steps
-   to [create and run a LibreTranslate Docker container](https://github.com/LibreTranslate/LibreTranslate#run-with-docker=).
-2. Optionally, you can mount the volumes `/root/.local/share/LibreTranslate` and `/root/.local/share/argos-translate` to
-   persist the language models. This is good for production.
+1. See the [LibreTranslate repository](https://github.com/LibreTranslate/LibreTranslate) and their Docker Compose files for instructions on how to run a LibreTranslate Docker container.
+2. Optionally, you can mount a named volume `/home/libretranslate/.local` to persist the language models and avoid redownloading them on startup.
 
 ## Development
 
@@ -48,9 +46,9 @@ Which providers are enabled can be configured per the instructions below.
   "TranslationProviders": {
     "AzureTranslator": {
       "Enabled": true,
-      "ApiUrl": "https://api.cognitive.microsofttranslator.com",
-      "SecretKey": "",
-      "Region": ""
+      "ApiUrl": "https://api.cognitive.microsofttranslator.com", 
+      "Region": "",
+      "SecretKey": ""
     },
     "LibreTranslate": {
       "Enabled": true,
@@ -74,8 +72,8 @@ Which providers are enabled can be configured per the instructions below.
 Discord__BotToken=
 TranslationProviders__AzureTranslator__Enabled=true
 TranslationProviders__AzureTranslator__ApiUrl=https://api.cognitive.microsofttranslator.com
-TranslationProviders__AzureTranslator__SecretKey=
 TranslationProviders__AzureTranslator__Region=
+TranslationProviders__AzureTranslator__SecretKey=
 TranslationProviders__LibreTranslate__Enabled=true
 TranslationProviders__LibreTranslate__ApiUrl=http://localhost:5000
 ```
