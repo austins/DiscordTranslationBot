@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Telemetry;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -13,6 +14,7 @@ namespace DiscordTranslationBot.Discord;
 /// </summary>
 internal sealed partial class DiscordEventListener
 {
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> NotificationPropertyCache = new();
     private readonly DiscordSocketClient _client;
     private readonly global::Mediator.Mediator _mediator;
     private readonly ILogger<DiscordEventListener> _logger;
@@ -112,13 +114,15 @@ internal sealed partial class DiscordEventListener
                         ActivityKind.Internal);
 
                     // Only start the trace scope if this is not a log notification to reduce polluting the logs.
+                    Dictionary<string, object> traceState = [];
                     if (notification is not LogNotification)
                     {
                         traceActivity?.Start();
                         traceActivity?.SetTag("notificationName", notificationName);
+                        traceState = BuildTraceState(traceState, notification);
                     }
 
-                    using var traceLogScope = _logger.BeginScope(BuildTraceState(notification));
+                    using var traceLogScope = _logger.BeginScope(traceState);
 
                     try
                     {
@@ -147,46 +151,51 @@ internal sealed partial class DiscordEventListener
     /// <summary>
     /// Builds a state with contextual information about a notification initiated by an event for a logger scope.
     /// </summary>
+    /// <param name="traceState">The trace state to add information to.</param>
     /// <param name="notification">The notification.</param>
     /// <returns>State for a logger scope.</returns>
-    private static Dictionary<string, object> BuildTraceState(INotification notification)
+    private static Dictionary<string, object> BuildTraceState(
+        Dictionary<string, object> traceState,
+        INotification notification)
     {
         const string statePrefix = "trace.";
         const string guildIdKey = "guildId";
         const string channelIdKey = "channelId";
         const string userIdKey = "userId";
 
-        var state = new Dictionary<string, object>();
+        var props = NotificationPropertyCache.GetOrAdd(
+            notification.GetType(),
+            type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance));
 
-        var props = notification.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
         foreach (var prop in props)
         {
-            if (typeof(IDiscordInteraction).IsAssignableFrom(prop.PropertyType))
+            if (prop.GetValue(notification) is { } value)
             {
-                var interaction = (IDiscordInteraction)prop.GetValue(notification)!;
-                TryAddStateIfNotNull(guildIdKey, interaction.GuildId);
-                TryAddStateIfNotNull(channelIdKey, interaction.ChannelId);
-                TryAddStateIfNotNull(userIdKey, interaction.User.Id);
-            }
-            else if (typeof(IChannel).IsAssignableFrom(prop.PropertyType))
-            {
-                var channel = (IChannel)prop.GetValue(notification)!;
-                TryAddStateIfNotNull(guildIdKey, (channel as IGuildChannel)?.GuildId);
-                TryAddStateIfNotNull(channelIdKey, channel.Id);
-            }
-            else if (prop.PropertyType == typeof(ReactionInfo))
-            {
-                TryAddStateIfNotNull(userIdKey, ((ReactionInfo)prop.GetValue(notification)!).UserId);
+                switch (value)
+                {
+                    case IDiscordInteraction interaction:
+                        TryAddStateIfNotNull(guildIdKey, interaction.GuildId);
+                        TryAddStateIfNotNull(channelIdKey, interaction.ChannelId);
+                        TryAddStateIfNotNull(userIdKey, interaction.User.Id);
+                        break;
+                    case IChannel channel:
+                        TryAddStateIfNotNull(guildIdKey, (channel as IGuildChannel)?.GuildId);
+                        TryAddStateIfNotNull(channelIdKey, channel.Id);
+                        break;
+                    case ReactionInfo reaction:
+                        TryAddStateIfNotNull(userIdKey, reaction.UserId);
+                        break;
+                }
             }
         }
 
-        return state;
+        return traceState;
 
         void TryAddStateIfNotNull(string name, object? value)
         {
             if (value is not null)
             {
-                state.TryAdd($"{statePrefix}{name}", value);
+                traceState.TryAdd($"{statePrefix}{name}", value);
             }
         }
     }
