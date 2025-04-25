@@ -43,16 +43,28 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
         try
         {
             await command.Reply.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
-            _log.DeletedTempReply(command.Reply.Id);
+
+            _log.DeletedTempReply(
+                command.Reply.Id,
+                command.Reply.Channel.Id,
+                (command.Reply.Channel as IGuildChannel)?.GuildId);
         }
         catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.UnknownMessage)
         {
             // The message was likely already deleted.
-            _log.TempReplyNotFound(command.Reply.Id);
+            _log.TempReplyNotFound(
+                command.Reply.Id,
+                command.Reply.Channel.Id,
+                (command.Reply.Channel as IGuildChannel)?.GuildId);
         }
         catch (Exception ex)
         {
-            _log.FailedToDeleteTempReply(ex, command.Reply.Id);
+            _log.FailedToDeleteTempReply(
+                ex,
+                command.Reply.Id,
+                command.Reply.Channel.Id,
+                (command.Reply.Channel as IGuildChannel)?.GuildId);
+
             throw;
         }
 
@@ -69,6 +81,12 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
                     command.ReactionInfo.Emote,
                     command.ReactionInfo.UserId,
                     new RequestOptions { CancelToken = cancellationToken });
+
+                _log.RemovedTempReaction(
+                    command.ReactionInfo.UserId,
+                    sourceMessage.Id,
+                    sourceMessage.Channel.Id,
+                    (sourceMessage.Channel as IGuildChannel)?.GuildId);
             }
         }
 
@@ -77,15 +95,26 @@ public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempR
 
     private sealed partial class Log(ILogger logger)
     {
-        [LoggerMessage(Level = LogLevel.Information, Message = "Deleted temp reply ID {replyId}.")]
-        public partial void DeletedTempReply(ulong replyId);
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.")]
+        public partial void DeletedTempReply(ulong replyId, ulong channelId, ulong? guildId);
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Temp reply ID {replyId} was not found and likely manually deleted.")]
-        public partial void TempReplyNotFound(ulong replyId);
+            Message =
+                "Removed temp reaction added by user ID {userId} from message ID {messageId} in channel ID {channelId} and guild ID {guildId}.")]
+        public partial void RemovedTempReaction(ulong userId, ulong messageId, ulong channelId, ulong? guildId);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete temp reply ID {replyId}.")]
-        public partial void FailedToDeleteTempReply(Exception ex, ulong replyId);
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message =
+                "Temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId} was not found and likely manually deleted.")]
+        public partial void TempReplyNotFound(ulong replyId, ulong channelId, ulong? guildId);
+
+        [LoggerMessage(
+            Level = LogLevel.Error,
+            Message = "Failed to delete temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.")]
+        public partial void FailedToDeleteTempReply(Exception ex, ulong replyId, ulong channelId, ulong? guildId);
     }
 }

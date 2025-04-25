@@ -7,7 +7,8 @@ namespace DiscordTranslationBot.Discord.Models;
 /// Holds values from <see cref="SocketReaction" />.
 /// </summary>
 /// <remarks>
-/// Helps with mocking reactions in tests.
+/// Helps with mocking reactions in tests because <see cref="SocketReaction" /> has an internal constructor
+/// and <see cref="IReaction" /> does not have the UserId.
 /// </remarks>
 public sealed class ReactionInfo
 {

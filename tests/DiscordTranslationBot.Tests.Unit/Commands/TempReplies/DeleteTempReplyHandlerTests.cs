@@ -38,11 +38,22 @@ public sealed class DeleteTempReplyHandlerTests
         };
 
         const ulong replyId = 5UL;
+        const ulong channelId = 6UL;
+        const ulong guildId = 7UL;
+
         command.Reply.Id.Returns(replyId);
+        command.Reply.Channel.Returns(Substitute.For<IMessageChannel, IGuildChannel>());
+        command.Reply.Channel.Id.Returns(channelId);
+        (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         var sourceMessage = Substitute.For<IUserMessage>();
         if (hasReactionInfo)
         {
+            sourceMessage.Id.Returns(command.SourceMessageId);
+            sourceMessage.Channel.Returns(Substitute.For<IMessageChannel, IGuildChannel>());
+            sourceMessage.Channel.Id.Returns(channelId);
+            (sourceMessage.Channel as IGuildChannel)!.GuildId.Returns(guildId);
+
             command
                 .Reply
                 .Channel
@@ -56,9 +67,10 @@ public sealed class DeleteTempReplyHandlerTests
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        var logEntry = _logger.Entries.ShouldHaveSingleItem();
-        logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
+        var deletedTempReplyLogEntry = _logger.Entries[0];
+        deletedTempReplyLogEntry.LogLevel.ShouldBe(LogLevel.Information);
+        deletedTempReplyLogEntry.Message.ShouldBe(
+            $"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
             .Reply
@@ -69,6 +81,14 @@ public sealed class DeleteTempReplyHandlerTests
         await sourceMessage
             .Received(hasReactionInfo ? 1 : 0)
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions?>());
+
+        if (hasReactionInfo)
+        {
+            var removedTempReactionLogEntry = _logger.Entries[1];
+            removedTempReactionLogEntry.LogLevel.ShouldBe(LogLevel.Information);
+            removedTempReactionLogEntry.Message.ShouldBe(
+                $"Removed temp reaction added by user ID {command.ReactionInfo!.UserId} from message ID {command.SourceMessageId} in channel ID {channelId} and guild ID {guildId}.");
+        }
     }
 
     [Test]
@@ -87,7 +107,13 @@ public sealed class DeleteTempReplyHandlerTests
         };
 
         const ulong replyId = 5UL;
+        const ulong channelId = 6UL;
+        const ulong guildId = 7UL;
+
         command.Reply.Id.Returns(replyId);
+        command.Reply.Channel.Returns(Substitute.For<IMessageChannel, IGuildChannel>());
+        command.Reply.Channel.Id.Returns(channelId);
+        (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         command
             .Reply
@@ -103,7 +129,7 @@ public sealed class DeleteTempReplyHandlerTests
 
         var logEntry = _logger.Entries.ShouldHaveSingleItem();
         logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId}.");
+        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
             .Reply
@@ -124,7 +150,13 @@ public sealed class DeleteTempReplyHandlerTests
         };
 
         const ulong replyId = 5UL;
+        const ulong channelId = 6UL;
+        const ulong guildId = 7UL;
+
         command.Reply.Id.Returns(replyId);
+        command.Reply.Channel.Returns(Substitute.For<IMessageChannel, IGuildChannel>());
+        command.Reply.Channel.Id.Returns(channelId);
+        (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         command
             .Reply
@@ -143,7 +175,8 @@ public sealed class DeleteTempReplyHandlerTests
 
         var logEntry = _logger.Entries.ShouldHaveSingleItem();
         logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Temp reply ID {replyId} was not found and likely manually deleted.");
+        logEntry.Message.ShouldBe(
+            $"Temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId} was not found and likely manually deleted.");
     }
 
     [Test]
@@ -162,7 +195,13 @@ public sealed class DeleteTempReplyHandlerTests
         };
 
         const ulong replyId = 5UL;
+        const ulong channelId = 6UL;
+        const ulong guildId = 7UL;
+
         command.Reply.Id.Returns(replyId);
+        command.Reply.Channel.Returns(Substitute.For<IMessageChannel, IGuildChannel>());
+        command.Reply.Channel.Id.Returns(channelId);
+        (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         var exception = new Exception();
         command.Reply.DeleteAsync().ThrowsAsyncForAnyArgs(exception);
@@ -182,7 +221,8 @@ public sealed class DeleteTempReplyHandlerTests
         var logEntry = _logger.Entries.ShouldHaveSingleItem();
         logEntry.LogLevel.ShouldBe(LogLevel.Error);
         logEntry.Exception.ShouldBe(exception);
-        logEntry.Message.ShouldBe($"Failed to delete temp reply ID {replyId}.");
+        logEntry.Message.ShouldBe(
+            $"Failed to delete temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
             .Reply

@@ -15,32 +15,37 @@ internal static class TelemetryExtensions
             return;
         }
 
-        builder.Logging.AddOpenTelemetry(
-            o =>
-            {
-                o.IncludeFormattedMessage = true;
-                o.IncludeScopes = true;
-                o.AddOtlpExporter();
-            });
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.AddOtlpExporter();
+        });
 
         builder
             .Services
+            .AddSingleton<Instrumentation>()
             .AddOpenTelemetry()
-            .ConfigureResource(
-                b => b
+            .ConfigureResource(b =>
+                b
                     .AddService(builder.Environment.ApplicationName)
                     .AddAttributes(
                         new Dictionary<string, object>
                         {
                             ["deployment.environment"] = builder.Environment.EnvironmentName
                         }))
-            .WithMetrics(
-                b => b
+            .WithMetrics(b =>
+                b
                     .AddProcessInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddOtlpExporter())
-            .WithTracing(b => b.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter());
+            .WithTracing(b =>
+                b
+                    .AddSource(builder.Environment.ApplicationName)
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddOtlpExporter());
     }
 }
