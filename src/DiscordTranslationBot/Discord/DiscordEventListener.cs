@@ -101,11 +101,10 @@ internal sealed partial class DiscordEventListener
         _ = Task.Run(
             async () =>
             {
-                string? notificationName = null;
                 try
                 {
                     var notification = await notificationFactory();
-                    notificationName = notification.GetType().Name;
+                    var notificationName = notification.GetType().Name;
 
                     // Start a trace scope within the background thread.
                     using var traceActivity = _activitySource.StartActivity(
@@ -115,11 +114,18 @@ internal sealed partial class DiscordEventListener
 
                     using var traceLogScope = _logger.BeginScope(BuildTraceState(notification));
 
-                    await _mediator.Publish(notification, cancellationToken);
+                    try
+                    {
+                        await _mediator.Publish(notification, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.NotificationException(ex, notificationName);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _log.FailedToPublishNotification(ex, notificationName);
+                    _log.FailedToPublishInBackground(ex);
                 }
             },
             cancellationToken);
@@ -186,7 +192,10 @@ internal sealed partial class DiscordEventListener
 
         [LoggerMessage(
             Level = LogLevel.Error,
-            Message = "Failed to publish notification '{notificationName}' in background.")]
-        public partial void FailedToPublishNotification(Exception ex, string? notificationName);
+            Message = "An exception was thrown while publishing notification '{notificationName}'.")]
+        public partial void NotificationException(Exception ex, string notificationName);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification in background.")]
+        public partial void FailedToPublishInBackground(Exception ex);
     }
 }

@@ -37,12 +37,12 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
                 var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
                 if (job != null)
                 {
+                    // Start a trace scope for this job execution.
+                    using var traceActivity = _activitySource.StartActivity(
+                        $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}");
+
                     try
                     {
-                        // Start a trace scope for this job execution.
-                        using var traceActivity = _activitySource.StartActivity(
-                            $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}");
-
                         _log.TaskExecuting();
                         await job.Action(stoppingToken);
                         _log.TaskExecuted();
