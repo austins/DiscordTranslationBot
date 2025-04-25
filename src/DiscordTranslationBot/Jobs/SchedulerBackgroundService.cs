@@ -39,13 +39,15 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
                 {
                     // Start a trace scope for this job execution.
                     using var traceActivity = _activitySource.StartActivity(
-                        $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}");
+                        $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}: {{commandName}}");
+
+                    traceActivity?.SetTag("commandName", job.CommandName);
 
                     try
                     {
-                        _log.TaskExecuting();
+                        _log.TaskExecuting(job.CommandName);
                         await job.Action(stoppingToken);
-                        _log.TaskExecuted();
+                        _log.TaskExecuted(job.CommandName);
                     }
                     catch (Exception ex)
                     {
@@ -70,11 +72,15 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
             Message = "Stopped scheduler background service with {remainingTasks} remaining tasks in the queue.")]
         public partial void Stopped(int remainingTasks);
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Executing scheduled task...")]
-        public partial void TaskExecuting();
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Executing scheduled task for command '{commandName}'...")]
+        public partial void TaskExecuting(string commandName);
 
-        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully executed scheduled task.")]
-        public partial void TaskExecuted();
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Successfully executed scheduled task for command '{commandName}'.")]
+        public partial void TaskExecuted(string commandName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to execute scheduled task.")]
         public partial void TaskFailed(Exception ex);

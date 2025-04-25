@@ -34,6 +34,7 @@ public sealed partial class Scheduler : IScheduler
         await _channel.Writer.WriteAsync(
             new ScheduledJob
             {
+                CommandName = command.GetType().Name,
                 Action = async ct => await _sender.Send(command, ct),
                 ExecuteAt = executeAt
             },

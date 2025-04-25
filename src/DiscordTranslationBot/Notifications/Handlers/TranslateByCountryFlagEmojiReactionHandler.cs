@@ -52,6 +52,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     {
         if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
         {
+            _log.NotACountryFlagEmoji();
             return;
         }
 
@@ -162,6 +163,9 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
 
     private sealed partial class Log(ILogger logger)
     {
+        [LoggerMessage(Level = LogLevel.Information, Message = "Reaction is not a flag emoji. Skipping translation.")]
+        public partial void NotACountryFlagEmoji();
+
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
 

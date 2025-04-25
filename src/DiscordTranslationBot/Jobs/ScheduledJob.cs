@@ -2,6 +2,8 @@
 
 public sealed class ScheduledJob
 {
+    public required string CommandName { get; init; }
+
     public required Func<CancellationToken, ValueTask> Action { get; init; }
 
     public required DateTimeOffset ExecuteAt { get; init; }
