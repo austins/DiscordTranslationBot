@@ -72,10 +72,12 @@ internal sealed partial class DiscordEventListener
             cancellationToken);
 
         _client.ReactionAdded += (message, channel, reaction) => PublishInBackgroundAsync(
-            new ReactionAddedNotification
+            async () => new ReactionAddedNotification
             {
-                Message = message,
-                Channel = channel,
+                // The message and channel are retrieved lazily in the background.
+                // We can't use the Cacheable types directly as they cannot be constructed directly/tested.
+                Message = await message.GetOrDownloadAsync(),
+                Channel = await channel.GetOrDownloadAsync(),
                 ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
             },
             cancellationToken);
@@ -87,27 +89,32 @@ internal sealed partial class DiscordEventListener
 
     /// <summary>
     /// Publishes a notification in the background.
-    /// Events should run on a new thread to not block the gateway thread.
+    /// Events should run on a new thread to not block the gateway thread, so all logic within this method should be done within the Task.Run() call.
     /// </summary>
-    /// <param name="notification">The notification.</param>
+    /// <param name="notificationFactory">The notification factory.</param>
     /// <param name="cancellationToken">Cancellation token to use.</param>
     /// <returns>A completed task because Discord events are asynchronous.</returns>
-    private Task PublishInBackgroundAsync(INotification notification, CancellationToken cancellationToken)
+    private Task PublishInBackgroundAsync(
+        Func<ValueTask<INotification>> notificationFactory,
+        CancellationToken cancellationToken)
     {
         _ = Task.Run(
             async () =>
             {
+                INotification? notification = null;
                 try
                 {
                     // Start a trace scope within the background thread.
                     using var traceActivity = _activitySource.StartActivity();
-                    using var traceLogScope = _logger.BeginScope(await BuildTraceStateAsync(notification));
+
+                    notification = await notificationFactory();
+                    using var traceLogScope = _logger.BeginScope(BuildTraceState(notification));
 
                     await _mediator.Publish(notification, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    _log.FailedToPublishNotification(ex, notification.GetType().Name);
+                    _log.FailedToPublishNotification(ex, notification?.GetType().Name ?? "UNKNOWN");
                 }
             },
             cancellationToken);
@@ -115,12 +122,17 @@ internal sealed partial class DiscordEventListener
         return Task.CompletedTask;
     }
 
+    private Task PublishInBackgroundAsync(INotification notification, CancellationToken cancellationToken)
+    {
+        return PublishInBackgroundAsync(() => ValueTask.FromResult(notification), cancellationToken);
+    }
+
     /// <summary>
     /// Builds a state with information about a notification initiated by an event for a logger scope.
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <returns>State for a logger scope.</returns>
-    private static async Task<Dictionary<string, object>> BuildTraceStateAsync(INotification notification)
+    private static Dictionary<string, object> BuildTraceState(INotification notification)
     {
         const string statePrefix = "trace.";
         const string guildIdKey = "guildId";
@@ -139,18 +151,11 @@ internal sealed partial class DiscordEventListener
                 TryAddStateIfNotNull(channelIdKey, interaction.ChannelId);
                 TryAddStateIfNotNull(userIdKey, interaction.User.Id);
             }
-            else if (prop.PropertyType.IsGenericType
-                     && prop.PropertyType.GetGenericTypeDefinition() == typeof(Cacheable<,>))
+            else if (typeof(IChannel).IsAssignableFrom(prop.PropertyType))
             {
-                var genericArgs = prop.PropertyType.GetGenericArguments();
-                if (genericArgs[0] == typeof(IMessageChannel) && genericArgs[1] == typeof(ulong))
-                {
-                    var channel = await ((Cacheable<IMessageChannel, ulong>)prop.GetValue(notification)!)
-                        .GetOrDownloadAsync();
-
-                    TryAddStateIfNotNull(guildIdKey, (channel as IGuildChannel)?.GuildId);
-                    TryAddStateIfNotNull(channelIdKey, channel.Id);
-                }
+                var channel = (IChannel)prop.GetValue(notification)!;
+                TryAddStateIfNotNull(guildIdKey, (channel as IGuildChannel)?.GuildId);
+                TryAddStateIfNotNull(channelIdKey, channel.Id);
             }
             else if (prop.PropertyType == typeof(ReactionInfo))
             {

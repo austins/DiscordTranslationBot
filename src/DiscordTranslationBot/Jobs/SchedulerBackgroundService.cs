@@ -39,7 +39,7 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
                 {
                     try
                     {
-                        // Start a trace scope for this job.
+                        // Start a trace scope for this job execution.
                         using var traceActivity = _activitySource.StartActivity();
 
                         _log.TaskExecuting();

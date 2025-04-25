@@ -1,8 +1,9 @@
 using Discord;
 using Discord.WebSocket;
-using DiscordTranslationBot.Commands.Logging;
+using DiscordTranslationBot.Notifications.Events;
+using DiscordTranslationBot.Notifications.Handlers;
 
-namespace DiscordTranslationBot.Tests.Unit.Commands.Logging;
+namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
 public sealed class RedirectLogMessageToLoggerHandlerTests
 {
@@ -28,19 +29,19 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        var command = new RedirectLogMessageToLogger
+        var notification = new LogNotification
         {
             LogMessage = new LogMessage(severity, "source1", "message1", new InvalidOperationException("test"))
         };
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
         logEntry.LogLevel.ShouldBe(expectedLevel);
-        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
-        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
+        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
+        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
     }
 
     [Test]
@@ -48,7 +49,7 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        var command = new RedirectLogMessageToLogger
+        var notification = new LogNotification
         {
             LogMessage = new LogMessage(
                 LogSeverity.Error,
@@ -60,28 +61,28 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         const LogLevel expectedLevel = LogLevel.Information;
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
         logEntry.LogLevel.ShouldBe(expectedLevel);
-        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] {command.LogMessage.Message}");
-        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
+        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
+        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
     }
 
     [Test]
     public async Task Handle_RedirectLogMessageToLogger_NullMessage(CancellationToken cancellationToken)
     {
         // Arrange
-        var command = new RedirectLogMessageToLogger { LogMessage = new LogMessage(LogSeverity.Info, "source1", null) };
+        var notification = new LogNotification { LogMessage = new LogMessage(LogSeverity.Info, "source1", null) };
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(notification, cancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
         logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Discord: [{command.LogMessage.Source}] ");
-        logEntry.Exception.ShouldBe(command.LogMessage.Exception);
+        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] ");
+        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
     }
 }
