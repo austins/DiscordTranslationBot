@@ -48,7 +48,7 @@ public sealed partial class RegisterDiscordCommandsHandler
         await RegisterDiscordCommandsAsync(guilds, cancellationToken);
     }
 
-    public async Task RegisterDiscordCommandsAsync(
+    private async Task RegisterDiscordCommandsAsync(
         IReadOnlyCollection<IGuild> guilds,
         CancellationToken cancellationToken)
     {
@@ -67,7 +67,7 @@ public sealed partial class RegisterDiscordCommandsHandler
         {
             try
             {
-                // Use bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
+                // Use the bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
                 await guild.BulkOverwriteApplicationCommandsAsync(
                     [.. discordCommandsToRegister],
                     new RequestOptions { CancelToken = cancellationToken });
@@ -105,12 +105,11 @@ public sealed partial class RegisterDiscordCommandsHandler
         // Convert the list of supported languages to command choices.
         var langChoices = _translationProviderFactory
             .GetSupportedLanguagesForOptions()
-            .Select(
-                l => new ApplicationCommandOptionChoiceProperties
-                {
-                    Name = l.Name.Truncate(SlashCommandOptionBuilder.ChoiceNameMaxLength),
-                    Value = l.LangCode
-                })
+            .Select(l => new ApplicationCommandOptionChoiceProperties
+            {
+                Name = l.Name.Truncate(SlashCommandOptionBuilder.ChoiceNameMaxLength),
+                Value = l.LangCode
+            })
             .ToList();
 
         var translateFromOption = new SlashCommandOptionBuilder()
