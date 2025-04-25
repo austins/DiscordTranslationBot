@@ -101,20 +101,25 @@ internal sealed partial class DiscordEventListener
         _ = Task.Run(
             async () =>
             {
-                INotification? notification = null;
+                string? notificationName = null;
                 try
                 {
-                    // Start a trace scope within the background thread.
-                    using var traceActivity = _activitySource.StartActivity();
+                    var notification = await notificationFactory();
+                    notificationName = notification.GetType().Name;
 
-                    notification = await notificationFactory();
+                    // Start a trace scope within the background thread.
+                    using var traceActivity = _activitySource.StartActivity(
+                        $"{nameof(DiscordEventListener)}.{nameof(PublishInBackgroundAsync)}: {{notificationName}}");
+
+                    traceActivity?.SetTag("notificationName", notificationName);
+
                     using var traceLogScope = _logger.BeginScope(BuildTraceState(notification));
 
                     await _mediator.Publish(notification, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    _log.FailedToPublishNotification(ex, notification?.GetType().Name ?? "UNKNOWN");
+                    _log.FailedToPublishNotification(ex, notificationName);
                 }
             },
             cancellationToken);
@@ -182,6 +187,6 @@ internal sealed partial class DiscordEventListener
         [LoggerMessage(
             Level = LogLevel.Error,
             Message = "Failed to publish notification '{notificationName}' in background.")]
-        public partial void FailedToPublishNotification(Exception ex, string notificationName);
+        public partial void FailedToPublishNotification(Exception ex, string? notificationName);
     }
 }
