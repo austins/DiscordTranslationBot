@@ -1,4 +1,3 @@
-using DiscordTranslationBot.Commands.Logging;
 using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
@@ -38,12 +37,6 @@ public sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespons
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken cancellationToken)
     {
-        // If this is the log command, skip logging elapsed time as it pollutes the logs
-        if (message is RedirectLogMessageToLogger)
-        {
-            return await next(message, cancellationToken);
-        }
-
         var messageName = message.GetType().Name;
         _log.MessageExecuting(messageName);
 

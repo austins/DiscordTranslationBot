@@ -13,13 +13,13 @@ public sealed class ReactionAddedNotification : INotification
     /// The user message.
     /// </summary>
     [Required]
-    public required IUserMessage Message { get; init; }
+    public required Cacheable<IUserMessage, ulong> Message { get; init; }
 
     /// <summary>
     /// The channel.
     /// </summary>
     [Required]
-    public required IMessageChannel Channel { get; init; }
+    public required Cacheable<IMessageChannel, ulong> Channel { get; init; }
 
     /// <summary>
     /// The reaction.

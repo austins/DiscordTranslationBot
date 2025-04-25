@@ -1,20 +1,13 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using DiscordTranslationBot.Notifications.Events;
 
-namespace DiscordTranslationBot.Commands.Logging;
-
-public sealed class RedirectLogMessageToLogger : ICommand
-{
-    /// <summary>
-    /// The Discord log message.
-    /// </summary>
-    public required LogMessage LogMessage { get; init; }
-}
+namespace DiscordTranslationBot.Notifications.Handlers;
 
 /// <summary>
 /// Handler for redirecting Discord log messages to the logger.
 /// </summary>
-public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<RedirectLogMessageToLogger>
+public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHandler<LogNotification>
 {
     private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
 
@@ -30,15 +23,15 @@ public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<
     /// <summary>
     /// Redirect Discord log messages to the app's logger.
     /// </summary>
-    /// <param name="command">The command.</param>
+    /// <param name="notification">The notification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public ValueTask<Unit> Handle(RedirectLogMessageToLogger command, CancellationToken cancellationToken)
+    public ValueTask Handle(LogNotification notification, CancellationToken cancellationToken)
     {
         // Map the Discord log message severities to the logger log levels accordingly.
-        var logLevel = command.LogMessage.Exception switch
+        var logLevel = notification.LogMessage.Exception switch
         {
             GatewayReconnectException => LogLevel.Information, // Most likely Discord requested the client to reconnect.
-            _ => command.LogMessage.Severity switch
+            _ => notification.LogMessage.Severity switch
             {
                 LogSeverity.Debug => LogLevel.Trace,
                 LogSeverity.Verbose => LogLevel.Debug,
@@ -52,11 +45,11 @@ public sealed partial class RedirectLogMessageToLoggerHandler : ICommandHandler<
 
         LogDiscordMessage(
             logLevel,
-            command.LogMessage.Exception,
-            command.LogMessage.Source,
-            command.LogMessage.Message ?? command.LogMessage.Exception?.Message ?? string.Empty);
+            notification.LogMessage.Exception,
+            notification.LogMessage.Source,
+            notification.LogMessage.Message ?? notification.LogMessage.Exception?.Message ?? string.Empty);
 
-        return Unit.ValueTask;
+        return ValueTask.CompletedTask;
     }
 
     [LoggerMessage(Message = "Discord: [{source}] {message}")]

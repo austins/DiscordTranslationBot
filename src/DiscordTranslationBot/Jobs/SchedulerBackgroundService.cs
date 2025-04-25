@@ -1,4 +1,7 @@
-﻿namespace DiscordTranslationBot.Jobs;
+﻿using DiscordTranslationBot.Telemetry;
+using System.Diagnostics;
+
+namespace DiscordTranslationBot.Jobs;
 
 internal sealed partial class SchedulerBackgroundService : BackgroundService
 {
@@ -7,13 +10,18 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
     /// </summary>
     private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(1250);
 
-    private readonly Log _log;
     private readonly IScheduler _scheduler;
+    private readonly Log _log;
+    private readonly ActivitySource _activitySource;
 
-    public SchedulerBackgroundService(IScheduler scheduler, ILogger<SchedulerBackgroundService> logger)
+    public SchedulerBackgroundService(
+        IScheduler scheduler,
+        ILogger<SchedulerBackgroundService> logger,
+        Instrumentation instrumentation)
     {
         _scheduler = scheduler;
         _log = new Log(logger);
+        _activitySource = instrumentation.ActivitySource;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -29,10 +37,12 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
                 var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
                 if (job != null)
                 {
-                    _log.TaskExecuting();
-
                     try
                     {
+                        // Start a trace scope for this job.
+                        using var traceActivity = _activitySource.StartActivity();
+
+                        _log.TaskExecuting();
                         await job.Action(stoppingToken);
                         _log.TaskExecuted();
                     }

@@ -55,11 +55,13 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             return;
         }
 
-        if (notification.Message.Author.Id == _client.CurrentUser?.Id)
+        var message = await notification.Message.GetOrDownloadAsync();
+
+        if (message.Author.Id == _client.CurrentUser?.Id)
         {
             _log.TranslatingBotMessageDisallowed();
 
-            await notification.Message.RemoveReactionAsync(
+            await message.RemoveReactionAsync(
                 notification.ReactionInfo.Emote,
                 notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
@@ -67,12 +69,12 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             return;
         }
 
-        var sanitizedMessage = FormatUtility.SanitizeText(notification.Message.Content);
+        var sanitizedMessage = FormatUtility.SanitizeText(message.Content);
         if (string.IsNullOrWhiteSpace(sanitizedMessage))
         {
             _log.EmptySourceMessage();
 
-            await notification.Message.RemoveReactionAsync(
+            await message.RemoveReactionAsync(
                 notification.ReactionInfo.Emote,
                 notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
@@ -106,7 +108,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                         {
                             Text = ex.Message,
                             ReactionInfo = notification.ReactionInfo,
-                            SourceMessage = notification.Message
+                            SourceMessage = message
                         },
                         cancellationToken);
 
@@ -121,7 +123,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
 
         if (translationResult is null)
         {
-            await notification.Message.RemoveReactionAsync(
+            await message.RemoveReactionAsync(
                 notification.ReactionInfo.Emote,
                 notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
@@ -138,7 +140,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                 {
                     Text = "Couldn't detect the source language to translate from or the result is the same.",
                     ReactionInfo = notification.ReactionInfo,
-                    SourceMessage = notification.Message
+                    SourceMessage = message
                 },
                 cancellationToken);
 
@@ -150,11 +152,11 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             new SendTempReply
             {
                 Text = _messageHelper.BuildTranslationReplyWithReference(
-                    notification.Message,
+                    message,
                     translationResult,
                     notification.ReactionInfo.UserId),
                 ReactionInfo = notification.ReactionInfo,
-                SourceMessage = notification.Message,
+                SourceMessage = message,
                 DeletionDelay = TimeSpan.FromMinutes(1.5)
             },
             cancellationToken);

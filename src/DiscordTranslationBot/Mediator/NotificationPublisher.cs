@@ -1,4 +1,5 @@
 ﻿using DiscordTranslationBot.Extensions;
+using DiscordTranslationBot.Notifications.Events;
 using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
@@ -22,6 +23,13 @@ public sealed partial class NotificationPublisher : INotificationPublisher
         if (!notification.TryValidate(out var validationResults))
         {
             throw new MessageValidationException(notification.GetType().Name, validationResults);
+        }
+
+        // If this is the log notification, skip logging elapsed time as it pollutes the logs.
+        if (notification is LogNotification)
+        {
+            await _taskWhenAllPublisher.Publish(handlers, notification, cancellationToken);
+            return;
         }
 
         var notificationName = notification.GetType().Name;
