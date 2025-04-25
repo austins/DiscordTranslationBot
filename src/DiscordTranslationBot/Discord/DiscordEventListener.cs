@@ -145,7 +145,7 @@ internal sealed partial class DiscordEventListener
     }
 
     /// <summary>
-    /// Builds a state with information about a notification initiated by an event for a logger scope.
+    /// Builds a state with contextual information about a notification initiated by an event for a logger scope.
     /// </summary>
     /// <param name="notification">The notification.</param>
     /// <returns>State for a logger scope.</returns>
