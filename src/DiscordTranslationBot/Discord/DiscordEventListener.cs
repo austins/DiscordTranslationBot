@@ -106,11 +106,17 @@ internal sealed partial class DiscordEventListener
                     var notification = await notificationFactory();
                     var notificationName = notification.GetType().Name;
 
-                    // Start a trace scope within the background thread.
-                    using var traceActivity = _activitySource.StartActivity(
-                        $"{nameof(DiscordEventListener)}.{nameof(PublishInBackgroundAsync)}: {{notificationName}}");
+                    // Create a trace scope within the background thread.
+                    using var traceActivity = _activitySource.CreateActivity(
+                        $"{nameof(DiscordEventListener)}.{nameof(PublishInBackgroundAsync)}: {{notificationName}}",
+                        ActivityKind.Internal);
 
-                    traceActivity?.SetTag("notificationName", notificationName);
+                    // Only start the trace scope if this is not a log notification to reduce polluting the logs.
+                    if (notification is not LogNotification)
+                    {
+                        traceActivity?.Start();
+                        traceActivity?.SetTag("notificationName", notificationName);
+                    }
 
                     using var traceLogScope = _logger.BeginScope(BuildTraceState(notification));
 
