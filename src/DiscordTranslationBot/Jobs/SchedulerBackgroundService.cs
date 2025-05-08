@@ -11,6 +11,7 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
     private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(1250);
 
     private readonly IScheduler _scheduler;
+    private readonly ILogger<SchedulerBackgroundService> _logger;
     private readonly Log _log;
     private readonly ActivitySource _activitySource;
 
@@ -20,6 +21,7 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
         Instrumentation instrumentation)
     {
         _scheduler = scheduler;
+        _logger = logger;
         _log = new Log(logger);
         _activitySource = instrumentation.ActivitySource;
     }
@@ -43,15 +45,18 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
 
                     traceActivity?.SetTag("commandName", job.CommandName);
 
+                    using var traceLogScope =
+                        _logger.BeginScope(new Dictionary<string, object> { ["trace.jobId"] = job.Id });
+
                     try
                     {
-                        _log.TaskExecuting(job.CommandName);
+                        _log.TaskExecuting(job.Id, job.CommandName);
                         await job.Action(stoppingToken);
-                        _log.TaskExecuted(job.CommandName);
+                        _log.TaskExecuted(job.Id, job.CommandName);
                     }
                     catch (Exception ex)
                     {
-                        _log.TaskFailed(ex);
+                        _log.TaskFailed(ex, job.Id);
                     }
                 }
             }
@@ -74,15 +79,15 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Executing scheduled task for command '{commandName}'...")]
-        public partial void TaskExecuting(string commandName);
+            Message = "Executing scheduled task with ID {jobId} for command '{commandName}'...")]
+        public partial void TaskExecuting(Guid jobId, string commandName);
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Successfully executed scheduled task for command '{commandName}'.")]
-        public partial void TaskExecuted(string commandName);
+            Message = "Successfully executed scheduled task with ID {jobId} for command '{commandName}'.")]
+        public partial void TaskExecuted(Guid jobId, string commandName);
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to execute scheduled task.")]
-        public partial void TaskFailed(Exception ex);
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to execute scheduled task ID {jobId}.")]
+        public partial void TaskFailed(Exception ex, Guid jobId);
     }
 }

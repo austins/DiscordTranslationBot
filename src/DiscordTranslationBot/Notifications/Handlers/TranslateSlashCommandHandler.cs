@@ -98,6 +98,8 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
                  {Format.Quote(translationResult.TranslatedText)}
                  """,
                 options: new RequestOptions { CancelToken = cancellationToken });
+
+            _log.TranslationSuccess(translationProvider.GetType().Name);
         }
         catch (Exception ex)
         {
@@ -111,6 +113,9 @@ public sealed partial class TranslateSlashCommandHandler : INotificationHandler<
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceText();
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
+        public partial void TranslationSuccess(string providerName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
         public partial void TranslationFailure(Exception ex, string providerName);

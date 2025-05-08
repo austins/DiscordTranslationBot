@@ -118,6 +118,8 @@ public sealed partial class TranslateToMessageCommandHandler
                         messageReference: new MessageReference(referencedMessageId),
                         options: new RequestOptions { CancelToken = cancellationToken }));
             }
+
+            _log.TranslationSuccess(translationProvider.GetType().Name);
         }
         catch (Exception ex)
         {
@@ -167,8 +169,8 @@ public sealed partial class TranslateToMessageCommandHandler
 
     private static string GetSelectedLanguage(IUserMessage message)
     {
-        if ((message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(
-                x => x.CustomId == MessageCommandConstants.TranslateTo.SelectMenuId) is SelectMenuComponent
+        if ((message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(x =>
+                x.CustomId == MessageCommandConstants.TranslateTo.SelectMenuId) is SelectMenuComponent
             selectMenuComponent)
         {
             return selectMenuComponent.Options.First(x => x.IsDefault == true).Value;
@@ -184,8 +186,8 @@ public sealed partial class TranslateToMessageCommandHandler
         // is shown when the message is rebuilt and so we can retrieve the selected value when clicking a button.
         var langOptions = _translationProviderFactory
             .GetSupportedLanguagesForOptions()
-            .Select(
-                l => new SelectMenuOptionBuilder()
+            .Select(l =>
+                new SelectMenuOptionBuilder()
                     .WithLabel(l.Name.Truncate(SelectMenuOptionBuilder.MaxSelectLabelLength))
                     .WithValue(l.LangCode)
                     .WithDefault(valueSelected == l.LangCode))
@@ -211,6 +213,9 @@ public sealed partial class TranslateToMessageCommandHandler
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceText();
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
+        public partial void TranslationSuccess(string providerName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
         public partial void TranslationFailure(Exception ex, string providerName);

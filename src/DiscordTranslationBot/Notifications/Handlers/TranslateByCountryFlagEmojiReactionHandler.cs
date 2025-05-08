@@ -84,7 +84,8 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         TranslationResult? translationResult = null;
         foreach (var translationProvider in _translationProviderFactory.Providers)
         {
-            _log.TranslatorAttempt(translationProvider.GetType().Name);
+            var providerName = translationProvider.GetType().Name;
+            _log.TranslatorAttempt(providerName);
 
             try
             {
@@ -93,6 +94,8 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                     sanitizedMessage,
                     cancellationToken);
 
+                _log.TranslationSuccess(providerName);
+
                 break;
             }
             catch (LanguageNotSupportedForCountryException ex)
@@ -100,7 +103,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
                 // Send message if this is the last available translation provider.
                 if (ReferenceEquals(translationProvider, _translationProviderFactory.LastProvider))
                 {
-                    _log.LanguageNotSupportedForCountry(ex, translationProvider.GetType().Name, country.Name);
+                    _log.LanguageNotSupportedForCountry(ex, providerName, country.Name);
 
                     await _sender.Send(
                         new SendTempReply
@@ -116,7 +119,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             }
             catch (Exception ex)
             {
-                _log.TranslationFailure(ex, translationProvider.GetType().Name);
+                _log.TranslationFailure(ex, providerName);
             }
         }
 
@@ -182,6 +185,9 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
         public partial void TranslatorAttempt(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
+        public partial void TranslationSuccess(string providerName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
         public partial void TranslationFailure(Exception ex, string providerName);

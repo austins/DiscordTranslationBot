@@ -75,6 +75,8 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
                 command.Text,
                 messageReference: new MessageReference(command.SourceMessage.Id),
                 options: new RequestOptions { CancelToken = cancellationToken });
+
+            _log.SentTempReply(reply.Id, command.SourceMessage.Id);
         }
         catch (Exception ex)
         {
@@ -103,6 +105,11 @@ public sealed partial class SendTempReplyHandler : ICommandHandler<SendTempReply
 
     private sealed partial class Log(ILogger logger)
     {
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Sent temp reply with ID {replyId} to message ID {sourceMessageId}.")]
+        public partial void SentTempReply(ulong replyId, ulong sourceMessageId);
+
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send temp reply to message ID {sourceMessageId}.")]
         public partial void FailedToSendTempReply(Exception ex, ulong sourceMessageId);
 

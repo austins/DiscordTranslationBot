@@ -31,16 +31,15 @@ public sealed partial class Scheduler : IScheduler
             throw new InvalidOperationException("Commands can only be scheduled to execute in the future.");
         }
 
-        await _channel.Writer.WriteAsync(
-            new ScheduledJob
-            {
-                CommandName = command.GetType().Name,
-                Action = async ct => await _sender.Send(command, ct),
-                ExecuteAt = executeAt
-            },
-            cancellationToken);
+        var job = new ScheduledJob
+        {
+            CommandName = command.GetType().Name,
+            Action = async ct => await _sender.Send(command, ct),
+            ExecuteAt = executeAt
+        };
 
-        _log.ScheduledCommand(command.GetType().Name, executeAt.ToLocalTime(), Count);
+        await _channel.Writer.WriteAsync(job, cancellationToken);
+        _log.ScheduledCommand(job.Id, job.CommandName, job.ExecuteAt.ToLocalTime(), Count);
     }
 
     public Task ScheduleAsync(ICommand command, TimeSpan executionDelay, CancellationToken cancellationToken)
@@ -53,7 +52,7 @@ public sealed partial class Scheduler : IScheduler
         if (_channel.Reader.TryPeek(out var job) && job.ExecuteAt <= _timeProvider.GetUtcNow())
         {
             job = await _channel.Reader.ReadAsync(cancellationToken);
-            _log.DequeuedTask(job.ExecuteAt.ToLocalTime(), Count);
+            _log.DequeuedTask(job.Id, job.ExecuteAt.ToLocalTime(), Count);
 
             return job;
         }
@@ -66,14 +65,14 @@ public sealed partial class Scheduler : IScheduler
         [LoggerMessage(
             Level = LogLevel.Information,
             Message =
-                "Scheduled command '{commandName}' to be executed at {executeAt}. Total tasks in queue: {totalTasks}.")]
-        public partial void ScheduledCommand(string commandName, DateTimeOffset executeAt, int totalTasks);
+                "Scheduled command '{commandName}' with ID {jobId} to be executed at {executeAt}. Total tasks in queue: {totalTasks}.")]
+        public partial void ScheduledCommand(Guid jobId, string commandName, DateTimeOffset executeAt, int totalTasks);
 
         [LoggerMessage(
             Level = LogLevel.Information,
             Message =
-                "Dequeued a task scheduled to be executed at {executeAt}. Remaining tasks in queue: {remainingTasks}.")]
-        public partial void DequeuedTask(DateTimeOffset executeAt, int remainingTasks);
+                "Dequeued a task with ID {jobId} scheduled to be executed at {executeAt}. Remaining tasks in queue: {remainingTasks}.")]
+        public partial void DequeuedTask(Guid jobId, DateTimeOffset executeAt, int remainingTasks);
     }
 }
 
