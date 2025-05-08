@@ -4,6 +4,7 @@
         "config:recommended",
         "schedule:daily",
         "docker:pinDigests",
+        ":configMigration",
         ":enableVulnerabilityAlerts",
         ":rebaseStalePrs",
         ":automergePr",
