@@ -10,7 +10,6 @@ concurrency:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository }}
 
 jobs:
     test:
@@ -29,6 +28,9 @@ jobs:
                     registry: ${{ env.REGISTRY }}
                     username: ${{ github.actor }}
                     password: ${{ secrets.GITHUB_TOKEN }}
+            -   name: Set image name
+                # Periods are not allowed in the Docker image name; replace any with a hyphen.
+                run: echo "IMAGE_NAME=${GITHUB_REPOSITORY//./-}" >> $GITHUB_ENV
             -   name: Extract Docker metadata
                 id: meta
                 uses: docker/metadata-action@v5
@@ -52,6 +54,6 @@ jobs:
         steps:
             -   name: Trigger deployment webhook
                 uses: distributhor/workflow-webhook@v3
-                env:
+                with:
                     webhook_url: ${{ secrets.WEBHOOK_URL }}
                     webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
