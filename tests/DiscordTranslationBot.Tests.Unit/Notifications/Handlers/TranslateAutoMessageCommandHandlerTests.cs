@@ -3,7 +3,6 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using IMessage = Discord.IMessage;
@@ -53,7 +52,11 @@ public sealed class TranslateAutoMessageCommandHandlerTests
     }
 
     [Test]
-    public async Task Handle_MessageCommandExecutedNotification_Success(CancellationToken cancellationToken)
+    [Arguments(false)]
+    [Arguments(true)]
+    public async Task Handle_MessageCommandExecutedNotification_Success(
+        bool exactSupportedLanguage,
+        CancellationToken cancellationToken)
     {
         // Arrange
         _message.Content.Returns("text");
@@ -61,29 +64,47 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         var supportedLanguage = new SupportedLanguage
         {
-            LangCode = "en",
+            LangCode = exactSupportedLanguage ? "en-US" : "en",
             Name = "English"
+        };
+
+        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
+        _translationProviderFactory
+            .WhenForAnyArgs(x => x.TranslateAsync(default!, cancellationToken))
+            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>>());
+
+        var expectedTranslationResult = new TranslationResult
+        {
+            DetectedLanguageCode = "fr",
+            DetectedLanguageName = "French",
+            TargetLanguageCode = supportedLanguage.LangCode,
+            TargetLanguageName = supportedLanguage.Name,
+            TranslatedText = "translated text"
         };
 
         _translationProviderFactory
             .TranslateAsync(default!, cancellationToken)
-            .ReturnsForAnyArgs(
-                new TranslationResult
-                {
-                    DetectedLanguageCode = "fr",
-                    DetectedLanguageName = "French",
-                    TargetLanguageCode = supportedLanguage.LangCode,
-                    TargetLanguageName = supportedLanguage.Name,
-                    TranslatedText = "translated text"
-                });
+            .ReturnsForAnyArgs(expectedTranslationResult);
+
+        var translationProvider = Substitute.For<ITranslationProvider>();
+        translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
+
+        translationProvider
+            .TranslateAsync(supportedLanguage, Arg.Any<string>(), cancellationToken)
+            .Returns(expectedTranslationResult);
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
+        var translationResult = await action!(translationProvider, cancellationToken);
 
         // Assert
         await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
         await _interaction.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
         await _interaction.Received(1).FollowupAsync(ReplyText, ephemeral: true, options: Arg.Any<RequestOptions>());
+
+        _ = translationProvider.Received(exactSupportedLanguage ? 1 : 2).SupportedLanguages;
+        translationResult.ShouldBe(translationResult);
+        await translationProvider.Received(1).TranslateAsync(supportedLanguage, Arg.Any<string>(), cancellationToken);
     }
 
     [Test]
@@ -153,12 +174,21 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         const string userLocale = "en-US";
         _interaction.UserLocale.Returns(userLocale);
 
+        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
+        _translationProviderFactory
+            .WhenForAnyArgs(x => x.TranslateAsync(default!, cancellationToken))
+            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>>());
+
         _translationProviderFactory
             .TranslateAsync(default!, cancellationToken)
-            .ThrowsAsyncForAnyArgs(new TranslationFailureException("provider", new InvalidOperationException("test")));
+            .ReturnsForAnyArgs((TranslationResult?)null);
+
+        var translationProvider = Substitute.For<ITranslationProvider>();
+        translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
+        var translationResult = await action!(translationProvider, cancellationToken);
 
         // Assert
         await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
@@ -169,6 +199,10 @@ public sealed class TranslateAutoMessageCommandHandlerTests
                 $"Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>());
+
+        _ = translationProvider.Received(2).SupportedLanguages;
+        translationResult.ShouldBeNull();
+        await translationProvider.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, cancellationToken);
     }
 
     [Test]
