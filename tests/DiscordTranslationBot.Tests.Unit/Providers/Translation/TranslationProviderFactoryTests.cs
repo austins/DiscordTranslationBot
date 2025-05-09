@@ -1,4 +1,5 @@
-﻿using DiscordTranslationBot.Providers.Translation.Models;
+﻿using DiscordTranslationBot.Providers.Translation.Exceptions;
+using DiscordTranslationBot.Providers.Translation.Models;
 #pragma warning disable IDE0005
 using DiscordTranslationBot.Providers.Translation;
 
@@ -114,5 +115,70 @@ public sealed class TranslationProviderFactoryTests
         _ = _primaryProvider.Received().SupportedLanguages;
         _ = _lastProvider.DidNotReceive().TranslateCommandLangCodes;
         _ = _lastProvider.DidNotReceive().SupportedLanguages;
+    }
+
+    [Test]
+    public async Task TranslateAsync_Success(CancellationToken cancellationToken)
+    {
+        // Arrange
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        await _sut.InitializeProvidersAsync(cancellationToken);
+
+        _primaryProvider
+            .TranslateAsync(default!, default!, cancellationToken)
+            .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
+
+        var translationResult = new TranslationResult { TargetLanguageCode = "a" };
+        _lastProvider.TranslateAsync(default!, default!, cancellationToken).ReturnsForAnyArgs(translationResult);
+
+        // Act
+        var result = await _sut.TranslateAsync(
+            async (translationProvider, ct) => await translationProvider.TranslateAsync(
+                new SupportedLanguage
+                {
+                    LangCode = "a",
+                    Name = "a"
+                },
+                "text",
+                ct),
+            cancellationToken);
+
+        // Assert
+        result.ShouldBe(translationResult);
+        await _primaryProvider.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, cancellationToken);
+        await _lastProvider.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, cancellationToken);
+    }
+
+    [Test]
+    public async Task TranslateAsync_ThrowsIfLastProvider(CancellationToken cancellationToken)
+    {
+        // Arrange
+        _primaryProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        _lastProvider.When(x => x.InitializeSupportedLanguagesAsync(cancellationToken)).Do(_ => { });
+        await _sut.InitializeProvidersAsync(cancellationToken);
+
+        _primaryProvider
+            .TranslateAsync(default!, default!, cancellationToken)
+            .ThrowsAsyncForAnyArgs(new ArgumentException("test"));
+
+        _lastProvider
+            .TranslateAsync(default!, default!, cancellationToken)
+            .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
+
+        // Act & Assert
+        var exception = await Should.ThrowAsync<TranslationFailureException>(() => _sut.TranslateAsync(
+            async (translationProvider, ct) => await translationProvider.TranslateAsync(
+                new SupportedLanguage
+                {
+                    LangCode = "a",
+                    Name = "a"
+                },
+                "text",
+                ct),
+            cancellationToken));
+
+        exception.ProviderName.ShouldNotBeEmpty();
+        exception.InnerException.ShouldBeOfType<InvalidOperationException>();
     }
 }
