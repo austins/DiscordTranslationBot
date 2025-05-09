@@ -173,7 +173,7 @@ public sealed class AzureTranslatorProviderTests
         // Act & Assert
         await _sut.TranslateByCountryAsync(_country, text, cancellationToken).ShouldThrowAsync<ArgumentException>();
 
-        await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
+        await _client.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, cancellationToken);
     }
 
     [Test]

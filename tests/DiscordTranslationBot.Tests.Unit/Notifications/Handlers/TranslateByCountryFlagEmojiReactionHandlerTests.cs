@@ -1,11 +1,11 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Countries.Exceptions;
-using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using Mediator;
@@ -30,17 +30,17 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     private const string ReplyText = "test";
     private const ulong BotUserId = 1UL;
     private const ulong MessageUserId = 2UL;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
     private readonly IMessageChannel _channel;
     private readonly IUserMessage _message;
     private readonly ReactionAddedNotification _notification;
-
     private readonly ISender _sender;
+
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
-    private readonly ITranslationProvider _translationProvider;
 
     public TranslateByCountryFlagEmojiReactionHandlerTests()
     {
-        _translationProvider = Substitute.For<ITranslationProvider>();
+        _translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
 
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
@@ -77,20 +77,16 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             }
         };
 
-        var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
-        translationProviderFactory.Providers.Returns([_translationProvider]);
-        translationProviderFactory.LastProvider.Returns(_translationProvider);
-
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
-            translationProviderFactory,
+            _translationProviderFactory,
             _sender,
             messageHelper,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
     }
 
     [Test]
-    public async Task Handle_ReactionAddedNotification_Returns_GetCountryByEmoji_NotAFlagEmoji(
+    public async Task Handle_ReactionAddedNotification_Returns_GetCountryByEmoji_NotASupportedCountryFlagEmoji(
         CancellationToken cancellationToken)
     {
         // Arrange
@@ -113,7 +109,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
+        await _translationProviderFactory.DidNotReceiveWithAnyArgs().TranslateAsync(default!, cancellationToken);
     }
 
     [Test]
@@ -129,32 +125,28 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
+        await _translationProviderFactory.DidNotReceiveWithAnyArgs().TranslateAsync(default!, cancellationToken);
     }
 
     [Test]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Success(CancellationToken cancellationToken)
     {
         // Arrange
-        var translationResult = new TranslationResult
-        {
-            DetectedLanguageCode = "en",
-            TargetLanguageCode = "fr",
-            TranslatedText = "translated_text"
-        };
-
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
-            .Returns(translationResult);
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
+            .ReturnsForAnyArgs(
+                new TranslationResult
+                {
+                    DetectedLanguageCode = "en",
+                    TargetLanguageCode = "fr",
+                    TranslatedText = "translated_text"
+                });
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _translationProvider
-            .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
-
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
         await _sender.Received(1).Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), cancellationToken);
     }
 
@@ -169,8 +161,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateByCountryAsync(default!, default!, default);
-
+        await _translationProviderFactory.DidNotReceiveWithAnyArgs().TranslateAsync(default!, cancellationToken);
         await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
@@ -179,8 +170,8 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        _translationProvider
-            .TranslateByCountryAsync(default!, default!, default)
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
             .ReturnsForAnyArgs((TranslationResult)null!);
 
         // Act
@@ -199,19 +190,21 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Arrange
         const string exMessage = "exception message";
 
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
-            .ThrowsAsync(new LanguageNotSupportedForCountryException(exMessage));
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
+            .ThrowsAsyncForAnyArgs(
+                new TranslationFailureException("provider", new LanguageNotSupportedForCountryException(exMessage)));
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _translationProvider
-            .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
-
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
         await _sender.Received(1).Send(Arg.Any<SendTempReply>(), cancellationToken);
+
+        await _message
+            .DidNotReceive()
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
     [Test]
@@ -219,30 +212,27 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        var translationResult = new TranslationResult
-        {
-            DetectedLanguageCode = "en",
-            TargetLanguageCode = "fr",
-            TranslatedText = ExpectedSanitizedMessage
-        };
-
-        _translationProvider
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken)
-            .Returns(translationResult);
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
+            .ReturnsForAnyArgs(
+                new TranslationResult
+                {
+                    DetectedLanguageCode = "en",
+                    TargetLanguageCode = "fr",
+                    TranslatedText = ExpectedSanitizedMessage
+                });
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        await _translationProvider
-            .Received(1)
-            .TranslateByCountryAsync(Arg.Any<Country>(), ExpectedSanitizedMessage, cancellationToken);
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
 
         await _sender
             .Received(1)
             .Send(
-                Arg.Is<SendTempReply>(
-                    x => x.Text == "Couldn't detect the source language to translate from or the result is the same."),
+                Arg.Is<SendTempReply>(x =>
+                    x.Text == "Couldn't detect the source language to translate from or the result is the same."),
                 cancellationToken);
     }
 }

@@ -3,6 +3,7 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using IMessage = Discord.IMessage;
@@ -13,18 +14,18 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 {
     private const string ReplyText = "test";
     private const ulong BotUserId = 1UL;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
     private readonly IMessageCommandInteraction _interaction;
     private readonly IMessage _message;
     private readonly MessageCommandExecutedNotification _notification;
     private readonly TranslateAutoMessageCommandHandler _sut;
-    private readonly IReadOnlyList<ITranslationProvider> _translationProviders;
 
     public TranslateAutoMessageCommandHandlerTests()
     {
         var client = Substitute.For<IDiscordClient>();
         client.CurrentUser.Id.Returns(BotUserId);
 
-        _translationProviders = [Substitute.For<ITranslationProvider>(), Substitute.For<ITranslationProvider>()];
+        _translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
 
         _message = Substitute.For<IMessage>();
         _message.Author.Id.Returns(2UL);
@@ -44,12 +45,9 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         _notification = new MessageCommandExecutedNotification { Interaction = _interaction };
 
-        var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
-        translationProviderFactory.Providers.Returns(_translationProviders);
-
         _sut = new TranslateAutoMessageCommandHandler(
             client,
-            translationProviderFactory,
+            _translationProviderFactory,
             messageHelper,
             new LoggerFake<TranslateAutoMessageCommandHandler>());
     }
@@ -67,10 +65,8 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             Name = "English"
         };
 
-        _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
-
-        _translationProviders[0]
-            .TranslateAsync(default!, default!, default)
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -85,7 +81,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        _ = _translationProviders[0].Received(2).SupportedLanguages;
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
         await _interaction.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
         await _interaction.Received(1).FollowupAsync(ReplyText, ephemeral: true, options: Arg.Any<RequestOptions>());
     }
@@ -123,50 +119,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             .Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
-        _ = _translationProviders[0].DidNotReceive().SupportedLanguages;
-    }
-
-    [Test]
-    public async Task Handle_MessageCommandExecutedNotification_UsesNextTranslationProvider_Success(
-        CancellationToken cancellationToken)
-    {
-        // Arrange
-        _message.Content.Returns("text");
-        _interaction.UserLocale.Returns("en");
-
-        var supportedLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
-
-        _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
-
-        _translationProviders[0]
-            .TranslateAsync(default!, default!, default)
-            .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
-
-        _translationProviders[1].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
-
-        _translationProviders[1]
-            .TranslateAsync(default!, default!, default)
-            .ReturnsForAnyArgs(
-                new TranslationResult
-                {
-                    DetectedLanguageCode = "fr",
-                    DetectedLanguageName = "French",
-                    TargetLanguageCode = supportedLanguage.LangCode,
-                    TargetLanguageName = supportedLanguage.Name,
-                    TranslatedText = "translated text"
-                });
-
-        // Act
-        await _sut.Handle(_notification, cancellationToken);
-
-        // Assert
-        _ = _translationProviders[0].Received(1).SupportedLanguages;
-        _ = _translationProviders[1].Received(1).SupportedLanguages;
-        await _interaction.Received(1).FollowupAsync(ReplyText, ephemeral: true, options: Arg.Any<RequestOptions>());
+        await _translationProviderFactory.DidNotReceiveWithAnyArgs().TranslateAsync(default!, cancellationToken);
     }
 
     [Test]
@@ -200,26 +153,15 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         const string userLocale = "en-US";
         _interaction.UserLocale.Returns(userLocale);
 
-        var supportedLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
-
-        foreach (var translationProvider in _translationProviders)
-        {
-            translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
-
-            translationProvider
-                .TranslateAsync(default!, default!, default)
-                .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
-        }
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
+            .ThrowsAsyncForAnyArgs(new TranslationFailureException("provider", new InvalidOperationException("test")));
 
         // Act
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        _ = _translationProviders[0].Received(2).SupportedLanguages;
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
 
         await _interaction
             .Received(1)
@@ -245,10 +187,8 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             Name = "English"
         };
 
-        _translationProviders[0].SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
-
-        _translationProviders[0]
-            .TranslateAsync(default!, default!, default)
+        _translationProviderFactory
+            .TranslateAsync(default!, cancellationToken)
             .ReturnsForAnyArgs(
                 new TranslationResult
                 {
@@ -263,7 +203,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _sut.Handle(_notification, cancellationToken);
 
         // Assert
-        _ = _translationProviders[0].Received(2).SupportedLanguages;
+        await _translationProviderFactory.ReceivedWithAnyArgs(1).TranslateAsync(default!, cancellationToken);
 
         await _interaction
             .Received(1)

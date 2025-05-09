@@ -160,7 +160,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .Received(1)
             .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
-        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, default);
+        await _translationProvider.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, cancellationToken);
     }
 
     [Test]

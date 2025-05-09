@@ -23,13 +23,15 @@ public sealed class TranslationProviderFactoryTests
     }
 
     [Test]
-    public void Providers_ThrowsIfNotInitialized()
+    public async Task Providers_ThrowsIfNotInitialized(CancellationToken cancellationToken)
     {
         // Act + Assert
-        Should.Throw<InvalidOperationException>(() => _sut.Providers);
         Should.Throw<InvalidOperationException>(() => _sut.PrimaryProvider);
-        Should.Throw<InvalidOperationException>(() => _sut.LastProvider);
         Should.Throw<InvalidOperationException>(() => _sut.GetSupportedLanguagesForOptions());
+
+        await Should.ThrowAsync<InvalidOperationException>(() => _sut.TranslateAsync(
+            async (_, _) => await Task.FromResult<TranslationResult?>(null),
+            cancellationToken));
     }
 
     [Test]
@@ -40,15 +42,7 @@ public sealed class TranslationProviderFactoryTests
         await _sut.InitializeProvidersAsync(cancellationToken);
 
         // Act + Assert
-        _sut.Providers.ShouldBeEquivalentTo(
-            new List<ITranslationProvider>
-            {
-                _primaryProvider,
-                _lastProvider
-            });
-
         _sut.PrimaryProvider.ShouldBe(_primaryProvider);
-        _sut.LastProvider.ShouldBe(_lastProvider);
     }
 
     [Test]

@@ -2,6 +2,7 @@
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
@@ -80,46 +81,38 @@ public sealed partial class TranslateAutoMessageCommandHandler
         var userLocale = notification.Interaction.UserLocale;
 
         TranslationResult? translationResult = null;
-        foreach (var translationProvider in _translationProviderFactory.Providers)
+        try
         {
-            var providerName = translationProvider.GetType().Name;
-            _log.TranslatorAttempt(providerName);
-
-            try
-            {
-                var targetLanguage =
-                    translationProvider.SupportedLanguages.FirstOrDefault(l => l.LangCode == userLocale);
-
-                if (targetLanguage is null)
+            translationResult = await _translationProviderFactory.TranslateAsync(
+                async (translationProvider, ct) =>
                 {
-                    var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
-                    if (indexOfHyphen > 0)
+                    var targetLanguage =
+                        translationProvider.SupportedLanguages.FirstOrDefault(l => l.LangCode == userLocale);
+
+                    if (targetLanguage is null)
                     {
-                        targetLanguage =
-                            translationProvider.SupportedLanguages.FirstOrDefault(l =>
-                                l.LangCode == userLocale[..indexOfHyphen]);
+                        var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
+                        if (indexOfHyphen > 0)
+                        {
+                            targetLanguage =
+                                translationProvider.SupportedLanguages.FirstOrDefault(l =>
+                                    l.LangCode == userLocale[..indexOfHyphen]);
+                        }
                     }
-                }
 
-                if (targetLanguage is null)
-                {
-                    _log.UnsupportedLocale(userLocale, providerName);
-                    continue;
-                }
+                    if (targetLanguage is null)
+                    {
+                        _log.UnsupportedLocale(userLocale, translationProvider.GetType().Name);
+                        return null;
+                    }
 
-                translationResult = await translationProvider.TranslateAsync(
-                    targetLanguage,
-                    sanitizedMessage,
-                    cancellationToken);
-
-                _log.TranslationSuccess(providerName);
-
-                break;
-            }
-            catch (Exception ex)
-            {
-                _log.TranslationFailure(ex, providerName);
-            }
+                    return await translationProvider.TranslateAsync(targetLanguage, sanitizedMessage, ct);
+                },
+                cancellationToken);
+        }
+        catch (TranslationFailureException)
+        {
+            // Allow null to flow.
         }
 
         if (translationResult is null)
@@ -163,15 +156,6 @@ public sealed partial class TranslateAutoMessageCommandHandler
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
-        public partial void TranslatorAttempt(string providerName);
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
-        public partial void TranslationSuccess(string providerName);
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
-        public partial void TranslationFailure(Exception ex, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,

@@ -1,5 +1,7 @@
 ﻿using Discord;
+using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Runtime.CompilerServices;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
@@ -19,18 +21,14 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
         _log = new Log(logger);
     }
 
-    public IReadOnlyList<ITranslationProvider> Providers
+    public ITranslationProvider PrimaryProvider
     {
         get
         {
             ThrowIfProvidersNotInitialized();
-            return _providers;
+            return _providers[0];
         }
     }
-
-    public ITranslationProvider PrimaryProvider => Providers[0];
-
-    public ITranslationProvider LastProvider => Providers[^1];
 
     public async Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken)
     {
@@ -64,8 +62,6 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
 
     public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions()
     {
-        ThrowIfProvidersNotInitialized();
-
         if (_supportedLanguagesForOptions is null)
         {
             // Gather list of language choices for the command's options.
@@ -104,12 +100,48 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
         return _supportedLanguagesForOptions;
     }
 
-    private void ThrowIfProvidersNotInitialized()
+    public async Task<TranslationResult?> TranslateAsync(
+        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>> action,
+        CancellationToken cancellationToken)
+    {
+        ThrowIfProvidersNotInitialized();
+
+        TranslationResult? translationResult = null;
+        foreach (var translationProvider in _providers)
+        {
+            var providerName = translationProvider.GetType().Name;
+            _log.TranslatorAttempt(providerName);
+
+            try
+            {
+                translationResult = await action(translationProvider, cancellationToken);
+                if (translationResult is not null)
+                {
+                    _log.TranslationSuccess(providerName);
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.TranslationFailure(ex, providerName);
+
+                // If this is the last provider, rethrow the exception.
+                if (ReferenceEquals(translationProvider, _providers[^1]))
+                {
+                    throw new TranslationFailureException(providerName, ex);
+                }
+            }
+        }
+
+        return translationResult;
+    }
+
+    private void ThrowIfProvidersNotInitialized([CallerMemberName] string? memberName = null)
     {
         if (!_initialized)
         {
             throw new InvalidOperationException(
-                $"Providers must be initialized before calling {nameof(TranslationProviderFactory)}.{nameof(GetSupportedLanguagesForOptions)}.");
+                $"Providers must be initialized before calling {nameof(TranslationProviderFactory)}.{memberName}.");
         }
     }
 
@@ -131,18 +163,34 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
             Level = LogLevel.Information,
             Message = "Finished initializing translation provider: {providerName}")]
         public partial void InitializedProvider(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
+        public partial void TranslatorAttempt(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
+        public partial void TranslationSuccess(string providerName);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
+        public partial void TranslationFailure(Exception ex, string providerName);
     }
 }
 
 public interface ITranslationProviderFactory
 {
-    public IReadOnlyList<ITranslationProvider> Providers { get; }
-
     public ITranslationProvider PrimaryProvider { get; }
-
-    public ITranslationProvider LastProvider { get; }
 
     public Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken);
 
     public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions();
+
+    /// <summary>
+    /// Iterates through available translation providers until a translation result is returned.
+    /// </summary>
+    /// <param name="action">The action to take on the current translation provider.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Translation result or null.</returns>
+    /// <exception cref="TranslationFailureException">If the last provider failed.</exception>
+    public Task<TranslationResult?> TranslateAsync(
+        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>> action,
+        CancellationToken cancellationToken);
 }

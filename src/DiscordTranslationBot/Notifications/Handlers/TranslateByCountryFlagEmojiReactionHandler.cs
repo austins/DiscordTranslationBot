@@ -4,6 +4,7 @@ using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Utilities;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
@@ -52,7 +53,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     {
         if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
         {
-            _log.NotACountryFlagEmoji();
+            _log.NotASupportedCountryFlagEmoji();
             return;
         }
 
@@ -82,44 +83,30 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
         }
 
         TranslationResult? translationResult = null;
-        foreach (var translationProvider in _translationProviderFactory.Providers)
+        try
         {
-            var providerName = translationProvider.GetType().Name;
-            _log.TranslatorAttempt(providerName);
-
-            try
-            {
-                translationResult = await translationProvider.TranslateByCountryAsync(
-                    country,
-                    sanitizedMessage,
-                    cancellationToken);
-
-                _log.TranslationSuccess(providerName);
-
-                break;
-            }
-            catch (LanguageNotSupportedForCountryException ex)
+            translationResult = await _translationProviderFactory.TranslateAsync(
+                async (translationProvider, ct) =>
+                    await translationProvider.TranslateByCountryAsync(country, sanitizedMessage, ct),
+                cancellationToken);
+        }
+        catch (TranslationFailureException ex)
+        {
+            if (ex.InnerException is LanguageNotSupportedForCountryException innerEx)
             {
                 // Send message if this is the last available translation provider.
-                if (ReferenceEquals(translationProvider, _translationProviderFactory.LastProvider))
-                {
-                    _log.LanguageNotSupportedForCountry(ex, providerName, country.Name);
+                _log.LanguageNotSupportedForCountry(innerEx, ex.ProviderName, country.Name);
 
-                    await _sender.Send(
-                        new SendTempReply
-                        {
-                            Text = ex.Message,
-                            ReactionInfo = notification.ReactionInfo,
-                            SourceMessage = notification.Message
-                        },
-                        cancellationToken);
+                await _sender.Send(
+                    new SendTempReply
+                    {
+                        Text = innerEx.Message,
+                        ReactionInfo = notification.ReactionInfo,
+                        SourceMessage = notification.Message
+                    },
+                    cancellationToken);
 
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.TranslationFailure(ex, providerName);
+                return;
             }
         }
 
@@ -166,8 +153,10 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
 
     private sealed partial class Log(ILogger logger)
     {
-        [LoggerMessage(Level = LogLevel.Information, Message = "Reaction is not a flag emoji. Skipping translation.")]
-        public partial void NotACountryFlagEmoji();
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Reaction is either not a flag emoji or a supported country. Skipping translation.")]
+        public partial void NotASupportedCountryFlagEmoji();
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
@@ -182,15 +171,6 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
             Message =
                 "Target language code not supported. Provider {providerName} doesn't support the language code or the country {countryName} has no mapping for the language code.")]
         public partial void LanguageNotSupportedForCountry(Exception ex, string providerName, string countryName);
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to use {providerName}...")]
-        public partial void TranslatorAttempt(string providerName);
-
-        [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
-        public partial void TranslationSuccess(string providerName);
-
-        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text with {providerName}.")]
-        public partial void TranslationFailure(Exception ex, string providerName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
