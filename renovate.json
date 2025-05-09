@@ -9,6 +9,7 @@
         ":rebaseStalePrs",
         ":automergePr",
         ":automergeRequireAllStatusChecks",
-        ":automergeMinor"
+        ":automergeMinor",
+        ":automergeDigest"
     ]
 }
