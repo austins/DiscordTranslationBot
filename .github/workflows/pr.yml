@@ -5,10 +5,10 @@ on:
         branches: [ main ]
 
 jobs:
-    test:
+    pr-test:
         uses: ./.github/workflows/test.yml
-    docker:
-        needs: test
+    pr-docker:
+        needs: pr-test
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout
