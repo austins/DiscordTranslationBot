@@ -7,3 +7,16 @@ on:
 jobs:
     test:
         uses: ./.github/workflows/test.yml
+    docker:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v4
+            -   name: Build
+                # Ensure Docker image builds.
+                uses: docker/build-push-action@v6
+                with:
+                    context: .
+                    file: ./src/DiscordTranslationBot/Dockerfile
+                    push: false
