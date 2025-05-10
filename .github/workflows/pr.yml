@@ -12,6 +12,8 @@ jobs:
         steps:
             -   name: Checkout
                 uses: actions/checkout@v4
+            -   name: Set up Docker Buildx
+                uses: docker/setup-buildx-action@v3
             -   name: Build
                 # Ensure Docker image builds.
                 uses: docker/build-push-action@v6
@@ -19,3 +21,5 @@ jobs:
                     context: .
                     file: ./src/DiscordTranslationBot/Dockerfile
                     push: false
+                    cache-from: type=gha,scope=pr
+                    cache-to: type=gha,mode=max,scope=pr
