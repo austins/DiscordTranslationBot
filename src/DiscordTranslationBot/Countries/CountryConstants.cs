@@ -45,6 +45,7 @@ public static class CountryConstants
         new Country(Emoji.FlagVietnam, ["vi"]),
         new Country(Emoji.FlagThailand, ["th"]),
         new Country(Emoji.FlagUkraine, ["uk"]),
-        new Country(Emoji.FlagIndonesia, ["id"])
+        new Country(Emoji.FlagIndonesia, ["id"]),
+        new Country(Emoji.FlagKazakhstan, ["kk"])
     ];
 }

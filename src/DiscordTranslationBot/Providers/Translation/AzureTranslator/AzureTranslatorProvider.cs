@@ -52,7 +52,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
             "nl",
             "el",
             "it",
-            "tr"
+            "tr",
+            "kk"
         };
 
     /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync" />
@@ -89,12 +90,11 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
         SupportedLanguages = response
             .Content
             .LangCodes
-            .Select(
-                lc => new SupportedLanguage
-                {
-                    LangCode = lc.Key,
-                    Name = lc.Value.Name
-                })
+            .Select(lc => new SupportedLanguage
+            {
+                LangCode = lc.Key,
+                Name = lc.Value.Name
+            })
             .ToHashSet();
     }
 
@@ -148,8 +148,8 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
 
-        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
-                sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(sl =>
+                sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
             ?.Name;
 
         result.TranslatedText = translation.Translations[0].Text;
