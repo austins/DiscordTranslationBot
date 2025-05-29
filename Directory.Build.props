@@ -9,7 +9,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarningsNotAsErrors>S1135,NU1901,NU1902,NU1903</WarningsNotAsErrors>
-        <NoWarn>CS1591</NoWarn>
+        <NoWarn>CS1591,S3928</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
