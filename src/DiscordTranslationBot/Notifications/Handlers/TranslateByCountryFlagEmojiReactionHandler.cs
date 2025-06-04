@@ -155,7 +155,7 @@ public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotifi
     {
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Reaction is either not a flag emoji or a supported country. Skipping translation.")]
+            Message = "Reaction is neither a flag emoji nor a supported country. Skipping translation.")]
         public partial void NotASupportedCountryFlagEmoji();
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
