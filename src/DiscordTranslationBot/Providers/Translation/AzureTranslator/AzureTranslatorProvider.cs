@@ -63,7 +63,7 @@ public sealed partial class AzureTranslatorProvider : TranslationProviderBase
     /// </remarks>
     public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
     {
-        if (SupportedLanguages.Any())
+        if (SupportedLanguages.Count > 0)
         {
             return;
         }

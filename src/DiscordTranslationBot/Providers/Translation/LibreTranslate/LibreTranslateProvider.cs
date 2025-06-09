@@ -28,7 +28,7 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
     /// </remarks>
     public override async Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
     {
-        if (SupportedLanguages.Any())
+        if (SupportedLanguages.Count > 0)
         {
             return;
         }

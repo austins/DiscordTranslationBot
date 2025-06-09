@@ -35,7 +35,7 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
         if (!_initialized)
         {
             // Check if no translation providers are enabled.
-            if (!_providers.Any())
+            if (_providers.Count == 0)
             {
                 _log.NoProvidersEnabled();
                 return false;
