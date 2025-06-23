@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
-public sealed partial class TranslationProviderFactory : ITranslationProviderFactory
+internal sealed partial class TranslationProviderFactory : ITranslationProviderFactory
 {
     private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
@@ -175,7 +175,7 @@ public sealed partial class TranslationProviderFactory : ITranslationProviderFac
     }
 }
 
-public interface ITranslationProviderFactory
+internal interface ITranslationProviderFactory
 {
     public ITranslationProvider PrimaryProvider { get; }
 

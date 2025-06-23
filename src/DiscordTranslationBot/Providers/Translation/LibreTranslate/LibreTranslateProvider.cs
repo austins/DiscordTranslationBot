@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 /// <summary>
 /// Provider for LibreTranslate.
 /// </summary>
-public sealed class LibreTranslateProvider : TranslationProviderBase
+internal sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly ILibreTranslateClient _client;
     private readonly Log _log;
@@ -54,12 +54,11 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
         SupportedLanguages = response
             .Content
-            .Select(
-                lc => new SupportedLanguage
-                {
-                    LangCode = lc.LangCode,
-                    Name = lc.Name
-                })
+            .Select(lc => new SupportedLanguage
+            {
+                LangCode = lc.LangCode,
+                Name = lc.Name
+            })
             .ToHashSet();
     }
 
@@ -106,8 +105,8 @@ public sealed class LibreTranslateProvider : TranslationProviderBase
 
         result.DetectedLanguageCode = response.Content.DetectedLanguage?.LanguageCode;
 
-        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(
-                sl => sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
+        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(sl =>
+                sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
             ?.Name;
 
         result.TranslatedText = response.Content.TranslatedText;

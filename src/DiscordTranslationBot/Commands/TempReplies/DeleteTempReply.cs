@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Commands.TempReplies;
 /// Deletes a temp reply.
 /// If there is a reaction associated with the source message, it will be cleared, too.
 /// </summary>
-public sealed class DeleteTempReply : ICommand
+internal sealed class DeleteTempReply : ICommand
 {
     /// <summary>
     /// The temp reply to delete.
@@ -28,7 +28,7 @@ public sealed class DeleteTempReply : ICommand
     public ReactionInfo? ReactionInfo { get; init; }
 }
 
-public sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempReply>
+internal sealed partial class DeleteTempReplyHandler : ICommandHandler<DeleteTempReply>
 {
     private readonly Log _log;
 

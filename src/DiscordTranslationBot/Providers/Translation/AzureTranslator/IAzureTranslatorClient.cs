@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// API client for Azure Translator.
 /// </summary>
-public interface IAzureTranslatorClient
+internal interface IAzureTranslatorClient
 {
     /// <summary>
     /// Get supported languages.

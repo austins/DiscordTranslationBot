@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Mediator;
 /// </summary>
 /// <typeparam name="TMessage">The message type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>
-public sealed class MessageValidationBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse>
+internal sealed class MessageValidationBehavior<TMessage, TResponse> : IPipelineBehavior<TMessage, TResponse>
     where TMessage : IMessage
 {
     /// <summary>

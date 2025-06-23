@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// Provider for Azure Translator.
 /// </summary>
-public sealed partial class AzureTranslatorProvider : TranslationProviderBase
+internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
 {
     /// <summary>
     /// Azure has a limit of 10,000 characters for text in a request.

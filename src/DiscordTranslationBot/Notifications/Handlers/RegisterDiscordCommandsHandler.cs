@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class RegisterDiscordCommandsHandler
+internal sealed partial class RegisterDiscordCommandsHandler
     : INotificationHandler<ReadyNotification>,
         INotificationHandler<JoinedGuildNotification>
 {

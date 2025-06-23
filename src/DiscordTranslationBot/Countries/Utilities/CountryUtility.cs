@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DiscordTranslationBot.Countries.Utilities;
 
-public static class CountryUtility
+internal static class CountryUtility
 {
     /// <summary>
     /// Get a country by a flag emoji unicode string.

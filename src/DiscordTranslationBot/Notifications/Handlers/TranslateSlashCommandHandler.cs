@@ -6,7 +6,7 @@ using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
 
-public sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
+internal sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
     private readonly ITranslationProviderFactory _translationProviderFactory;

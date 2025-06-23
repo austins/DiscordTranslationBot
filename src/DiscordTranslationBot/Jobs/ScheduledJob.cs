@@ -1,6 +1,6 @@
 ﻿namespace DiscordTranslationBot.Jobs;
 
-public sealed class ScheduledJob
+internal sealed class ScheduledJob
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 

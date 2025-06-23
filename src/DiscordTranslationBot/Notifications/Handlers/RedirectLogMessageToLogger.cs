@@ -7,7 +7,7 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 /// <summary>
 /// Handler for redirecting Discord log messages to the logger.
 /// </summary>
-public sealed partial class RedirectLogMessageToLoggerHandler : INotificationHandler<LogNotification>
+internal sealed partial class RedirectLogMessageToLoggerHandler : INotificationHandler<LogNotification>
 {
     private readonly ILogger<RedirectLogMessageToLoggerHandler> _logger;
 

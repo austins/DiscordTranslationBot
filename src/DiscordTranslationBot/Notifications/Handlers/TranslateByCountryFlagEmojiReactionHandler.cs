@@ -14,7 +14,8 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 /// <summary>
 /// Handler for translating by a flag emoji reaction.
 /// </summary>
-public sealed partial class TranslateByCountryFlagEmojiReactionHandler : INotificationHandler<ReactionAddedNotification>
+internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
+    : INotificationHandler<ReactionAddedNotification>
 {
     private readonly IDiscordClient _client;
     private readonly Log _log;

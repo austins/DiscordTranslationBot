@@ -4,7 +4,7 @@ namespace DiscordTranslationBot.Constants;
 /// <summary>
 /// Constants for message commands.
 /// </summary>
-public static class MessageCommandConstants
+internal static class MessageCommandConstants
 {
     /// <summary>
     /// "Translate (Auto)" message command constants.

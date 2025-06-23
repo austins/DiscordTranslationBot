@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Utilities;
 /// <summary>
 /// Utility for formatting.
 /// </summary>
-public static partial class FormatUtility
+internal static partial class FormatUtility
 {
     /// <summary>
     /// Regex for all user, channel mentions, and custom emotes.

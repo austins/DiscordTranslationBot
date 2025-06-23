@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// <summary>
 /// Base class for translation providers.
 /// </summary>
-public abstract partial class TranslationProviderBase : ITranslationProvider
+internal abstract partial class TranslationProviderBase : ITranslationProvider
 {
     public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
         new HashSet<SupportedLanguage>();
@@ -57,7 +57,7 @@ public abstract partial class TranslationProviderBase : ITranslationProvider
     }
 }
 
-public interface ITranslationProvider
+internal interface ITranslationProvider
 {
     /// <summary>
     /// Lang codes that can be specified for the translate command choices.

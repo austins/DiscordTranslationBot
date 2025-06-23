@@ -4,7 +4,7 @@ namespace DiscordTranslationBot.Constants;
 /// <summary>
 /// Constants for slash commands.
 /// </summary>
-public static class SlashCommandConstants
+internal static class SlashCommandConstants
 {
     /// <summary>
     /// Translate slash command constants.

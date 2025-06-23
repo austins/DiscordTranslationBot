@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
 
-public sealed partial class NotificationPublisher : INotificationPublisher
+internal sealed partial class NotificationPublisher : INotificationPublisher
 {
     private readonly Log _log;
     private readonly TaskWhenAllPublisher _taskWhenAllPublisher = new();

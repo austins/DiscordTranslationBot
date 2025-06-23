@@ -6,7 +6,7 @@ namespace DiscordTranslationBot.Countries;
 /// <summary>
 /// Country constants used for flag emoji reactions.
 /// </summary>
-public static class CountryConstants
+internal static class CountryConstants
 {
     /// <summary>
     /// Countries supported for translation by flag emojis and their supported language codes.
