@@ -236,16 +236,14 @@ public sealed class TranslateToMessageCommandHandlerTests
         {
             notification
                 .Interaction
-                .When(
-                    x => x.ModifyOriginalResponseAsync(
-                        Arg.Any<Action<MessageProperties>>(),
-                        Arg.Any<RequestOptions?>()))
-                .Do(
-                    x =>
-                    {
-                        receivedProperties ??= new MessageProperties();
-                        x.Arg<Action<MessageProperties>>().Invoke(receivedProperties);
-                    });
+                .When(x => x.ModifyOriginalResponseAsync(
+                    Arg.Any<Action<MessageProperties>>(),
+                    Arg.Any<RequestOptions?>()))
+                .Do(x =>
+                {
+                    receivedProperties ??= new MessageProperties();
+                    x.Arg<Action<MessageProperties>>().Invoke(receivedProperties);
+                });
         }
         else if (buttonId == MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
         {
@@ -254,12 +252,11 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Message
                 .Channel
                 .WhenForAnyArgs(x => x.SendMessageAsync())
-                .Do(
-                    x =>
-                    {
-                        receivedSentMessagetext = x.ArgAt<string>(0);
-                        receivedReferencedMessageId = x.Arg<MessageReference>().MessageId.Value;
-                    });
+                .Do(x =>
+                {
+                    receivedSentMessagetext = x.ArgAt<string>(0);
+                    receivedReferencedMessageId = x.Arg<MessageReference>().MessageId.Value;
+                });
         }
 
         const string selectedLanguageCode = "en-US";
@@ -387,15 +384,17 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         messageComponents!.Components.Count.ShouldBe(2);
 
-        var firstRowComponents = messageComponents.Components.ElementAt(0).Components;
-        firstRowComponents.Count.ShouldBe(1);
-        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
+        var firstRow = messageComponents.Components.ElementAt(0) as ActionRowComponent;
+        firstRow.ShouldNotBeNull();
+        firstRow.Components.Count.ShouldBe(1);
+        firstRow.Components.ShouldAllBe(x => x is SelectMenuComponent);
 
-        var lastRowComponents = messageComponents.Components.ElementAt(1).Components;
-        lastRowComponents.Count.ShouldBe(2);
-        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeTrue();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeTrue();
+        var lastRow = messageComponents.Components.ElementAt(1) as ActionRowComponent;
+        lastRow.ShouldNotBeNull();
+        lastRow.Components.Count.ShouldBe(2);
+        lastRow.Components.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRow.Components.ElementAt(0)).IsDisabled.ShouldBeTrue();
+        ((ButtonComponent)lastRow.Components.ElementAt(1)).IsDisabled.ShouldBeTrue();
     }
 
     [Test]
@@ -434,14 +433,16 @@ public sealed class TranslateToMessageCommandHandlerTests
         // Assert
         receivedProperties.Components.Value.Components.Count.ShouldBe(2);
 
-        var firstRowComponents = receivedProperties.Components.Value.Components.ElementAt(0).Components;
-        firstRowComponents.Count.ShouldBe(1);
-        firstRowComponents.ShouldAllBe(x => x is SelectMenuComponent);
+        var firstRow = receivedProperties.Components.Value.Components.ElementAt(0) as ActionRowComponent;
+        firstRow.ShouldNotBeNull();
+        firstRow.Components.Count.ShouldBe(1);
+        firstRow.Components.ShouldAllBe(x => x is SelectMenuComponent);
 
-        var lastRowComponents = receivedProperties.Components.Value.Components.ElementAt(1).Components;
-        lastRowComponents.Count.ShouldBe(2);
-        lastRowComponents.ShouldAllBe(x => x is ButtonComponent);
-        ((ButtonComponent)lastRowComponents.ElementAt(0)).IsDisabled.ShouldBeFalse();
-        ((ButtonComponent)lastRowComponents.ElementAt(1)).IsDisabled.ShouldBeFalse();
+        var lastRow = receivedProperties.Components.Value.Components.ElementAt(1) as ActionRowComponent;
+        lastRow.ShouldNotBeNull();
+        lastRow.Components.Count.ShouldBe(2);
+        lastRow.Components.ShouldAllBe(x => x is ButtonComponent);
+        ((ButtonComponent)lastRow.Components.ElementAt(0)).IsDisabled.ShouldBeFalse();
+        ((ButtonComponent)lastRow.Components.ElementAt(1)).IsDisabled.ShouldBeFalse();
     }
 }

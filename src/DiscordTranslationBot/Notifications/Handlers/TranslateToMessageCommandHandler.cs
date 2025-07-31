@@ -169,14 +169,13 @@ internal sealed partial class TranslateToMessageCommandHandler
 
     private static string GetSelectedLanguage(IUserMessage message)
     {
-        if ((message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(x =>
-                x.CustomId == MessageCommandConstants.TranslateTo.SelectMenuId) is SelectMenuComponent
-            selectMenuComponent)
-        {
-            return selectMenuComponent.Options.First(x => x.IsDefault == true).Value;
-        }
+        var selectMenuComponent =
+            (message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(x =>
+                x is SelectMenuComponent { CustomId: MessageCommandConstants.TranslateTo.SelectMenuId }) as
+            SelectMenuComponent;
 
-        throw new InvalidOperationException("Failed to find select menu component in message.");
+        return selectMenuComponent?.Options.First(x => x.IsDefault == true).Value
+               ?? throw new InvalidOperationException("Failed to find select menu component in message.");
     }
 
     private MessageComponent BuildMessageComponents(bool buttonsEnabled, string? valueSelected = null)
