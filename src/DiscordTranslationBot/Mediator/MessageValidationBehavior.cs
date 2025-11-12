@@ -25,11 +25,8 @@ internal sealed class MessageValidationBehavior<TMessage, TResponse> : IPipeline
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!message.TryValidate(out var validationResults))
-        {
-            throw new MessageValidationException(message.GetType().Name, validationResults);
-        }
-
-        return next(message, cancellationToken);
+        return !message.TryValidate(out var validationResults)
+            ? throw new MessageValidationException(message.GetType().Name, validationResults)
+            : next(message, cancellationToken);
     }
 }
