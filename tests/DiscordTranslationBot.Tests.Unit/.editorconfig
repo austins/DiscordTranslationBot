@@ -5,6 +5,9 @@ dotnet_diagnostic.CA1707.severity = none
 # AsyncFixer01: Unnecessary async/await usage
 dotnet_diagnostic.AsyncFixer01.severity = none
 
+# AsyncFixer06: Discarded Task<T> result when converted to Task
+dotnet_diagnostic.AsyncFixer06.severity = none
+
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none
 
