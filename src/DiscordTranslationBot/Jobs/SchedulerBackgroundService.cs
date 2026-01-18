@@ -74,7 +74,7 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
 
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Stopped scheduler background service with {remainingTasks} remaining tasks in the queue.")]
+            Message = "Stopped scheduler background service with {remainingTasks} remaining task(s) in the queue.")]
         public partial void Stopped(int remainingTasks);
 
         [LoggerMessage(
