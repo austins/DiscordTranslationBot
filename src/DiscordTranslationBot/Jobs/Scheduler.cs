@@ -18,7 +18,8 @@ internal sealed partial class Scheduler : IScheduler
         _channel = Channel.CreateUnboundedPrioritized(
             new UnboundedPrioritizedChannelOptions<ScheduledJob>
             {
-                Comparer = Comparer<ScheduledJob>.Create((x, y) => x.ExecuteAt.CompareTo(y.ExecuteAt))
+                Comparer = Comparer<ScheduledJob>.Create((x, y) => x.ExecuteAt.CompareTo(y.ExecuteAt)),
+                SingleReader = true
             });
     }
 
