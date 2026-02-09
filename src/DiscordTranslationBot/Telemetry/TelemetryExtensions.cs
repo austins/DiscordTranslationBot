@@ -9,6 +9,8 @@ internal static class TelemetryExtensions
 {
     public static void AddTelemetry(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<Instrumentation>();
+
         var options = builder.Configuration.GetSection(TelemetryOptions.SectionName).Get<TelemetryOptions>();
         if (options?.Enabled != true)
         {
@@ -24,7 +26,6 @@ internal static class TelemetryExtensions
 
         builder
             .Services
-            .AddSingleton<Instrumentation>()
             .AddOpenTelemetry()
             .ConfigureResource(b =>
                 b
