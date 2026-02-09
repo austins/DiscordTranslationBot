@@ -56,10 +56,10 @@ Which providers are enabled can be configured per the instructions below.
     }
   }, 
   "Telemetry": {
-    "Enabled": true,
-    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:5434/ingest/otlp",
-    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
-  }
+    "Enabled": true
+  },
+  "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:5434/ingest/otlp",
+  "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
 }
 ```
 
