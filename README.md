@@ -54,6 +54,11 @@ Which providers are enabled can be configured per the instructions below.
       "Enabled": true,
       "ApiUrl": "http://localhost:5000"
     }
+  }, 
+  "Telemetry": {
+    "Enabled": true,
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:5434/ingest/otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
   }
 }
 ```
