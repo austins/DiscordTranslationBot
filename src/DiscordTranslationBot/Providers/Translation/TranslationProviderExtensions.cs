@@ -49,7 +49,7 @@ internal static class TranslationProviderExtensions
         if (options?.LibreTranslate.Enabled == true)
         {
             services.AddTranslationProvider<ILibreTranslateClient, LibreTranslateProvider>(
-                options.AzureTranslator.ApiUrl!);
+                options.LibreTranslate.ApiUrl!);
         }
 
         services.AddSingleton<ITranslationProviderFactory, TranslationProviderFactory>();
