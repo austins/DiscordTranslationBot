@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Countries.Models;
 /// <summary>
 /// Details about a country.
 /// </summary>
-internal sealed class Country : ICountry
+internal sealed class Country
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Country" /> class.
@@ -26,27 +26,9 @@ internal sealed class Country : ICountry
                 nameof(langCodes));
         }
 
-        EmojiUnicode = emoji.ToString();
         Name = emoji.Name?.Replace("flag: ", string.Empty, StringComparison.Ordinal) ?? "Unknown";
         LangCodes = langCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
-
-    /// <inheritdoc cref="ICountry.EmojiUnicode" />
-    public string EmojiUnicode { get; }
-
-    /// <inheritdoc cref="ICountry.Name" />
-    public string Name { get; }
-
-    /// <inheritdoc cref="ICountry.LangCodes" />
-    public IReadOnlySet<string> LangCodes { get; }
-}
-
-internal interface ICountry
-{
-    /// <summary>
-    /// The unicode string of the flag emoji.
-    /// </summary>
-    public string EmojiUnicode { get; }
 
     /// <summary>
     /// The name of the country.

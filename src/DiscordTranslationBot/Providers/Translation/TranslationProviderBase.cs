@@ -24,7 +24,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         SupportedLanguage? sourceLanguage = null);
 
     public Task<TranslationResult> TranslateByCountryAsync(
-        ICountry country,
+        Country country,
         string text,
         CancellationToken cancellationToken)
     {
@@ -101,7 +101,7 @@ internal interface ITranslationProvider
     /// <returns>Translated text.</returns>
     /// <exception cref="LanguageNotSupportedForCountryException">Country does not support the provider's supported lang codes.</exception>
     public Task<TranslationResult> TranslateByCountryAsync(
-        ICountry country,
+        Country country,
         string text,
         CancellationToken cancellationToken);
 }

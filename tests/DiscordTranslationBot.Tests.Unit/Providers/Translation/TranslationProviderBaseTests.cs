@@ -2,6 +2,7 @@ using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using NeoSmart.Unicode;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
@@ -12,17 +13,15 @@ public sealed class TranslationProviderBaseTests
         CancellationToken cancellationToken)
     {
         // Arrange
-        var country = Substitute.For<ICountry>();
-        country.Name.Returns("Test");
-        country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        var country = new Country(Emoji.FlagUnitedStates, ["unsupported-lang-code"]);
 
         const string text = "test";
 
         var sut = new TranslationProviderFake();
 
         // Act & Assert
-        await Should.ThrowAsync<LanguageNotSupportedForCountryException>(
-            async () => await sut.TranslateByCountryAsync(country, text, cancellationToken));
+        await Should.ThrowAsync<LanguageNotSupportedForCountryException>(async () =>
+            await sut.TranslateByCountryAsync(country, text, cancellationToken));
     }
 
     private sealed class TranslationProviderFake : TranslationProviderBase

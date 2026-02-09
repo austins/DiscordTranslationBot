@@ -2,6 +2,7 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using NeoSmart.Unicode;
 using Refit;
 using System.Net;
 
@@ -10,15 +11,13 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.LibreTranslate;
 public sealed class LibreTranslateProviderTests
 {
     private readonly ILibreTranslateClient _client;
-    private readonly ICountry _country;
+    private readonly Country _country;
     private readonly LoggerFake<LibreTranslateProvider> _logger;
     private readonly LibreTranslateProvider _sut;
 
     public LibreTranslateProviderTests()
     {
-        _country = Substitute.For<ICountry>();
-        _country.Name.Returns("France");
-        _country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" });
+        _country = new Country(Emoji.FlagFrance, ["fr"]);
 
         _client = Substitute.For<ILibreTranslateClient>();
 
@@ -84,10 +83,10 @@ public sealed class LibreTranslateProviderTests
 
         _client
             .TranslateAsync(
-                Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == sourceLanguage.LangCode
-                         && x.TargetLangCode == targetLanguage.LangCode
-                         && x.Text == text),
+                Arg.Is<TranslateRequest>(x =>
+                    x.SourceLangCode == sourceLanguage.LangCode
+                    && x.TargetLangCode == targetLanguage.LangCode
+                    && x.Text == text),
                 cancellationToken)
             .Returns(response);
 
@@ -126,8 +125,8 @@ public sealed class LibreTranslateProviderTests
 
         _client
             .TranslateAsync(
-                Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto" && x.TargetLangCode == targetLanguageCode && x.Text == text),
+                Arg.Is<TranslateRequest>(x =>
+                    x.SourceLangCode == "auto" && x.TargetLangCode == targetLanguageCode && x.Text == text),
                 cancellationToken)
             .Returns(response);
 
@@ -180,10 +179,8 @@ public sealed class LibreTranslateProviderTests
 
         _client
             .TranslateAsync(
-                Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto"
-                         && x.TargetLangCode == _country.LangCodes.First()
-                         && x.Text == text),
+                Arg.Is<TranslateRequest>(x =>
+                    x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 cancellationToken)
             .Returns(response);
 
@@ -214,10 +211,8 @@ public sealed class LibreTranslateProviderTests
 
         _client
             .TranslateAsync(
-                Arg.Is<TranslateRequest>(
-                    x => x.SourceLangCode == "auto"
-                         && x.TargetLangCode == _country.LangCodes.First()
-                         && x.Text == text),
+                Arg.Is<TranslateRequest>(x =>
+                    x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 cancellationToken)
             .Returns(response);
 

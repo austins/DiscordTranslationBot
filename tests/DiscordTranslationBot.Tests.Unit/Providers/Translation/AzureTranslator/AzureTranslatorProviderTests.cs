@@ -2,6 +2,7 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using NeoSmart.Unicode;
 using Refit;
 using System.Net;
 using Languages = DiscordTranslationBot.Providers.Translation.AzureTranslator.Models.Languages;
@@ -11,15 +12,13 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.AzureTranslator
 public sealed class AzureTranslatorProviderTests
 {
     private readonly IAzureTranslatorClient _client;
-    private readonly ICountry _country;
+    private readonly Country _country;
     private readonly LoggerFake<AzureTranslatorProvider> _logger;
     private readonly AzureTranslatorProvider _sut;
 
     public AzureTranslatorProviderTests()
     {
-        _country = Substitute.For<ICountry>();
-        _country.Name.Returns("France");
-        _country.LangCodes.Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "fr" });
+        _country = new Country(Emoji.FlagFrance, ["fr"]);
 
         _client = Substitute.For<IAzureTranslatorClient>();
 

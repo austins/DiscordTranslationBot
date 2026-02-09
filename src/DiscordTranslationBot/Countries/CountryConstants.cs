@@ -9,43 +9,54 @@ namespace DiscordTranslationBot.Countries;
 internal static class CountryConstants
 {
     /// <summary>
-    /// Countries supported for translation by flag emojis and their supported language codes.
+    /// Countries supported for translation by flag emoji unicode and their supported language codes.
     /// </summary>
     /// <remarks>
     /// The language codes should be the primary language of the country that translation providers
     /// will translate to when the associated flag emoji is received. The language codes are based on
     /// the supported languages of each translation provider.
     /// </remarks>
-    public static IReadOnlyList<ICountry> SupportedCountries { get; } =
-    [
-        new Country(Emoji.FlagAustralia, ["en"]),
-        new Country(Emoji.FlagCanada, ["en"]),
-        new Country(Emoji.FlagUnitedKingdom, ["en"]),
-        new Country(Emoji.FlagUnitedStates, ["en"]),
-        new Country(Emoji.FlagUsOutlyingIslands, ["en"]),
-        new Country(Emoji.FlagAlgeria, ["ar"]),
-        new Country(Emoji.FlagBahrain, ["ar"]),
-        new Country(Emoji.FlagEgypt, ["ar"]),
-        new Country(Emoji.FlagSaudiArabia, ["ar"]),
-        new Country(Emoji.FlagChina, ["zh-Hans", "zh"]),
-        new Country(Emoji.FlagHongKongSarChina, ["zh-Hant", "zh"]),
-        new Country(Emoji.FlagTaiwan, ["zh-Hant", "zh"]),
-        new Country(Emoji.FlagFrance, ["fr"]),
-        new Country(Emoji.FlagGermany, ["de"]),
-        new Country(Emoji.FlagIndia, ["hi"]),
-        new Country(Emoji.FlagIreland, ["ga"]),
-        new Country(Emoji.FlagItaly, ["it"]),
-        new Country(Emoji.FlagJapan, ["ja"]),
-        new Country(Emoji.FlagSouthKorea, ["ko"]),
-        new Country(Emoji.FlagBrazil, ["pt-br", "pt"]),
-        new Country(Emoji.FlagPortugal, ["pt-pt", "pt"]),
-        new Country(Emoji.FlagRussia, ["ru"]),
-        new Country(Emoji.FlagMexico, ["es"]),
-        new Country(Emoji.FlagSpain, ["es"]),
-        new Country(Emoji.FlagVietnam, ["vi"]),
-        new Country(Emoji.FlagThailand, ["th"]),
-        new Country(Emoji.FlagUkraine, ["uk"]),
-        new Country(Emoji.FlagIndonesia, ["id"]),
-        new Country(Emoji.FlagKazakhstan, ["kk"])
-    ];
+    public static IReadOnlyDictionary<string, Country> SupportedCountries { get; } = InitializeSupportedCountries();
+
+    private static IReadOnlyDictionary<string, Country> InitializeSupportedCountries()
+    {
+        var countries = new Dictionary<string, Country>();
+
+        AddCountry(Emoji.FlagAustralia, "en");
+        AddCountry(Emoji.FlagCanada, "en");
+        AddCountry(Emoji.FlagUnitedKingdom, "en");
+        AddCountry(Emoji.FlagUnitedStates, "en");
+        AddCountry(Emoji.FlagUsOutlyingIslands, "en");
+        AddCountry(Emoji.FlagAlgeria, "ar");
+        AddCountry(Emoji.FlagBahrain, "ar");
+        AddCountry(Emoji.FlagEgypt, "ar");
+        AddCountry(Emoji.FlagSaudiArabia, "ar");
+        AddCountry(Emoji.FlagChina, "zh-Hans", "zh");
+        AddCountry(Emoji.FlagHongKongSarChina, "zh-Hant", "zh");
+        AddCountry(Emoji.FlagTaiwan, "zh-Hant", "zh");
+        AddCountry(Emoji.FlagFrance, "fr");
+        AddCountry(Emoji.FlagGermany, "de");
+        AddCountry(Emoji.FlagIndia, "hi");
+        AddCountry(Emoji.FlagIreland, "ga");
+        AddCountry(Emoji.FlagItaly, "it");
+        AddCountry(Emoji.FlagJapan, "ja");
+        AddCountry(Emoji.FlagSouthKorea, "ko");
+        AddCountry(Emoji.FlagBrazil, "pt-br", "pt");
+        AddCountry(Emoji.FlagPortugal, "pt-pt", "pt");
+        AddCountry(Emoji.FlagRussia, "ru");
+        AddCountry(Emoji.FlagMexico, "es");
+        AddCountry(Emoji.FlagSpain, "es");
+        AddCountry(Emoji.FlagVietnam, "vi");
+        AddCountry(Emoji.FlagThailand, "th");
+        AddCountry(Emoji.FlagUkraine, "uk");
+        AddCountry(Emoji.FlagIndonesia, "id");
+        AddCountry(Emoji.FlagKazakhstan, "kk");
+
+        return countries;
+
+        void AddCountry(SingleEmoji emoji, params string[] langCodes)
+        {
+            countries.Add(emoji.ToString(), new Country(emoji, langCodes));
+        }
+    }
 }

@@ -1,7 +1,7 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
+using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Countries.Exceptions;
-using DiscordTranslationBot.Countries.Utilities;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Exceptions;
@@ -52,7 +52,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     /// <param name="cancellationToken">Cancellation token.</param>
     public async ValueTask Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
-        if (!CountryUtility.TryGetCountryByEmoji(notification.ReactionInfo.Emote.Name, out var country))
+        if (!CountryConstants.SupportedCountries.TryGetValue(notification.ReactionInfo.Emote.Name, out var country))
         {
             _log.NotASupportedCountryFlagEmoji();
             return;
