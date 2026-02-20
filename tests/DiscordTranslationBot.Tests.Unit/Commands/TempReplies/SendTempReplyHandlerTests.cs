@@ -55,9 +55,9 @@ public sealed class SendTempReplyHandlerTests
             .Received(1)
             .ScheduleAsync(
                 Arg.Is<DeleteTempReply>(x =>
-                    ReferenceEquals(x.Reply, reply) &&
-                    x.SourceMessageId == sourceMessageId &&
-                    ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
+                    ReferenceEquals(x.Reply, reply)
+                    && x.SourceMessageId == sourceMessageId
+                    && ReferenceEquals(x.ReactionInfo, command.ReactionInfo)),
                 command.DeletionDelay,
                 TestContext.Current.CancellationToken);
     }

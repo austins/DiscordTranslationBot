@@ -88,9 +88,9 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == sourceLanguage.LangCode &&
-                    x.TargetLangCode == targetLanguage.LangCode &&
-                    x.Text == text),
+                    x.SourceLangCode == sourceLanguage.LangCode
+                    && x.TargetLangCode == targetLanguage.LangCode
+                    && x.Text == text),
                 TestContext.Current.CancellationToken)
             .Returns(response);
 
