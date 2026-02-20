@@ -14,26 +14,26 @@ public sealed class MessageElapsedTimeLoggingBehaviorTests
         _sut = new MessageElapsedTimeLoggingBehavior<IMessage, bool>(_logger);
     }
 
-    [Test]
-    public async Task Handle_Success_Logs(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_Success_Logs()
     {
         // Arrange
         var message = Substitute.For<IMessage>();
 
         // Act
-        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken);
+        await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken);
 
         // Assert
-        _logger.Entries.Count.ShouldBe(2);
+        _logger.Entries.Count.Should().Be(2);
 
         var messageName = message.GetType().Name;
 
         var executingLog = _logger.Entries[0];
-        executingLog.LogLevel.ShouldBe(LogLevel.Information);
-        executingLog.Message.ShouldBe($"Executing message '{messageName}'...");
+        executingLog.LogLevel.Should().Be(LogLevel.Information);
+        executingLog.Message.Should().Be($"Executing message '{messageName}'...");
 
         var executedLog = _logger.Entries[1];
-        executedLog.LogLevel.ShouldBe(LogLevel.Information);
-        executedLog.Message.ShouldStartWith($"Executed message '{messageName}'. Elapsed time:");
+        executedLog.LogLevel.Should().Be(LogLevel.Information);
+        executedLog.Message.Should().StartWith($"Executed message '{messageName}'. Elapsed time:");
     }
 }

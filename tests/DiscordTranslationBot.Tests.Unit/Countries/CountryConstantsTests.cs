@@ -4,14 +4,14 @@ namespace DiscordTranslationBot.Tests.Unit.Countries;
 
 public sealed class CountryConstantsTests
 {
-    [Test]
+    [Fact]
     public void SupportedCountries_InitializesWithValidFlagEmojis_DoesNotThrow()
     {
         // Arrange
         var supportedCountries = () => CountryConstants.SupportedCountries;
 
         // Act & Assert
-        supportedCountries.ShouldNotThrow();
-        supportedCountries().ShouldNotBeEmpty();
+        supportedCountries.Should().NotThrow();
+        supportedCountries().Should().NotBeEmpty();
     }
 }

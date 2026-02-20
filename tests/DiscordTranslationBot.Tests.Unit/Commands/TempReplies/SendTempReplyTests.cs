@@ -8,12 +8,12 @@ namespace DiscordTranslationBot.Tests.Unit.Commands.TempReplies;
 
 public sealed class SendTempReplyTests
 {
-    [Test]
-    [Arguments("00:00:01")]
-    [Arguments("00:00:10")]
-    [Arguments("00:00:30.678")]
-    [Arguments("00:01:00")]
-    [Arguments("00:01:30")]
+    [Theory]
+    [InlineData("00:00:01")]
+    [InlineData("00:00:10")]
+    [InlineData("00:00:30.678")]
+    [InlineData("00:01:00")]
+    [InlineData("00:01:30")]
     public void Valid_ValidatesWithoutErrors(string deletionDelay)
     {
         // Arrange
@@ -33,11 +33,11 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Invalid_SourceMessage_HasValidationError()
     {
         // Arrange
@@ -51,17 +51,16 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.SourceMessage));
+        validationResults.Should().ContainSingle();
+        validationResults[0].MemberNames.Should().ContainSingle().Which.Should().Be(nameof(command.SourceMessage));
     }
 
-    [Test]
-    [Arguments(null)]
-    [Arguments("")]
-    [Arguments(" ")]
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
     public void Invalid_Text_HasValidationError(string? text)
     {
         // Arrange
@@ -76,17 +75,16 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.Text));
+        validationResults.Should().ContainSingle();
+        validationResults[0].MemberNames.Should().ContainSingle().Which.Should().Be(nameof(command.Text));
     }
 
-    [Test]
-    [Arguments("00:00:00")] // 0 seconds
-    [Arguments("00:00:00.5")] // 0.5 seconds
-    [Arguments("00:01:30.1")] // 1 minute 30.1 seconds
+    [Theory]
+    [InlineData("00:00:00")] // 0 seconds
+    [InlineData("00:00:00.5")] // 0.5 seconds
+    [InlineData("00:01:30.1")] // 1 minute 30.1 seconds
     public void Invalid_DeletionDelay_HasValidationError(string deletionDelay)
     {
         // Arrange
@@ -106,10 +104,9 @@ public sealed class SendTempReplyTests
         var isValid = command.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(command.DeletionDelay));
+        validationResults.Should().ContainSingle();
+        validationResults[0].MemberNames.Should().ContainSingle().Which.Should().Be(nameof(command.DeletionDelay));
     }
 }

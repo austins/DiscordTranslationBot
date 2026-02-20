@@ -13,21 +13,24 @@ public sealed class MessageValidationBehaviorTests
         _sut = new MessageValidationBehavior<IMessage, bool>();
     }
 
-    [Test]
-    public async Task Handle_ValidMessage_NotValidatable_Success(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_ValidMessage_NotValidatable_Success()
     {
         // Arrange
         var message = Substitute.For<IMessage>();
 
         // Act & Assert
         await _sut
-            .Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken)
-            .AsTask()
-            .ShouldNotThrowAsync();
+            .Awaiting(x => x.Handle(
+                message,
+                (_, _) => ValueTask.FromResult(true),
+                TestContext.Current.CancellationToken))
+            .Should()
+            .NotThrowAsync();
     }
 
-    [Test]
-    public async Task Handle_ValidMessage_Success(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_ValidMessage_Success()
     {
         // Arrange
         var message = new MessageFake
@@ -38,13 +41,16 @@ public sealed class MessageValidationBehaviorTests
 
         // Act & Assert
         await _sut
-            .Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken)
-            .AsTask()
-            .ShouldNotThrowAsync();
+            .Awaiting(x => x.Handle(
+                message,
+                (_, _) => ValueTask.FromResult(true),
+                TestContext.Current.CancellationToken))
+            .Should()
+            .NotThrowAsync();
     }
 
-    [Test]
-    public async Task Handle_InvalidMessage_Throws(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_InvalidMessage_Throws()
     {
         // Arrange
         var message = new MessageFake
@@ -54,12 +60,17 @@ public sealed class MessageValidationBehaviorTests
         };
 
         // Act & Assert
-        var exception = await Should.ThrowAsync<MessageValidationException>(
-            async () => await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), cancellationToken));
-
-        exception.ValidationResults.Count.ShouldBe(2);
-        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Name)), 1);
-        exception.ValidationResults.ShouldContain(x => x.MemberNames.Contains(nameof(message.Value)), 1);
+        (await _sut
+                .Awaiting(x => x.Handle(
+                    message,
+                    (_, _) => ValueTask.FromResult(true),
+                    TestContext.Current.CancellationToken))
+                .Should()
+                .ThrowAsync<MessageValidationException>())
+            .Which.ValidationResults.Should()
+            .HaveCount(2)
+            .And.ContainSingle(x => x.MemberNames.Contains(nameof(message.Name)))
+            .And.ContainSingle(x => x.MemberNames.Contains(nameof(message.Value)));
     }
 
     private sealed class MessageFake : IMessage

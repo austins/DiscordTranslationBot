@@ -14,4 +14,13 @@ jobs:
                 with:
                     dotnet-version: '10.x'
             -   name: Test
-                run: dotnet test -c Release
+                run: dotnet test -c Release --results-directory ./test-results -- --report-ctrf
+            -   if: always()
+                name: Publish test report
+                uses: ctrf-io/github-test-reporter@v1
+                with:
+                    report-path: ./test-results/*.ctrf
+                    summary-report: true
+                    file-report: true
+                    failed-folded-report: true
+                    skipped-report: true

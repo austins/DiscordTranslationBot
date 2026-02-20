@@ -1,17 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <IsPackable>false</IsPackable>
+        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AwesomeAssertions" Version="9.4.0"/>
+        <PackageReference Include="AwesomeAssertions.Analyzers" Version="9.0.8">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6"/>
         <PackageReference Include="NSubstitute" Version="5.3.0"/>
         <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Shouldly" Version="4.3.0"/>
-        <PackageReference Include="TUnit.Engine" Version="1.16.4"/>
+        <PackageReference Include="xunit.analyzers" Version="1.27.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="xunit.v3.core" Version="3.2.2"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -19,11 +28,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Using Include="AwesomeAssertions"/>
         <Using Include="Microsoft.Extensions.Logging"/>
         <Using Include="NSubstitute"/>
         <Using Include="NSubstitute.ClearExtensions"/>
         <Using Include="NSubstitute.ExceptionExtensions"/>
         <Using Include="NSubstitute.Extensions"/>
-        <Using Include="Shouldly"/>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 </Project>

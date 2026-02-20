@@ -4,18 +4,18 @@ namespace DiscordTranslationBot.Tests.Unit.Utilities;
 
 public sealed class FormatUtilityTests
 {
-    [Test]
-    [Arguments(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
-    [Arguments("text with unicode 👻 emoji 🤔", "text with unicode  emoji")]
-    [Arguments("<@000000000000000000> test", "test")]
-    [Arguments("test <@!000000000000000000>", "test")]
-    [Arguments("<:emote:123000000000000000>", "")]
-    [Arguments("<:emote1:000000000000000000>", "")]
-    [Arguments("<:1234:000000000000000123>", "")]
-    [Arguments("test <a:test_emote:100000000000000123>", "test")]
-    [Arguments("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
-    [Arguments("text with links http://example.com https://example.com/ test", "text with links   test")]
-    [Arguments(
+    [Theory]
+    [InlineData(" textThatShouldBeTrimmed ", "textThatShouldBeTrimmed")]
+    [InlineData("text with unicode 👻 emoji 🤔", "text with unicode  emoji")]
+    [InlineData("<@000000000000000000> test", "test")]
+    [InlineData("test <@!000000000000000000>", "test")]
+    [InlineData("<:emote:123000000000000000>", "")]
+    [InlineData("<:emote1:000000000000000000>", "")]
+    [InlineData("<:1234:000000000000000123>", "")]
+    [InlineData("test <a:test_emote:100000000000000123>", "test")]
+    [InlineData("<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", "")]
+    [InlineData("text with links http://example.com https://example.com/ test", "text with links   test")]
+    [InlineData(
         """
         _markdown_ *markdown* `markdown` <a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>
         ```json
@@ -49,6 +49,6 @@ public sealed class FormatUtilityTests
         var result = FormatUtility.SanitizeText(text);
 
         // Assert
-        result.ShouldBe(expected);
+        result.Should().Be(expected);
     }
 }
