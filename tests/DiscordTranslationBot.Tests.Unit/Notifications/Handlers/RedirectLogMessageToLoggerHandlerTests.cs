@@ -16,17 +16,14 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         _sut = new RedirectLogMessageToLoggerHandler(_logger);
     }
 
-    [Test]
-    [Arguments(LogSeverity.Debug, LogLevel.Trace)]
-    [Arguments(LogSeverity.Verbose, LogLevel.Debug)]
-    [Arguments(LogSeverity.Info, LogLevel.Information)]
-    [Arguments(LogSeverity.Warning, LogLevel.Warning)]
-    [Arguments(LogSeverity.Error, LogLevel.Error)]
-    [Arguments(LogSeverity.Critical, LogLevel.Critical)]
-    public async Task Handle_RedirectLogMessageToLogger_Success(
-        LogSeverity severity,
-        LogLevel expectedLevel,
-        CancellationToken cancellationToken)
+    [Theory]
+    [InlineData(LogSeverity.Debug, LogLevel.Trace)]
+    [InlineData(LogSeverity.Verbose, LogLevel.Debug)]
+    [InlineData(LogSeverity.Info, LogLevel.Information)]
+    [InlineData(LogSeverity.Warning, LogLevel.Warning)]
+    [InlineData(LogSeverity.Error, LogLevel.Error)]
+    [InlineData(LogSeverity.Critical, LogLevel.Critical)]
+    public async Task Handle_RedirectLogMessageToLogger_Success(LogSeverity severity, LogLevel expectedLevel)
     {
         // Arrange
         var notification = new LogNotification
@@ -35,54 +32,49 @@ public sealed class RedirectLogMessageToLoggerHandlerTests
         };
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.ShouldBe(expectedLevel);
-        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
-        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
+        logEntry.LogLevel.Should().Be(expectedLevel);
+        logEntry.Message.Should().Be($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
+        logEntry.Exception.Should().Be(notification.LogMessage.Exception);
     }
 
-    [Test]
-    public async Task Handle_RedirectLogMessageToLogger_GatewayReconnectException_ChangesLogLevel(
-        CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_RedirectLogMessageToLogger_GatewayReconnectException_ChangesLogLevel()
     {
         // Arrange
         var notification = new LogNotification
         {
-            LogMessage = new LogMessage(
-                LogSeverity.Error,
-                "source1",
-                "message1",
-                new GatewayReconnectException("test"))
+            LogMessage = new LogMessage(LogSeverity.Error, "source1", "message1", new GatewayReconnectException("test"))
         };
 
         const LogLevel expectedLevel = LogLevel.Information;
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.ShouldBe(expectedLevel);
-        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
-        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
+        logEntry.LogLevel.Should().Be(expectedLevel);
+        logEntry.Message.Should().Be($"Discord: [{notification.LogMessage.Source}] {notification.LogMessage.Message}");
+        logEntry.Exception.Should().Be(notification.LogMessage.Exception);
     }
 
-    [Test]
-    public async Task Handle_RedirectLogMessageToLogger_NullMessage(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_RedirectLogMessageToLogger_NullMessage()
     {
         // Arrange
         var notification = new LogNotification { LogMessage = new LogMessage(LogSeverity.Info, "source1", null) };
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         var logEntry = _logger.Entries[0];
-        logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Discord: [{notification.LogMessage.Source}] ");
-        logEntry.Exception.ShouldBe(notification.LogMessage.Exception);
+        logEntry.LogLevel.Should().Be(LogLevel.Information);
+        logEntry.Message.Should().Be($"Discord: [{notification.LogMessage.Source}] ");
+        logEntry.Exception.Should().Be(notification.LogMessage.Exception);
     }
 }

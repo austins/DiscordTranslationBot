@@ -37,7 +37,7 @@ internal class LoggerFake : ILogger
 
         _entries.Add(logEntry);
 
-        TestContext.Current?.OutputWriter.WriteLine(
+        TestContext.Current.TestOutputHelper?.WriteLine(
             $"""
              [{nameof(LoggerFake)}] {DateTime.UtcNow:HH:mm:ss.fff} {logEntry.LogLevel}: {_categoryName?.FullName}[{logEntry.EventId.Id}]
                    {logEntry.Message}

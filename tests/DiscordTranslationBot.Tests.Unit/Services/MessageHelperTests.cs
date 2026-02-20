@@ -9,9 +9,9 @@ public sealed class MessageHelperTests
 {
     private readonly MessageHelper _sut = new();
 
-    [Test]
-    [Arguments(false)]
-    [Arguments(true)]
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void GetJumpUrl_ReturnsExpected(bool isDmChannel)
     {
         // Arrange
@@ -47,10 +47,10 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrl(message);
 
         // Assert
-        result.AbsoluteUri.ShouldBe(expected.AbsoluteUri);
+        result.AbsoluteUri.Should().Be(expected.AbsoluteUri);
     }
 
-    [Test]
+    [Fact]
     public void GetJumpUrlsInMessage_ReturnsExpected()
     {
         // Arrange
@@ -99,13 +99,13 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrlsInMessage(mainMessage);
 
         // Assert
-        result.ShouldBeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(expected);
     }
 
-    [Test]
-    [Arguments(null, null)]
-    [Arguments(1UL, null)]
-    [Arguments(1UL, "en-US")]
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(1UL, null)]
+    [InlineData(1UL, "en-US")]
     public void BuildTranslationReplyWithReference_ReturnsExpected(
         ulong? interactionUserId,
         string? detectedLanguageCode)
@@ -146,10 +146,10 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.ShouldBe(expected);
+        result.Should().Be(expected);
     }
 
-    [Test]
+    [Fact]
     public void BuildTranslationReplyWithReference_SameUser_ReturnsExpected()
     {
         // Arrange
@@ -182,6 +182,6 @@ public sealed class MessageHelperTests
         var result = _sut.BuildTranslationReplyWithReference(message, translationResult, interactionUserId);
 
         // Assert
-        result.ShouldBe(expected);
+        result.Should().Be(expected);
     }
 }

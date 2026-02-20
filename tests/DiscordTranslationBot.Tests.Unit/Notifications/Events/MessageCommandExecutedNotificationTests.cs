@@ -6,22 +6,22 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class MessageCommandExecutedNotificationTests
 {
-    [Test]
+    [Fact]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
-        var notification =
-            new MessageCommandExecutedNotification { Interaction = Substitute.For<IMessageCommandInteraction>() };
+        var notification = new MessageCommandExecutedNotification
+            { Interaction = Substitute.For<IMessageCommandInteraction>() };
 
         // Act
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Invalid_Interaction_Validates_WithErrors()
     {
         // Arrange
@@ -31,10 +31,9 @@ public sealed class MessageCommandExecutedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(notification.Interaction));
+        validationResults.Should().ContainSingle();
+        validationResults[0].MemberNames.Should().ContainSingle().Which.Should().Be(nameof(notification.Interaction));
     }
 }

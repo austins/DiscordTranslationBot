@@ -38,30 +38,29 @@ public sealed class RegisterDiscordCommandsHandlerTests
             new LoggerFake<RegisterDiscordCommandsHandler>());
     }
 
-    [Test]
-    public async Task Handle_JoinedGuildNotification_Success(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_JoinedGuildNotification_Success()
     {
         // Arrange
         var notification = new JoinedGuildNotification { Guild = Substitute.For<IGuild>() };
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _client.DidNotReceive().GetGuildsAsync(options: Arg.Any<RequestOptions>());
 
         await notification
-            .Guild
-            .Received(1)
+            .Guild.Received(1)
             .BulkOverwriteApplicationCommandsAsync(
-                Arg.Is<ApplicationCommandProperties[]>(
-                    x => x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
-                         && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
+                Arg.Is<ApplicationCommandProperties[]>(x =>
+                    x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
+                    && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
                 Arg.Any<RequestOptions>());
     }
 
-    [Test]
-    public async Task Handle_ReadyNotification_Success(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_ReadyNotification_Success()
     {
         // Arrange
         var guild = Substitute.For<IGuild>();
@@ -70,7 +69,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
@@ -78,14 +77,14 @@ public sealed class RegisterDiscordCommandsHandlerTests
         await guild
             .Received(1)
             .BulkOverwriteApplicationCommandsAsync(
-                Arg.Is<ApplicationCommandProperties[]>(
-                    x => x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
-                         && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
+                Arg.Is<ApplicationCommandProperties[]>(x =>
+                    x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
+                    && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
                 Arg.Any<RequestOptions>());
     }
 
-    [Test]
-    public async Task Handle_ReadyNotification_NoGuilds_Returns(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_ReadyNotification_NoGuilds_Returns()
     {
         // Arrange
         _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns([]);
@@ -93,7 +92,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         var notification = new ReadyNotification();
 
         // Act
-        await _sut.Handle(notification, cancellationToken);
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
         // Assert
         _ = _translationProvider.DidNotReceive().TranslateCommandLangCodes;

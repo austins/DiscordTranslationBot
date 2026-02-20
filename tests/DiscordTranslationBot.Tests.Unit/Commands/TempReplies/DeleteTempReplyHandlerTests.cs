@@ -18,10 +18,10 @@ public sealed class DeleteTempReplyHandlerTests
         _sut = new DeleteTempReplyHandler(_logger);
     }
 
-    [Test]
-    [Arguments(false)]
-    [Arguments(true)]
-    public async Task Handle_DeleteTempReply_Success(bool hasReactionInfo, CancellationToken cancellationToken)
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_DeleteTempReply_Success(bool hasReactionInfo)
     {
         // Arrange
         var command = new DeleteTempReply
@@ -55,27 +55,24 @@ public sealed class DeleteTempReplyHandlerTests
             (sourceMessage.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
             command
-                .Reply
-                .Channel
-                .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
+                .Reply.Channel.GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
                 .Returns(sourceMessage);
         }
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
         var deletedTempReplyLogEntry = _logger.Entries[0];
-        deletedTempReplyLogEntry.LogLevel.ShouldBe(LogLevel.Information);
-        deletedTempReplyLogEntry.Message.ShouldBe(
-            $"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
+        deletedTempReplyLogEntry.LogLevel.Should().Be(LogLevel.Information);
+        deletedTempReplyLogEntry
+            .Message.Should()
+            .Be($"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
-            .Reply
-            .Channel
-            .Received(hasReactionInfo ? 1 : 0)
+            .Reply.Channel.Received(hasReactionInfo ? 1 : 0)
             .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>());
 
         await sourceMessage
@@ -85,14 +82,16 @@ public sealed class DeleteTempReplyHandlerTests
         if (hasReactionInfo)
         {
             var removedTempReactionLogEntry = _logger.Entries[1];
-            removedTempReactionLogEntry.LogLevel.ShouldBe(LogLevel.Information);
-            removedTempReactionLogEntry.Message.ShouldBe(
-                $"Removed temp reaction added by user ID {command.ReactionInfo!.UserId} from message ID {command.SourceMessageId} in channel ID {channelId} and guild ID {guildId}.");
+            removedTempReactionLogEntry.LogLevel.Should().Be(LogLevel.Information);
+            removedTempReactionLogEntry
+                .Message.Should()
+                .Be(
+                    $"Removed temp reaction added by user ID {command.ReactionInfo!.UserId} from message ID {command.SourceMessageId} in channel ID {channelId} and guild ID {guildId}.");
         }
     }
 
-    [Test]
-    public async Task Handle_DeleteTempReply_NoSourceMessageFound_Success(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_DeleteTempReply_NoSourceMessageFound_Success()
     {
         // Arrange
         var command = new DeleteTempReply
@@ -116,30 +115,29 @@ public sealed class DeleteTempReplyHandlerTests
         (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         command
-            .Reply
-            .Channel
-            .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
+            .Reply.Channel.GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
             .Returns((IUserMessage?)null);
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        var logEntry = _logger.Entries.ShouldHaveSingleItem();
-        logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe($"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
+        _logger.Entries.Should().ContainSingle();
+        _logger.Entries[0].LogLevel.Should().Be(LogLevel.Information);
+        _logger
+            .Entries[0]
+            .Message.Should()
+            .Be($"Deleted temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
-            .Reply
-            .Channel
-            .Received(1)
+            .Reply.Channel.Received(1)
             .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>());
     }
 
-    [Test]
-    public async Task Handle_DeleteTempReply_TempMessageNotFound(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_DeleteTempReply_TempMessageNotFound()
     {
         // Arrange
         var command = new DeleteTempReply
@@ -159,8 +157,7 @@ public sealed class DeleteTempReplyHandlerTests
         (command.Reply.Channel as IGuildChannel)!.GuildId.Returns(guildId);
 
         command
-            .Reply
-            .DeleteAsync()
+            .Reply.DeleteAsync()
             .ThrowsAsyncForAnyArgs(
                 new HttpException(
                     HttpStatusCode.NotFound,
@@ -168,19 +165,22 @@ public sealed class DeleteTempReplyHandlerTests
                     DiscordErrorCode.UnknownMessage));
 
         // Act
-        await _sut.Handle(command, cancellationToken);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        var logEntry = _logger.Entries.ShouldHaveSingleItem();
-        logEntry.LogLevel.ShouldBe(LogLevel.Information);
-        logEntry.Message.ShouldBe(
-            $"Temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId} was not found and likely manually deleted.");
+        _logger.Entries.Should().ContainSingle();
+        _logger.Entries[0].LogLevel.Should().Be(LogLevel.Information);
+        _logger
+            .Entries[0]
+            .Message.Should()
+            .Be(
+                $"Temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId} was not found and likely manually deleted.");
     }
 
-    [Test]
-    public async Task Handle_DeleteTempReply_FailedToDeleteTempMessage(CancellationToken cancellationToken)
+    [Fact]
+    public async Task Handle_DeleteTempReply_FailedToDeleteTempMessage()
     {
         // Arrange
         var command = new DeleteTempReply
@@ -208,26 +208,27 @@ public sealed class DeleteTempReplyHandlerTests
 
         var sourceMessage = Substitute.For<IUserMessage>();
         command
-            .Reply
-            .Channel
-            .GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
+            .Reply.Channel.GetMessageAsync(command.SourceMessageId, options: Arg.Any<RequestOptions?>())
             .Returns(sourceMessage);
 
         // Act + Assert
-        await _sut.Handle(command, cancellationToken).AsTask().ShouldThrowAsync<Exception>();
+        await _sut
+            .Awaiting(x => x.Handle(command, TestContext.Current.CancellationToken))
+            .Should()
+            .ThrowAsync<Exception>();
 
         await command.Reply.ReceivedWithAnyArgs(1).DeleteAsync();
 
-        var logEntry = _logger.Entries.ShouldHaveSingleItem();
-        logEntry.LogLevel.ShouldBe(LogLevel.Error);
-        logEntry.Exception.ShouldBe(exception);
-        logEntry.Message.ShouldBe(
-            $"Failed to delete temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
+        _logger.Entries.Should().ContainSingle();
+        _logger.Entries[0].LogLevel.Should().Be(LogLevel.Error);
+        _logger.Entries[0].Exception.Should().Be(exception);
+        _logger
+            .Entries[0]
+            .Message.Should()
+            .Be($"Failed to delete temp reply ID {replyId} in channel ID {channelId} and guild ID {guildId}.");
 
         await command
-            .Reply
-            .Channel
-            .DidNotReceive()
+            .Reply.Channel.DidNotReceive()
             .GetMessageAsync(Arg.Any<ulong>(), options: Arg.Any<RequestOptions?>());
     }
 }

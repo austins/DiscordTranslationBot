@@ -5,7 +5,7 @@ namespace DiscordTranslationBot.Tests.Unit.Discord;
 
 public sealed class DiscordOptionsTests
 {
-    [Test]
+    [Fact]
     public void Valid_Options_ValidatesWithoutErrors()
     {
         // Arrange
@@ -15,14 +15,14 @@ public sealed class DiscordOptionsTests
         var isValid = options.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
-    [Test]
-    [Arguments(null)]
-    [Arguments("")]
-    [Arguments(" ")]
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
     public void Invalid_BotToken_HasValidationError(string? botToken)
     {
         // Arrange
@@ -32,10 +32,9 @@ public sealed class DiscordOptionsTests
         var isValid = options.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        var result = validationResults.ShouldHaveSingleItem();
-        var memberName = result.MemberNames.ShouldHaveSingleItem();
-        memberName.ShouldBe(nameof(options.BotToken));
+        validationResults.Should().ContainSingle();
+        validationResults[0].MemberNames.Should().ContainSingle().Which.Should().Be(nameof(options.BotToken));
     }
 }

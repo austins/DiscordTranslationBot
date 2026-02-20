@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
 public sealed class ReactionAddedNotificationTests
 {
-    [Test]
+    [Fact]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
@@ -27,11 +27,11 @@ public sealed class ReactionAddedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeTrue();
-        validationResults.ShouldBeEmpty();
+        isValid.Should().BeTrue();
+        validationResults.Should().BeEmpty();
     }
 
-    [Test]
+    [Fact]
     public void Invalid_Validates_WithErrors()
     {
         // Arrange
@@ -46,11 +46,11 @@ public sealed class ReactionAddedNotificationTests
         var isValid = notification.TryValidate(out var validationResults);
 
         // Assert
-        isValid.ShouldBeFalse();
+        isValid.Should().BeFalse();
 
-        validationResults.Count.ShouldBe(3);
-        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Message)), 1);
-        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.Channel)), 1);
-        validationResults.ShouldContain(x => x.MemberNames.All(y => y == nameof(notification.ReactionInfo)), 1);
+        validationResults.Count.Should().Be(3);
+        validationResults.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.Message)));
+        validationResults.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.Channel)));
+        validationResults.Should().ContainSingle(x => x.MemberNames.All(y => y == nameof(notification.ReactionInfo)));
     }
 }

@@ -4,7 +4,7 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation.Models;
 
 public sealed class SupportedLanguageTests
 {
-    [Test]
+    [Fact]
     public void Equals_WhenOtherIsNull_ReturnsFalse()
     {
         // Arrange
@@ -20,10 +20,10 @@ public sealed class SupportedLanguageTests
 #pragma warning restore CA1508
 
         // Assert
-        result.ShouldBeFalse();
+        result.Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void Equals_WhenSameInstance_ReturnsTrue()
     {
         // Arrange
@@ -37,10 +37,10 @@ public sealed class SupportedLanguageTests
         var result = language.Equals(language);
 
         // Assert
-        result.ShouldBeTrue();
+        result.Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void Equals_WhenLangCodesMatch_ReturnsTrue()
     {
         // Arrange
@@ -60,10 +60,10 @@ public sealed class SupportedLanguageTests
         var result = language1.Equals(language2);
 
         // Assert
-        result.ShouldBeTrue();
+        result.Should().BeTrue();
     }
 
-    [Test]
+    [Fact]
     public void Equals_WhenLangCodesDontMatch_ReturnsFalse()
     {
         // Arrange
@@ -83,10 +83,10 @@ public sealed class SupportedLanguageTests
         var result = language1.Equals(language2);
 
         // Assert
-        result.ShouldBeFalse();
+        result.Should().BeFalse();
     }
 
-    [Test]
+    [Fact]
     public void GetHashCode_WhenCalled_ReturnsHashCodeOfLangCode()
     {
         // Arrange
@@ -100,6 +100,6 @@ public sealed class SupportedLanguageTests
         var result = language.GetHashCode();
 
         // Assert
-        result.ShouldBe("EN".GetHashCode(StringComparison.OrdinalIgnoreCase));
+        result.Should().Be("EN".GetHashCode(StringComparison.OrdinalIgnoreCase));
     }
 }
