@@ -33,7 +33,7 @@ jobs:
                 run: echo "IMAGE_NAME=${GITHUB_REPOSITORY//./-}" >> $GITHUB_ENV
             -   name: Extract Docker metadata
                 id: meta
-                uses: docker/metadata-action@v5
+                uses: docker/metadata-action@v6
                 with:
                     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
                     tags: type=raw,value=latest,enable={{is_default_branch}}
