@@ -50,6 +50,7 @@ internal sealed partial class Scheduler : IScheduler
 
     public async Task<ScheduledJob?> GetNextJobDueAsync(CancellationToken cancellationToken)
     {
+        // Peek the next job without dequeuing it to check the execution time.
         if (_channel.Reader.TryPeek(out var job) && job.ExecuteAt <= _timeProvider.GetUtcNow())
         {
             job = await _channel.Reader.ReadAsync(cancellationToken);
