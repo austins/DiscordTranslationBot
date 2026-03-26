@@ -11,5 +11,14 @@
         ":automergeRequireAllStatusChecks",
         ":automergeMinor",
         ":automergeDigest"
+    ],
+    "packageRules": [
+        {
+            "matchDatasources": [
+                "docker",
+                "nuget"
+            ],
+            "minimumReleaseAge": "3 days"
+        }
     ]
 }
