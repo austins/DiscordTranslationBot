@@ -2,8 +2,10 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "config:recommended",
-        "schedule:daily",
         "docker:pinDigests",
+        "helpers:githubDigestChangelogs",
+        "helpers:pinGitHubActionDigestsToSemver",
+        "schedule:daily",
         ":configMigration",
         ":enableVulnerabilityAlerts",
         ":rebaseStalePrs",
@@ -16,6 +18,8 @@
         {
             "matchDatasources": [
                 "docker",
+                "github-digest",
+                "github-tags",
                 "nuget"
             ],
             "minimumReleaseAge": "3 days"
