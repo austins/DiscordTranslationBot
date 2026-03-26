@@ -55,7 +55,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             -   name: Trigger deployment webhook
-                uses: distributhor/workflow-webhook@v3
+                uses: distributhor/workflow-webhook@2381f0e9c7b6bf061fb1405bd0804b8706116369 # v3.0.8
                 with:
                     webhook_url: ${{ secrets.WEBHOOK_URL }}
                     webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
