@@ -14,6 +14,7 @@
         ":automergeMinor",
         ":automergeDigest"
     ],
+    "osvVulnerabilityAlerts": true,
     "packageRules": [
         {
             "matchDatasources": [
