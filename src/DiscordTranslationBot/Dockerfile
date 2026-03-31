@@ -9,8 +9,11 @@ WORKDIR /app
 COPY .editorconfig Directory.Build.props ./
 COPY ./src/DiscordTranslationBot ./src/DiscordTranslationBot 
 
+# Restore dependencies.
+RUN dotnet restore ./src/DiscordTranslationBot
+
 # Publish app.
-RUN dotnet publish ./src/DiscordTranslationBot -c Release -o ./out
+RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out
 
 ###################################################
 ## Runtime image creation stage.
