@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="renovate.json" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/deploy.yml" />
+    <File Path=".github/workflows/pr.yml" />
+    <File Path=".github/workflows/test.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/DiscordTranslationBot/DiscordTranslationBot.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DiscordTranslationBot.Tests.Unit/DiscordTranslationBot.Tests.Unit.csproj" />
+  </Folder>
+</Solution>
