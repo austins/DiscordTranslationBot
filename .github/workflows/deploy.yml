@@ -3,6 +3,13 @@ name: Deploy
 on:
     push:
         branches: [ main ]
+        paths:
+            - '.editorconfig'
+            - 'Directory.Build.props'
+            - 'global.json'
+            - '.dockerignore'
+            - 'src/**'
+            - 'tests/**'
 
 concurrency:
     group: deploy
