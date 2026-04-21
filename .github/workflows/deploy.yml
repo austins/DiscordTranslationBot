@@ -4,10 +4,11 @@ on:
     push:
         branches: [ main ]
         paths:
+            - '.dockerignore'
             - '.editorconfig'
+            - '*.slnx'
             - 'Directory.Build.props'
             - 'global.json'
-            - '.dockerignore'
             - 'src/**'
             - 'tests/**'
 
