@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using DiscordTranslationBot.Discord;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -11,7 +12,7 @@ public sealed class DiscordClientHealthCheckTests
 
     public DiscordClientHealthCheckTests()
     {
-        _client = Substitute.For<IDiscordClient>();
+        _client = Substitute.For<IDiscordClient, DiscordSocketClient>();
         _sut = new DiscordClientHealthCheck(_client);
     }
 
@@ -21,11 +22,11 @@ public sealed class DiscordClientHealthCheckTests
         // Arrange
         _client.ConnectionState.Returns(ConnectionState.Connected);
 
-        var guilds = new List<IGuild> { Substitute.For<IGuild>() };
-        _client.GetGuildsAsync().ReturnsForAnyArgs(guilds);
+        const int guildCount = 1;
+        ((DiscordSocketClient)_client).Guilds.Count.ReturnsForAnyArgs(guildCount);
 
         var expectedDescription = _client.ConnectionState.ToString();
-        var expectedData = new Dictionary<string, object> { { "GuildCount", guilds.Count } };
+        var expectedData = new Dictionary<string, object> { { "GuildCount", guildCount } };
 
         // Act
         var result = await _sut.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);

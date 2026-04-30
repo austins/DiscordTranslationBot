@@ -45,10 +45,10 @@ internal sealed partial class MessageHelper : IMessageHelper
         TranslationResult translationResult,
         ulong? interactionUserId = null)
     {
-        var stringBuilder = new StringBuilder()
-            .Append(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))
-            .Append(" translated ")
-            .Append(GetJumpUrl(referencedMessage));
+        var stringBuilder =
+            new StringBuilder(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))
+                .Append(" translated ")
+                .Append(GetJumpUrl(referencedMessage));
 
         if (interactionUserId != referencedMessage.Author.Id)
         {
