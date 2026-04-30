@@ -2,6 +2,7 @@ using Discord;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using IMessage = Discord.IMessage;
 
@@ -44,24 +45,30 @@ internal sealed partial class MessageHelper : IMessageHelper
         TranslationResult translationResult,
         ulong? interactionUserId = null)
     {
-        var replyText =
-            $"{(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))} translated {GetJumpUrl(referencedMessage)}";
+        var stringBuilder = new StringBuilder()
+            .Append(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))
+            .Append(" translated ")
+            .Append(GetJumpUrl(referencedMessage));
 
         if (interactionUserId != referencedMessage.Author.Id)
         {
-            replyText += $" by {MentionUtils.MentionUser(referencedMessage.Author.Id)}";
+            stringBuilder.Append(" by ").Append(MentionUtils.MentionUser(referencedMessage.Author.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(translationResult.DetectedLanguageCode))
         {
-            replyText +=
-                $" from {Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode)}";
+            stringBuilder
+                .Append(" from ")
+                .Append(
+                    Format.Italics(translationResult.DetectedLanguageName ?? translationResult.DetectedLanguageCode));
         }
 
-        replyText +=
-            $" to {Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode)}:\n{Format.BlockQuote(translationResult.TranslatedText)}";
-
-        return replyText;
+        return stringBuilder
+            .Append(" to ")
+            .Append(Format.Italics(translationResult.TargetLanguageName ?? translationResult.TargetLanguageCode))
+            .Append(":\n")
+            .Append(Format.BlockQuote(translationResult.TranslatedText))
+            .ToString();
     }
 }
 
