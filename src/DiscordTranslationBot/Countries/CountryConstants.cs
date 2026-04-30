@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Countries.Models;
 using NeoSmart.Unicode;
+using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Countries;
 
@@ -16,9 +17,9 @@ internal static class CountryConstants
     /// will translate to when the associated flag emoji is received. The language codes are based on
     /// the supported languages of each translation provider.
     /// </remarks>
-    public static IReadOnlyDictionary<string, Country> SupportedCountries { get; } = InitializeSupportedCountries();
+    public static FrozenDictionary<string, Country> SupportedCountries { get; } = InitializeSupportedCountries();
 
-    private static IReadOnlyDictionary<string, Country> InitializeSupportedCountries()
+    private static FrozenDictionary<string, Country> InitializeSupportedCountries()
     {
         var countries = new Dictionary<string, Country>();
 
@@ -52,7 +53,7 @@ internal static class CountryConstants
         AddCountry(Emoji.FlagIndonesia, "id");
         AddCountry(Emoji.FlagKazakhstan, "kk");
 
-        return countries;
+        return countries.ToFrozenDictionary();
 
         void AddCountry(SingleEmoji emoji, params string[] langCodes)
         {
