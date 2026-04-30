@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace DiscordTranslationBot.Discord;
@@ -23,8 +24,7 @@ internal sealed class DiscordClientHealthCheck : IHealthCheck
         if (_client.ConnectionState is ConnectionState.Connected)
         {
             // The guilds list should already be cached by now.
-            var guildCount =
-                (await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken })).Count;
+            var guildCount = ((DiscordSocketClient)_client).Guilds.Count;
 
             return HealthCheckResult.Healthy(
                 description,
