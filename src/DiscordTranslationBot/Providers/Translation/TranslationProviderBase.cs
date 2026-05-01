@@ -60,14 +60,14 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
 internal interface ITranslationProvider
 {
     /// <summary>
-    /// Lang codes that can be specified for the translate command choices.
-    /// </summary>
-    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
-
-    /// <summary>
     /// Supported language codes for the provider.
     /// </summary>
     public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; }
+
+    /// <summary>
+    /// Lang codes that can be specified for the translate command choices.
+    /// </summary>
+    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
 
     /// <summary>
     /// Initialize the <see cref="SupportedLanguages" /> for the provider.
