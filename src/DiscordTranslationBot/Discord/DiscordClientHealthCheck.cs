@@ -8,11 +8,11 @@ internal sealed class DiscordClientHealthCheck : IHealthCheck
 {
     public const string HealthCheckName = "DiscordClient";
 
-    private readonly IDiscordClient _client;
+    private readonly DiscordSocketClient _client;
 
     public DiscordClientHealthCheck(IDiscordClient client)
     {
-        _client = client;
+        _client = (DiscordSocketClient)client;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
@@ -23,12 +23,9 @@ internal sealed class DiscordClientHealthCheck : IHealthCheck
 
         if (_client.ConnectionState is ConnectionState.Connected)
         {
-            // The guilds list should already be cached by now.
-            var guildCount = ((DiscordSocketClient)_client).Guilds.Count;
-
             return HealthCheckResult.Healthy(
                 description,
-                new Dictionary<string, object> { { "GuildCount", guildCount } });
+                new Dictionary<string, object> { { "GuildCount", _client.Guilds.Count } });
         }
 
         return _client.ConnectionState is ConnectionState.Connecting or ConnectionState.Disconnecting

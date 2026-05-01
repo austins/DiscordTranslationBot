@@ -66,9 +66,8 @@ internal sealed class Worker : IHostedService
     /// Stops the app gracefully.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        await _client.LogoutAsync();
-        await _client.StopAsync();
+        return _client.LogoutAsync();
     }
 }
