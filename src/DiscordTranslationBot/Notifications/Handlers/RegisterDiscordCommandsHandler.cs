@@ -12,6 +12,8 @@ internal sealed partial class RegisterDiscordCommandsHandler
     : INotificationHandler<ReadyNotification>,
         INotificationHandler<JoinedGuildNotification>
 {
+    private const int MaxGuildCommandRegistrationBatch = 10;
+
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly ITranslationProviderFactory _translationProviderFactory;
@@ -63,22 +65,29 @@ internal sealed partial class RegisterDiscordCommandsHandler
 
         _log.RegisteringCommandsForGuilds(guilds.Count);
 
-        foreach (var guild in guilds)
-        {
-            try
+        await Parallel.ForEachAsync(
+            guilds,
+            new ParallelOptions
             {
-                // Use the bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
-                await guild.BulkOverwriteApplicationCommandsAsync(
-                    [.. discordCommandsToRegister],
-                    new RequestOptions { CancelToken = cancellationToken });
+                MaxDegreeOfParallelism = MaxGuildCommandRegistrationBatch,
+                CancellationToken = cancellationToken
+            },
+            async (guild, ct) =>
+            {
+                try
+                {
+                    // Use the bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
+                    await guild.BulkOverwriteApplicationCommandsAsync(
+                        [.. discordCommandsToRegister],
+                        new RequestOptions { CancelToken = ct });
 
-                _log.RegisteredCommandsForGuild(guild.Id);
-            }
-            catch (HttpException exception)
-            {
-                _log.FailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
-            }
-        }
+                    _log.RegisteredCommandsForGuild(guild.Id);
+                }
+                catch (HttpException exception)
+                {
+                    _log.FailedToRegisterCommandsForGuild(guild.Id, JsonSerializer.Serialize(exception.Errors));
+                }
+            });
     }
 
     /// <summary>
