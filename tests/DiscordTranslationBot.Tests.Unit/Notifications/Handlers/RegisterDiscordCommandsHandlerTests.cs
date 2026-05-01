@@ -19,7 +19,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         _client = Substitute.For<IDiscordClient>();
 
         _translationProvider = Substitute.For<ITranslationProvider>();
-        _translationProvider.TranslateCommandLangCodes.Returns(new HashSet<string>());
+        _translationProvider.TranslateCommandLangCodes.Returns([]);
 
         var supportedLanguage = new SupportedLanguage
         {

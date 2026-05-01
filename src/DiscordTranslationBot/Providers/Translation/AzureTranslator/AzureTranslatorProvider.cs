@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 
@@ -29,32 +30,31 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
-    public override IReadOnlySet<string> TranslateCommandLangCodes { get; } =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "en",
-            "zh-Hans",
-            "zh-Hant",
-            "es",
-            "hi",
-            "ja",
-            "pt-pt",
-            "ru",
-            "vi",
-            "fr",
-            "ar",
-            "fil",
-            "de",
-            "id",
-            "ko",
-            "th",
-            "uk",
-            "nl",
-            "el",
-            "it",
-            "tr",
-            "kk"
-        };
+    public override FrozenSet<string> TranslateCommandLangCodes { get; } = new[]
+    {
+        "en",
+        "zh-Hans",
+        "zh-Hant",
+        "es",
+        "hi",
+        "ja",
+        "pt-pt",
+        "ru",
+        "vi",
+        "fr",
+        "ar",
+        "fil",
+        "de",
+        "id",
+        "ko",
+        "th",
+        "uk",
+        "nl",
+        "el",
+        "it",
+        "tr",
+        "kk"
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc cref="TranslationProviderBase.InitializeSupportedLanguagesAsync" />
     /// <remarks>
@@ -88,9 +88,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         }
 
         SupportedLanguages = response
-            .Content
-            .LangCodes
-            .Select(lc => new SupportedLanguage
+            .Content.LangCodes.Select(lc => new SupportedLanguage
             {
                 LangCode = lc.Key,
                 Name = lc.Value.Name

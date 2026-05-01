@@ -1,6 +1,7 @@
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
 using System.Net;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -13,7 +14,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
     public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
         new HashSet<SupportedLanguage>();
 
-    public virtual IReadOnlySet<string>? TranslateCommandLangCodes { get; }
+    public virtual FrozenSet<string> TranslateCommandLangCodes { get; } = [];
 
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
@@ -67,7 +68,7 @@ internal interface ITranslationProvider
     /// <summary>
     /// Lang codes that can be specified for the translate command choices.
     /// </summary>
-    public IReadOnlySet<string>? TranslateCommandLangCodes { get; }
+    public FrozenSet<string> TranslateCommandLangCodes { get; }
 
     /// <summary>
     /// Initialize the <see cref="SupportedLanguages" /> for the provider.

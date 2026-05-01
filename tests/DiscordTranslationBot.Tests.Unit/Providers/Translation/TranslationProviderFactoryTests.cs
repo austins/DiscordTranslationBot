@@ -123,6 +123,7 @@ public sealed class TranslationProviderFactoryTests
         };
 
         _primaryProvider.SupportedLanguages.Returns(expected.ToHashSet());
+        _primaryProvider.TranslateCommandLangCodes.Returns([]);
 
         // Act
         var result = _sut.GetSupportedLanguagesForOptions();

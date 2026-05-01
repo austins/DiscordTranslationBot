@@ -66,7 +66,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
         {
             // Gather list of language choices for the command's options.
             List<SupportedLanguage> supportedLanguages;
-            if (PrimaryProvider.TranslateCommandLangCodes is null)
+            if (PrimaryProvider.TranslateCommandLangCodes.Count == 0)
             {
                 // If no lang codes are specified, take the first up to the max options limit.
                 supportedLanguages = PrimaryProvider.SupportedLanguages.Take(MaxOptionsCount).ToList();
@@ -75,8 +75,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
             {
                 // Get valid specified lang codes up to the limit.
                 supportedLanguages = PrimaryProvider
-                    .SupportedLanguages
-                    .Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.LangCode))
+                    .SupportedLanguages.Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.LangCode))
                     .Take(MaxOptionsCount)
                     .ToList();
 
@@ -87,8 +86,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                 {
                     supportedLanguages.AddRange(
                         PrimaryProvider
-                            .SupportedLanguages
-                            .Where(l => !supportedLanguages.Contains(l))
+                            .SupportedLanguages.Where(l => !supportedLanguages.Contains(l))
                             .Take(MaxOptionsCount - supportedLanguages.Count)
                             .ToList());
                 }
