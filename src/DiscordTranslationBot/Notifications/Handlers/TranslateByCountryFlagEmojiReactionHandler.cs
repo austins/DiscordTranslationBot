@@ -17,6 +17,8 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     : INotificationHandler<ReactionAddedNotification>
 {
+    private static readonly TimeSpan TempReplyDeletionDelay = TimeSpan.FromMinutes(1.5);
+
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
@@ -147,7 +149,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
                     notification.ReactionInfo.UserId),
                 ReactionInfo = notification.ReactionInfo,
                 SourceMessage = notification.Message,
-                DeletionDelay = TimeSpan.FromMinutes(1.5)
+                DeletionDelay = TempReplyDeletionDelay
             },
             cancellationToken);
     }
