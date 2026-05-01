@@ -11,7 +11,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
     private readonly Log _log;
     private readonly IReadOnlyList<ITranslationProvider> _providers;
     private bool _initialized;
-    private IReadOnlyList<SupportedLanguage>? _supportedLanguagesForOptions;
+    private IReadOnlyList<(string LangCode, string Name)>? _supportedLanguagesForOptions;
 
     public TranslationProviderFactory(
         IEnumerable<ITranslationProvider> translationProviders,
@@ -60,23 +60,27 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
         return true;
     }
 
-    public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions()
+    public IReadOnlyList<(string LangCode, string Name)> GetSupportedLanguagesForOptions()
     {
         if (_supportedLanguagesForOptions is null)
         {
             // Gather list of language choices for the command's options.
-            List<SupportedLanguage> supportedLanguages;
+            List<(string LangCode, string Name)> supportedLanguages;
             if (PrimaryProvider.TranslateCommandLangCodes.Count == 0)
             {
                 // If no lang codes are specified, take the first up to the max options limit.
-                supportedLanguages = PrimaryProvider.SupportedLanguages.Take(MaxOptionsCount).ToList();
+                supportedLanguages = PrimaryProvider
+                    .SupportedLanguages.Take(MaxOptionsCount)
+                    .Select(l => (l.Key, l.Value))
+                    .ToList();
             }
             else
             {
                 // Get valid specified lang codes up to the limit.
                 supportedLanguages = PrimaryProvider
-                    .SupportedLanguages.Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.LangCode))
+                    .SupportedLanguages.Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
                     .Take(MaxOptionsCount)
+                    .Select(l => (l.Key, l.Value))
                     .ToList();
 
                 // If there are fewer languages found than the max options and more supported languages,
@@ -86,13 +90,14 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                 {
                     supportedLanguages.AddRange(
                         PrimaryProvider
-                            .SupportedLanguages.Where(l => !supportedLanguages.Contains(l))
+                            .SupportedLanguages.Where(l => supportedLanguages.All(sl => sl.LangCode != l.Key))
                             .Take(MaxOptionsCount - supportedLanguages.Count)
+                            .Select(l => (l.Key, l.Value))
                             .ToList());
                 }
             }
 
-            _supportedLanguagesForOptions = [.. supportedLanguages.OrderBy(l => l.Name)];
+            _supportedLanguagesForOptions = supportedLanguages.OrderBy(l => l.Name).ToList();
         }
 
         return _supportedLanguagesForOptions;
@@ -179,7 +184,7 @@ internal interface ITranslationProviderFactory
 
     public Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken);
 
-    public IReadOnlyList<SupportedLanguage> GetSupportedLanguagesForOptions();
+    public IReadOnlyList<(string LangCode, string Name)> GetSupportedLanguagesForOptions();
 
     /// <summary>
     /// Iterates through available translation providers until a translation result is returned.

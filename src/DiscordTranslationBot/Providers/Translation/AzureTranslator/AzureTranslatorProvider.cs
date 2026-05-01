@@ -87,23 +87,20 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = response
-            .Content.LangCodes.Select(lc => new SupportedLanguage
-            {
-                LangCode = lc.Key,
-                Name = lc.Value.Name
-            })
-            .ToHashSet();
+        SupportedLanguages = response.Content.LangCodes.ToFrozenDictionary(
+            lc => lc.Key,
+            lc => lc.Value.Name,
+            StringComparer.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
-        SupportedLanguage targetLanguage,
+        (string LangCode, string Name) targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null)
+        string? sourceLangCode = null)
     {
         if (text.Length >= TextCharacterLimit)
         {
@@ -123,7 +120,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
             result.TargetLanguageCode,
             [new TranslateRequest { Text = text }],
             cancellationToken,
-            sourceLanguage?.LangCode);
+            sourceLangCode);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -146,9 +143,9 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
 
-        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(sl =>
-                sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
-            ?.Name;
+        result.DetectedLanguageName = result.DetectedLanguageCode is not null
+            ? SupportedLanguages.GetValueOrDefault(result.DetectedLanguageCode)
+            : null;
 
         result.TranslatedText = translation.Translations[0].Text;
 
