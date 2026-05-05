@@ -4,6 +4,7 @@ using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
@@ -28,17 +29,8 @@ public sealed class TranslateSlashCommandHandlerTests
     public async Task Handle_SlashCommandExecutedNotification_Success()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage
-        {
-            LangCode = "fr",
-            Name = "French"
-        };
-
-        var sourceLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
+        (string LangCode, string Name) targetLanguage = ("fr", "French");
+        (string LangCode, string Name) sourceLanguage = ("en", "English");
 
         const string text = "text";
 
@@ -67,18 +59,14 @@ public sealed class TranslateSlashCommandHandlerTests
         interaction.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
+            new Dictionary<string, string>
             {
-                sourceLanguage,
-                targetLanguage
-            });
+                { targetLanguage.LangCode, targetLanguage.Name },
+                { sourceLanguage.LangCode, sourceLanguage.Name }
+            }.ToFrozenDictionary());
 
         _translationProvider
-            .TranslateAsync(
-                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                text,
-                TestContext.Current.CancellationToken,
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
             .Returns(
                 new TranslationResult
                 {
@@ -97,11 +85,7 @@ public sealed class TranslateSlashCommandHandlerTests
         // Assert
         await _translationProvider
             .Received(1)
-            .TranslateAsync(
-                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                text,
-                TestContext.Current.CancellationToken,
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode);
 
         await interaction.Received(1).DeferAsync(false, Arg.Any<RequestOptions>());
 
@@ -169,16 +153,8 @@ public sealed class TranslateSlashCommandHandlerTests
     public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage
-        {
-            LangCode = "fr",
-            Name = "French"
-        };
-        var sourceLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
+        (string LangCode, string Name) targetLanguage = ("fr", "French");
+        (string LangCode, string Name) sourceLanguage = ("en", "English");
 
         const string text = "text";
 
@@ -207,18 +183,14 @@ public sealed class TranslateSlashCommandHandlerTests
         interaction.User.Returns(user);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
+            new Dictionary<string, string>
             {
-                sourceLanguage,
-                targetLanguage
-            });
+                { targetLanguage.LangCode, targetLanguage.Name },
+                { sourceLanguage.LangCode, sourceLanguage.Name }
+            }.ToFrozenDictionary());
 
         _translationProvider
-            .TranslateAsync(
-                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                text,
-                TestContext.Current.CancellationToken,
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode))
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
             .Returns(
                 new TranslationResult
                 {
@@ -237,11 +209,7 @@ public sealed class TranslateSlashCommandHandlerTests
         // Assert
         await _translationProvider
             .Received(1)
-            .TranslateAsync(
-                Arg.Is<SupportedLanguage>(x => x.LangCode == targetLanguage.LangCode),
-                text,
-                TestContext.Current.CancellationToken,
-                Arg.Is<SupportedLanguage>(x => x.LangCode == sourceLanguage.LangCode));
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode);
 
         await interaction
             .Received(1)

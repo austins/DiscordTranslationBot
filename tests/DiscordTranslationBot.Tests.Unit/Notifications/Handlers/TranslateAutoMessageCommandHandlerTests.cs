@@ -5,6 +5,7 @@ using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
+using System.Collections.Frozen;
 using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
@@ -60,11 +61,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _message.Content.Returns("text");
         _interaction.UserLocale.Returns("en-US");
 
-        var supportedLanguage = new SupportedLanguage
-        {
-            LangCode = exactSupportedLanguage ? "en-US" : "en",
-            Name = "English"
-        };
+        (string LangCode, string Name) supportedLanguage = (exactSupportedLanguage ? "en-US" : "en", "English");
 
         Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
         _translationProviderFactory
@@ -85,7 +82,9 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             .ReturnsForAnyArgs(expectedTranslationResult);
 
         var translationProvider = Substitute.For<ITranslationProvider>();
-        translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage> { supportedLanguage });
+        translationProvider.SupportedLanguages.Returns(
+            new Dictionary<string, string> { { supportedLanguage.LangCode, supportedLanguage.Name } }
+                .ToFrozenDictionary());
 
         translationProvider
             .TranslateAsync(supportedLanguage, Arg.Any<string>(), TestContext.Current.CancellationToken)
@@ -184,7 +183,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             .ReturnsForAnyArgs((TranslationResult?)null);
 
         var translationProvider = Substitute.For<ITranslationProvider>();
-        translationProvider.SupportedLanguages.Returns(new HashSet<SupportedLanguage>());
+        translationProvider.SupportedLanguages.Returns(FrozenDictionary<string, string>.Empty);
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -218,11 +217,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _message.Content.Returns(text);
         _interaction.UserLocale.Returns("en-US");
 
-        var supportedLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
+        (string LangCode, string Name) supportedLanguage = ("en", "English");
 
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)

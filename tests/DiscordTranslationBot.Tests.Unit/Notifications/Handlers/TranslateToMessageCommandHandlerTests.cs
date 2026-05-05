@@ -6,6 +6,7 @@ using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
+using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
@@ -56,17 +57,17 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Message.Reference.Returns(new MessageReference(1UL));
 
         _messageHelper
-            .GetJumpUrlsInMessage(Arg.Any<IMessage>())
-            .Returns(
-            [
-                new JumpUrl
-                {
-                    IsDmChannel = false,
-                    GuildId = 2UL,
-                    ChannelId = 3UL,
-                    MessageId = 4UL
-                }
-            ]);
+        .GetJumpUrlsInMessage(Arg.Any<IMessage>())
+        .Returns(
+        [
+            new JumpUrl
+            {
+                IsDmChannel = false,
+                GuildId = 2UL,
+                ChannelId = 3UL,
+                MessageId = 4UL
+            }
+        ]);
 
         var referencedMessage = Substitute.For<IMessage>();
         referencedMessage.Content.Returns(string.Empty);
@@ -105,17 +106,17 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification.Interaction.Message.Reference.Returns(new MessageReference(1UL));
 
         _messageHelper
-            .GetJumpUrlsInMessage(Arg.Any<IMessage>())
-            .Returns(
-            [
-                new JumpUrl
-                {
-                    IsDmChannel = false,
-                    GuildId = 2UL,
-                    ChannelId = 3UL,
-                    MessageId = 4UL
-                }
-            ]);
+        .GetJumpUrlsInMessage(Arg.Any<IMessage>())
+        .Returns(
+        [
+            new JumpUrl
+            {
+                IsDmChannel = false,
+                GuildId = 2UL,
+                ChannelId = 3UL,
+                MessageId = 4UL
+            }
+        ]);
 
         var referencedMessage = Substitute.For<IMessage>();
         const string referencedMessageContent = "test";
@@ -144,14 +145,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         ]);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
-            {
-                new()
-                {
-                    LangCode = selectedLanguageCode,
-                    Name = "English"
-                }
-            });
+            new Dictionary<string, string> { { selectedLanguageCode, "English" } }.ToFrozenDictionary());
 
         _translationProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
@@ -190,17 +184,17 @@ public sealed class TranslateToMessageCommandHandlerTests
         const ulong referencedMessageId = 5UL;
 
         _messageHelper
-            .GetJumpUrlsInMessage(Arg.Any<IMessage>())
-            .Returns(
-            [
-                new JumpUrl
-                {
-                    IsDmChannel = false,
-                    GuildId = 2UL,
-                    ChannelId = 3UL,
-                    MessageId = referencedMessageId
-                }
-            ]);
+        .GetJumpUrlsInMessage(Arg.Any<IMessage>())
+        .Returns(
+        [
+            new JumpUrl
+            {
+                IsDmChannel = false,
+                GuildId = 2UL,
+                ChannelId = 3UL,
+                MessageId = referencedMessageId
+            }
+        ]);
 
         var referencedMessage = Substitute.For<IMessage>();
         referencedMessage.Content.Returns("test");
@@ -253,14 +247,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         ]);
 
         _translationProvider.SupportedLanguages.Returns(
-            new HashSet<SupportedLanguage>
-            {
-                new()
-                {
-                    LangCode = selectedLanguageCode,
-                    Name = "English"
-                }
-            });
+            new Dictionary<string, string> { { selectedLanguageCode, "English" } }.ToFrozenDictionary());
 
         _translationProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
@@ -298,7 +285,9 @@ public sealed class TranslateToMessageCommandHandlerTests
     {
         // Arrange
         var notification = new MessageCommandExecutedNotification
-            { Interaction = Substitute.For<IMessageCommandInteraction>() };
+        {
+            Interaction = Substitute.For<IMessageCommandInteraction>()
+        };
 
         notification.Interaction.Data.Name.Returns("incorrect_message_command_name");
 
@@ -314,7 +303,9 @@ public sealed class TranslateToMessageCommandHandlerTests
     {
         // Arrange
         var notification = new MessageCommandExecutedNotification
-            { Interaction = Substitute.For<IMessageCommandInteraction>() };
+        {
+            Interaction = Substitute.For<IMessageCommandInteraction>()
+        };
 
         notification.Interaction.Data.Name.Returns(MessageCommandConstants.TranslateTo.CommandName);
 
@@ -334,7 +325,9 @@ public sealed class TranslateToMessageCommandHandlerTests
     {
         // Arrange
         var notification = new MessageCommandExecutedNotification
-            { Interaction = Substitute.For<IMessageCommandInteraction>() };
+        {
+            Interaction = Substitute.For<IMessageCommandInteraction>()
+        };
 
         notification.Interaction.Data.Name.Returns(MessageCommandConstants.TranslateTo.CommandName);
         notification.Interaction.Data.Message.Content.Returns("text");

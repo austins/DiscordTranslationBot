@@ -67,17 +67,18 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
 
         try
         {
-            var sourceLanguage = from is not null
-                ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
-                : null;
+            (string LangCode, string Name)? sourceLanguage =
+                from is not null && translationProvider.SupportedLanguages.TryGetValue(from, out var name)
+                    ? (from, name)
+                    : null;
 
-            var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == to);
+            (string LangCode, string Name) targetLanguage = (to, translationProvider.SupportedLanguages[to]);
 
             var translationResult = await translationProvider.TranslateAsync(
                 targetLanguage,
                 sanitizedText,
                 cancellationToken,
-                sourceLanguage);
+                sourceLanguage?.LangCode);
 
             if (translationResult.TranslatedText == sanitizedText)
             {

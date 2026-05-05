@@ -58,17 +58,8 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage
-        {
-            LangCode = "fr",
-            Name = "French"
-        };
-
-        var sourceLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
+        (string LangCode, string Name) targetLanguage = ("fr", "French");
+        const string sourceLangCode = "en";
 
         const string text = "test";
 
@@ -88,7 +79,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == sourceLanguage.LangCode
+                    x.SourceLangCode == sourceLangCode
                     && x.TargetLangCode == targetLanguage.LangCode
                     && x.Text == text),
                 TestContext.Current.CancellationToken)
@@ -99,7 +90,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             targetLanguage,
             text,
             TestContext.Current.CancellationToken,
-            sourceLanguage);
+            sourceLangCode);
 
         // Assert
         result.Should().BeEquivalentTo(expected);

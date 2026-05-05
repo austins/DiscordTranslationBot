@@ -1,5 +1,6 @@
 ﻿using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
 #pragma warning disable IDE0005
 using DiscordTranslationBot.Providers.Translation;
 
@@ -108,21 +109,13 @@ public sealed class TranslationProviderFactoryTests
 
         await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
-        var expected = new List<SupportedLanguage>
+        var expected = new List<(string LangCode, string Name)>
         {
-            new()
-            {
-                LangCode = "a",
-                Name = "A"
-            },
-            new()
-            {
-                LangCode = "z",
-                Name = "Z"
-            }
+            ("a", "A"),
+            ("z", "Z")
         };
 
-        _primaryProvider.SupportedLanguages.Returns(expected.ToHashSet());
+        _primaryProvider.SupportedLanguages.Returns(expected.ToFrozenDictionary(x => x.LangCode, x => x.Name));
         _primaryProvider.TranslateCommandLangCodes.Returns([]);
 
         // Act
@@ -161,21 +154,16 @@ public sealed class TranslationProviderFactoryTests
 
         // Act
         var result = await _sut.TranslateAsync(
-            async (translationProvider, ct) => await translationProvider.TranslateAsync(
-                new SupportedLanguage
-                {
-                    LangCode = "a",
-                    Name = "a"
-                },
-                "text",
-                ct),
+            async (translationProvider, ct) => await translationProvider.TranslateAsync(("a", "a"), "text", ct),
             TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Be(translationResult);
+
         await _primaryProvider
             .ReceivedWithAnyArgs(1)
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
+
         await _lastProvider
             .ReceivedWithAnyArgs(1)
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
@@ -206,14 +194,7 @@ public sealed class TranslationProviderFactoryTests
         // Act & Assert
         await _sut
             .Awaiting(x => x.TranslateAsync(
-                async (translationProvider, ct) => await translationProvider.TranslateAsync(
-                    new SupportedLanguage
-                    {
-                        LangCode = "a",
-                        Name = "a"
-                    },
-                    "text",
-                    ct),
+                async (translationProvider, ct) => await translationProvider.TranslateAsync(("a", "a"), "text", ct),
                 TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<TranslationFailureException>()
