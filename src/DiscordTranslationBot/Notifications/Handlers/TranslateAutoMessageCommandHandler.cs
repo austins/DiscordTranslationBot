@@ -86,17 +86,25 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             translationResult = await _translationProviderFactory.TranslateAsync(
                 async (translationProvider, ct) =>
                 {
-                    var targetLanguage =
-                        translationProvider.SupportedLanguages.FirstOrDefault(l => l.LangCode == userLocale);
+                    SupportedLanguage? targetLanguage =
+                        translationProvider.SupportedLanguages.TryGetValue(userLocale, out var name)
+                            ? new SupportedLanguage(userLocale, name)
+                            : null;
 
+                    // Check for fallback lang code (e.g. en-US -> en).
                     if (targetLanguage is null)
                     {
                         var indexOfHyphen = userLocale.IndexOf('-', StringComparison.Ordinal);
                         if (indexOfHyphen > 0)
                         {
+                            var fallbackLangCode = userLocale[..indexOfHyphen];
+
                             targetLanguage =
-                                translationProvider.SupportedLanguages.FirstOrDefault(l =>
-                                    l.LangCode == userLocale[..indexOfHyphen]);
+                                translationProvider.SupportedLanguages.TryGetValue(
+                                    fallbackLangCode,
+                                    out var fallbackName)
+                                    ? new SupportedLanguage(fallbackLangCode, fallbackName)
+                                    : null;
                         }
                     }
 
@@ -106,7 +114,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                         return null;
                     }
 
-                    return await translationProvider.TranslateAsync(targetLanguage, sanitizedMessage, ct);
+                    return await translationProvider.TranslateAsync(targetLanguage.Value, sanitizedMessage, ct);
                 },
                 cancellationToken);
         }

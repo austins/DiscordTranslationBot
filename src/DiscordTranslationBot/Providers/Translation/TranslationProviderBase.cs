@@ -11,8 +11,8 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 internal abstract partial class TranslationProviderBase : ITranslationProvider
 {
-    public virtual IReadOnlySet<SupportedLanguage> SupportedLanguages { get; protected set; } =
-        new HashSet<SupportedLanguage>();
+    public FrozenDictionary<string, string> SupportedLanguages { get; protected set; } =
+        FrozenDictionary<string, string>.Empty;
 
     public virtual FrozenSet<string> TranslateCommandLangCodes { get; } = [];
 
@@ -22,20 +22,31 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null);
+        string? sourceLangCode = null);
 
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
         string text,
         CancellationToken cancellationToken)
     {
-        // Gets the lang code that a country supports.
-        var targetLanguage =
-            SupportedLanguages.FirstOrDefault(supportedLang => country.LangCodes.Contains(supportedLang.LangCode))
-            ?? throw new LanguageNotSupportedForCountryException(
-                $"Target language isn't supported by {GetType().Name} for {country.Name}.");
+        // Find first language code supported by both the country and the translation provider.
+        SupportedLanguage? targetLanguage = null;
+        foreach (var langCode in country.LangCodes)
+        {
+            if (SupportedLanguages.TryGetValue(langCode, out var name))
+            {
+                targetLanguage = new SupportedLanguage(langCode, name);
+                break;
+            }
+        }
 
-        return TranslateAsync(targetLanguage, text, cancellationToken);
+        if (!targetLanguage.HasValue)
+        {
+            throw new LanguageNotSupportedForCountryException(
+                $"Target language isn't supported by {GetType().Name} for {country.Name}.");
+        }
+
+        return TranslateAsync(targetLanguage.Value, text, cancellationToken);
     }
 
     protected partial class Log
@@ -61,9 +72,9 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
 internal interface ITranslationProvider
 {
     /// <summary>
-    /// Supported language codes for the provider.
+    /// Supported language codes for the provider by lang code and name.
     /// </summary>
-    public IReadOnlySet<SupportedLanguage> SupportedLanguages { get; }
+    public FrozenDictionary<string, string> SupportedLanguages { get; }
 
     /// <summary>
     /// Lang codes that can be specified for the translate command choices.
@@ -85,13 +96,13 @@ internal interface ITranslationProvider
     /// <param name="targetLanguage">The supported language to translate to.</param>
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="sourceLanguage">The supported language to translate from.</param>
+    /// <param name="sourceLangCode">The supported lang code to translate from.</param>
     /// <returns>Translated text.</returns>
     public Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null);
+        string? sourceLangCode = null);
 
     /// <summary>
     /// Translate text by country.

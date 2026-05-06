@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 
@@ -52,14 +53,10 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
-        SupportedLanguages = response
-            .Content
-            .Select(lc => new SupportedLanguage
-            {
-                LangCode = lc.LangCode,
-                Name = lc.Name
-            })
-            .ToHashSet();
+        SupportedLanguages = response.Content.ToFrozenDictionary(
+            lc => lc.LangCode,
+            lc => lc.Name,
+            StringComparer.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
@@ -68,7 +65,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        SupportedLanguage? sourceLanguage = null)
+        string? sourceLangCode = null)
     {
         var result = new TranslationResult
         {
@@ -80,7 +77,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
             new TranslateRequest
             {
                 Text = text,
-                SourceLangCode = sourceLanguage?.LangCode ?? "auto",
+                SourceLangCode = sourceLangCode ?? "auto",
                 TargetLangCode = targetLanguage.LangCode
             },
             cancellationToken);
@@ -105,9 +102,9 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
 
         result.DetectedLanguageCode = response.Content.DetectedLanguage?.LanguageCode;
 
-        result.DetectedLanguageName = SupportedLanguages.FirstOrDefault(sl =>
-                sl.LangCode.Equals(result.DetectedLanguageCode, StringComparison.OrdinalIgnoreCase))
-            ?.Name;
+        result.DetectedLanguageName = result.DetectedLanguageCode is not null
+            ? SupportedLanguages.GetValueOrDefault(result.DetectedLanguageCode)
+            : null;
 
         result.TranslatedText = response.Content.TranslatedText;
 

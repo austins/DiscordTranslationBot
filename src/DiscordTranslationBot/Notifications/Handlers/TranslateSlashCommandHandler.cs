@@ -2,6 +2,7 @@
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
@@ -67,17 +68,18 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
 
         try
         {
-            var sourceLanguage = from is not null
-                ? translationProvider.SupportedLanguages.First(l => l.LangCode == from)
-                : null;
+            SupportedLanguage? sourceLanguage =
+                from is not null && translationProvider.SupportedLanguages.TryGetValue(from, out var name)
+                    ? new SupportedLanguage(from, name)
+                    : null;
 
-            var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == to);
+            var targetLanguage = new SupportedLanguage(to, translationProvider.SupportedLanguages[to]);
 
             var translationResult = await translationProvider.TranslateAsync(
                 targetLanguage,
                 sanitizedText,
                 cancellationToken,
-                sourceLanguage);
+                sourceLanguage?.LangCode);
 
             if (translationResult.TranslatedText == sanitizedText)
             {

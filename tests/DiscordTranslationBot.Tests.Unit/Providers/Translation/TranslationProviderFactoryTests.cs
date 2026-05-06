@@ -1,9 +1,9 @@
-﻿using DiscordTranslationBot.Providers.Translation.Exceptions;
-using DiscordTranslationBot.Providers.Translation.Models;
-#pragma warning disable IDE0005
+﻿using Discord;
 using DiscordTranslationBot.Providers.Translation;
-
-#pragma warning restore IDE0005
+using DiscordTranslationBot.Providers.Translation.Exceptions;
+using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 
 namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 
@@ -94,8 +94,12 @@ public sealed class TranslationProviderFactoryTests
             .Be("No translation providers enabled. Please configure and enable at least one translation provider.");
     }
 
-    [Fact]
-    public async Task GetSupportedLanguagesForOptions_Success()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task GetSupportedLanguagesForOptions_Success(bool hasTranslateCommandLangCodes, bool fillRemaining)
     {
         // Arrange
         _primaryProvider
@@ -108,28 +112,69 @@ public sealed class TranslationProviderFactoryTests
 
         await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
-        var expected = new List<SupportedLanguage>
+        var supportedLanguages = new Dictionary<string, string>
         {
-            new()
-            {
-                LangCode = "a",
-                Name = "A"
-            },
-            new()
-            {
-                LangCode = "z",
-                Name = "Z"
-            }
-        };
+            { "c", "Charlie" },
+            { "d", "Delta" },
+            { "a", "Alpha" },
+            { "b", "Beta" }
+        }.ToFrozenDictionary();
 
-        _primaryProvider.SupportedLanguages.Returns(expected.ToHashSet());
-        _primaryProvider.TranslateCommandLangCodes.Returns([]);
+        FrozenSet<string> translateCommandLangCodes;
+        ImmutableArray<SupportedLanguage> expectedResult;
+
+        if (!hasTranslateCommandLangCodes)
+        {
+            // Empty TranslateCommandLangCodes - take first N from SupportedLanguages.
+            _primaryProvider.TranslateCommandLangCodes.Returns([]);
+
+            expectedResult = supportedLanguages
+                .Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                .Select(lc => new SupportedLanguage(lc.Key, lc.Value))
+                .OrderBy(l => l.Name)
+                .ToImmutableArray();
+        }
+        else if (fillRemaining)
+        {
+            // TranslateCommandLangCodes has fewer codes than MaxOptionsCount - fill from remaining.
+            translateCommandLangCodes = new HashSet<string> { "a" }.ToFrozenSet();
+            _primaryProvider.TranslateCommandLangCodes.Returns(translateCommandLangCodes);
+
+            expectedResult =
+            [
+                new SupportedLanguage("a", "Alpha"),
+                new SupportedLanguage("b", "Beta"),
+                new SupportedLanguage("c", "Charlie"),
+                new SupportedLanguage("d", "Delta")
+            ];
+        }
+        else
+        {
+            // TranslateCommandLangCodes has fewer codes than MaxOptionsCount - fill from remaining.
+            translateCommandLangCodes = new HashSet<string>
+            {
+                "a",
+                "b"
+            }.ToFrozenSet();
+
+            _primaryProvider.TranslateCommandLangCodes.Returns(translateCommandLangCodes);
+
+            expectedResult =
+            [
+                new SupportedLanguage("a", "Alpha"),
+                new SupportedLanguage("b", "Beta"),
+                new SupportedLanguage("c", "Charlie"),
+                new SupportedLanguage("d", "Delta")
+            ];
+        }
+
+        _primaryProvider.SupportedLanguages.Returns(supportedLanguages);
 
         // Act
         var result = _sut.GetSupportedLanguagesForOptions();
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(expectedResult, o => o.WithStrictOrdering());
         _ = _primaryProvider.Received().TranslateCommandLangCodes;
         _ = _primaryProvider.Received().SupportedLanguages;
         _ = _lastProvider.DidNotReceive().TranslateCommandLangCodes;
@@ -161,21 +206,17 @@ public sealed class TranslationProviderFactoryTests
 
         // Act
         var result = await _sut.TranslateAsync(
-            async (translationProvider, ct) => await translationProvider.TranslateAsync(
-                new SupportedLanguage
-                {
-                    LangCode = "a",
-                    Name = "a"
-                },
-                "text",
-                ct),
+            async (translationProvider, ct) =>
+                await translationProvider.TranslateAsync(new SupportedLanguage("a", "a"), "text", ct),
             TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().Be(translationResult);
+
         await _primaryProvider
             .ReceivedWithAnyArgs(1)
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
+
         await _lastProvider
             .ReceivedWithAnyArgs(1)
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
@@ -206,14 +247,8 @@ public sealed class TranslationProviderFactoryTests
         // Act & Assert
         await _sut
             .Awaiting(x => x.TranslateAsync(
-                async (translationProvider, ct) => await translationProvider.TranslateAsync(
-                    new SupportedLanguage
-                    {
-                        LangCode = "a",
-                        Name = "a"
-                    },
-                    "text",
-                    ct),
+                async (translationProvider, ct) =>
+                    await translationProvider.TranslateAsync(new SupportedLanguage("a", "a"), "text", ct),
                 TestContext.Current.CancellationToken))
             .Should()
             .ThrowAsync<TranslationFailureException>()

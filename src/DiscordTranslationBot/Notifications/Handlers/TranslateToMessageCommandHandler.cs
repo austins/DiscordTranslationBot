@@ -2,6 +2,7 @@
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
@@ -61,14 +62,16 @@ internal sealed partial class TranslateToMessageCommandHandler
             return;
         }
 
-        var selectedLanguage = GetSelectedLanguage(notification.Interaction.Message);
+        var selectedLangCode = GetSelectedLangCode(notification.Interaction.Message);
 
         // Only the first translation provider is supported as the slash command options were registered with one provider's supported languages.
         var translationProvider = _translationProviderFactory.PrimaryProvider;
 
         try
         {
-            var targetLanguage = translationProvider.SupportedLanguages.First(l => l.LangCode == selectedLanguage);
+            var targetLanguage = new SupportedLanguage(
+                selectedLangCode,
+                translationProvider.SupportedLanguages[selectedLangCode]);
 
             var translationResult = await translationProvider.TranslateAsync(
                 targetLanguage,
@@ -167,12 +170,14 @@ internal sealed partial class TranslateToMessageCommandHandler
             new RequestOptions { CancelToken = cancellationToken });
     }
 
-    private static string GetSelectedLanguage(IUserMessage message)
+    private static string GetSelectedLangCode(IUserMessage message)
     {
         var selectMenuComponent =
             (message.Components.FirstOrDefault() as ActionRowComponent)?.Components.FirstOrDefault(x =>
-                x is SelectMenuComponent { CustomId: MessageCommandConstants.TranslateTo.SelectMenuId }) as
-            SelectMenuComponent;
+                x is SelectMenuComponent
+                {
+                    CustomId: MessageCommandConstants.TranslateTo.SelectMenuId
+                }) as SelectMenuComponent;
 
         return selectMenuComponent?.Options.First(x => x.IsDefault == true).Value
                ?? throw new InvalidOperationException("Failed to find select menu component in message.");

@@ -36,7 +36,7 @@ public sealed class TranslationProviderBaseTests
             SupportedLanguage targetLanguage,
             string text,
             CancellationToken cancellationToken,
-            SupportedLanguage? sourceLanguage = null)
+            string? sourceLangCode = null)
         {
             return Task.FromResult(new TranslationResult { TargetLanguageCode = "test" });
         }

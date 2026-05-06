@@ -55,16 +55,8 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
     public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        var targetLanguage = new SupportedLanguage
-        {
-            LangCode = "fr",
-            Name = "French"
-        };
-        var sourceLanguage = new SupportedLanguage
-        {
-            LangCode = "en",
-            Name = "English"
-        };
+        var targetLanguage = new SupportedLanguage("fr", "French");
+        const string sourceLangCode = "en";
 
         const string text = "test";
 
@@ -88,7 +80,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
                 expected.TargetLanguageCode,
                 Arg.Is<IList<TranslateRequest>>(x => x[0].Text == text),
                 TestContext.Current.CancellationToken,
-                sourceLanguage.LangCode)
+                sourceLangCode)
             .Returns(response);
 
         // Act
@@ -96,7 +88,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
             targetLanguage,
             text,
             TestContext.Current.CancellationToken,
-            sourceLanguage);
+            sourceLangCode);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
