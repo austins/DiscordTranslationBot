@@ -92,7 +92,7 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Interaction.Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties.Content.Value.Should().Be("⚠️ No text to translate.");
+        receivedProperties.Content.Value.Should().Be($"{NeoSmart.Unicode.Emoji.Warning} No text to translate.");
         receivedProperties.Components.Value.Should().BeNull();
     }
 
@@ -167,7 +167,8 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         receivedProperties
             .Content.Value.Should()
-            .Be("⚠️ Couldn't detect the source language to translate from or the result is the same.");
+            .Be(
+                $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.");
 
         receivedProperties.Components.Value.Should().BeNull();
     }
@@ -236,7 +237,9 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Interaction.Received(1)
             .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
 
-        receivedProperties.Content.Value.Should().Be("️⚠️ Failed to translate text. Please try again.");
+        receivedProperties
+            .Content.Value.Should()
+            .Be($"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.");
 
         receivedProperties.Components.Value.Should().BeNull();
     }
@@ -387,7 +390,10 @@ public sealed class TranslateToMessageCommandHandlerTests
         // Assert
         await notification
             .Interaction.Received(1)
-            .RespondAsync("⚠️ No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions?>());
+            .RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions?>());
     }
 
     [Fact]

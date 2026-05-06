@@ -49,7 +49,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
             _log.EmptySourceText();
 
             await notification.Interaction.RespondAsync(
-                "⚠️ No text to translate.",
+                $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -87,7 +87,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
                 _log.FailureToDetectSourceLanguage();
 
                 await notification.Interaction.FollowupAsync(
-                    "⚠️ Couldn't detect the source language to translate from or the result is the same.",
+                    $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.",
                     options: new RequestOptions { CancelToken = cancellationToken });
 
                 return;
@@ -109,7 +109,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
             _log.TranslationFailure(ex, translationProvider.GetType().Name);
 
             await notification.Interaction.FollowupAsync(
-                "️⚠️ Failed to translate text. Please try again.",
+                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
                 options: new RequestOptions { CancelToken = cancellationToken });
         }
     }

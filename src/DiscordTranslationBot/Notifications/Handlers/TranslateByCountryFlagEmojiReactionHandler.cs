@@ -105,7 +105,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
                 await _sender.Send(
                     new SendTempReply
                     {
-                        Text = $"🚫 {innerEx.Message}",
+                        Text = $"{NeoSmart.Unicode.Emoji.NoEntry} {innerEx.Message}",
                         ReactionInfo = notification.ReactionInfo,
                         SourceMessage = notification.Message
                     },
@@ -125,7 +125,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
             await _sender.Send(
                 new SendTempReply
                 {
-                    Text = "⚠️ Failed to translate text. Please try again.",
+                    Text = $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
                     ReactionInfo = notification.ReactionInfo,
                     SourceMessage = notification.Message
                 },
@@ -141,7 +141,8 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
             await _sender.Send(
                 new SendTempReply
                 {
-                    Text = "⚠️ Couldn't detect the source language to translate from or the result is the same.",
+                    Text =
+                        $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.",
                     ReactionInfo = notification.ReactionInfo,
                     SourceMessage = notification.Message
                 },

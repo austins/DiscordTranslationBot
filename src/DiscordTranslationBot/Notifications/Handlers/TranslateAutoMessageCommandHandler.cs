@@ -56,7 +56,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.TranslatingBotMessageDisallowed();
 
             await notification.Interaction.RespondAsync(
-                "🚫 Translating this bot's messages isn't allowed.",
+                $"{NeoSmart.Unicode.Emoji.NoEntry} Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -69,7 +69,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.EmptySourceMessage();
 
             await notification.Interaction.RespondAsync(
-                "⚠️ No text to translate.",
+                $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -127,7 +127,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             }
 
             await notification.Interaction.FollowupAsync(
-                "️⚠️ Failed to translate text. Please try again.",
+                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -138,7 +138,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
         {
             // Send message if no translation providers support the locale.
             await notification.Interaction.FollowupAsync(
-                $"🚫 Your locale {userLocale} isn't supported for translation via this action.",
+                $"{NeoSmart.Unicode.Emoji.NoEntry} Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -150,7 +150,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.FailureToDetectSourceLanguage();
 
             await notification.Interaction.FollowupAsync(
-                "⚠️ The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                $"{NeoSmart.Unicode.Emoji.Warning} The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 

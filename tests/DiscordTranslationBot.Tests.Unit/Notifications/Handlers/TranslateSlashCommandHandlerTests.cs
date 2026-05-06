@@ -142,7 +142,10 @@ public sealed class TranslateSlashCommandHandlerTests
 
         await interaction
             .Received(1)
-            .RespondAsync("⚠️ No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
+            .RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>());
 
         await _translationProvider
             .DidNotReceiveWithAnyArgs()
@@ -214,7 +217,7 @@ public sealed class TranslateSlashCommandHandlerTests
         await interaction
             .Received(1)
             .FollowupAsync(
-                "⚠️ Couldn't detect the source language to translate from or the result is the same.",
+                $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.",
                 options: Arg.Any<RequestOptions>());
     }
 
@@ -274,6 +277,8 @@ public sealed class TranslateSlashCommandHandlerTests
 
         await interaction
             .Received(1)
-            .FollowupAsync("️⚠️ Failed to translate text. Please try again.", options: Arg.Any<RequestOptions>());
+            .FollowupAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
+                options: Arg.Any<RequestOptions>());
     }
 }

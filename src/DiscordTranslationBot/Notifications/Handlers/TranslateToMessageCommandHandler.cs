@@ -54,7 +54,7 @@ internal sealed partial class TranslateToMessageCommandHandler
             await notification.Interaction.ModifyOriginalResponseAsync(
                 m =>
                 {
-                    m.Content = "⚠️ No text to translate.";
+                    m.Content = $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.";
                     m.Components = null;
                 },
                 new RequestOptions { CancelToken = cancellationToken });
@@ -86,7 +86,7 @@ internal sealed partial class TranslateToMessageCommandHandler
                     m =>
                     {
                         m.Content =
-                            "⚠️ Couldn't detect the source language to translate from or the result is the same.";
+                            $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.";
                         m.Components = null;
                     },
                     new RequestOptions { CancelToken = cancellationToken });
@@ -132,7 +132,7 @@ internal sealed partial class TranslateToMessageCommandHandler
             await notification.Interaction.ModifyOriginalResponseAsync(
                 m =>
                 {
-                    m.Content = "️⚠️ Failed to translate text. Please try again.";
+                    m.Content = $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.";
                     m.Components = null;
                 },
                 new RequestOptions { CancelToken = cancellationToken });
@@ -153,7 +153,7 @@ internal sealed partial class TranslateToMessageCommandHandler
 
             // We must acknowledge and respond to the message command.
             await notification.Interaction.RespondAsync(
-                "⚠️ No text to translate.",
+                $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
