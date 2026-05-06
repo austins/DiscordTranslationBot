@@ -118,9 +118,20 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                 },
                 cancellationToken);
         }
-        catch (TranslationFailureException)
+        catch (Exception ex)
         {
-            // Allow null to flow.
+            // TranslationFailureException already logs an error message.
+            if (ex is not TranslationFailureException)
+            {
+                _log.TranslationFailure(ex);
+            }
+
+            await notification.Interaction.FollowupAsync(
+                "️⚠️ Failed to translate text. Please try again.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
+            return;
         }
 
         if (translationResult is null)
@@ -156,6 +167,9 @@ internal sealed partial class TranslateAutoMessageCommandHandler
     {
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text.")]
+        public partial void TranslationFailure(Exception ex);
 
         [LoggerMessage(Level = LogLevel.Warning, Message = "Unsupported locale {locale} for {providerName}.")]
         public partial void UnsupportedLocale(string locale, string providerName);

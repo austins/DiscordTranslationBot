@@ -150,7 +150,7 @@ public sealed class TranslateSlashCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguage()
+    public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguageOrResultIsSame()
     {
         // Arrange
         var targetLanguage = new SupportedLanguage("fr", "French");
@@ -216,5 +216,64 @@ public sealed class TranslateSlashCommandHandlerTests
             .FollowupAsync(
                 "⚠️ Couldn't detect the source language to translate from or the result is the same.",
                 options: Arg.Any<RequestOptions>());
+    }
+
+    [Fact]
+    public async Task Handle_SlashCommandExecutedEvent_Returns_WhenExceptionThrown()
+    {
+        // Arrange
+        var targetLanguage = new SupportedLanguage("fr", "French");
+        var sourceLanguage = new SupportedLanguage("en", "English");
+
+        const string text = "text";
+
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
+
+        var toOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        toOption.Name.Returns(SlashCommandConstants.Translate.CommandToOptionName);
+        toOption.Value.Returns(targetLanguage.LangCode);
+
+        var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
+        textOption.Value.Returns(text);
+
+        var fromOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        fromOption.Name.Returns(SlashCommandConstants.Translate.CommandFromOptionName);
+        fromOption.Value.Returns(sourceLanguage.LangCode);
+
+        data.Options.Returns([toOption, textOption, fromOption]);
+
+        var interaction = Substitute.For<ISlashCommandInteraction>();
+        interaction.Data.Returns(data);
+
+        var user = Substitute.For<IUser>();
+        user.Id.Returns(1UL);
+        interaction.User.Returns(user);
+
+        _translationProvider.SupportedLanguages.Returns(
+            new Dictionary<string, string>
+            {
+                { targetLanguage.LangCode, targetLanguage.Name },
+                { sourceLanguage.LangCode, sourceLanguage.Name }
+            }.ToFrozenDictionary());
+
+        _translationProvider
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
+            .ThrowsAsync<InvalidOperationException>();
+
+        var notification = new SlashCommandExecutedNotification { Interaction = interaction };
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _translationProvider
+            .Received(1)
+            .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode);
+
+        await interaction
+            .Received(1)
+            .FollowupAsync("️⚠️ Failed to translate text. Please try again.", options: Arg.Any<RequestOptions>());
     }
 }

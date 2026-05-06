@@ -86,6 +86,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
         }
 
         TranslationResult? translationResult = null;
+        Exception? caughtException = null;
         try
         {
             translationResult = await _translationProviderFactory.TranslateAsync(
@@ -93,12 +94,13 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
                     await translationProvider.TranslateByCountryAsync(country, sanitizedMessage, ct),
                 cancellationToken);
         }
-        catch (TranslationFailureException ex)
+        catch (Exception ex)
         {
-            if (ex.InnerException is LanguageNotSupportedForCountryException innerEx)
+            if (ex is TranslationFailureException translationFailureException
+                && translationFailureException.InnerException is LanguageNotSupportedForCountryException innerEx)
             {
                 // Send message if this is the last available translation provider.
-                _log.LanguageNotSupportedForCountry(innerEx, ex.ProviderName, country.Name);
+                _log.LanguageNotSupportedForCountry(innerEx, translationFailureException.ProviderName, country.Name);
 
                 await _sender.Send(
                     new SendTempReply
@@ -111,14 +113,23 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
                 return;
             }
+
+            // Error logging and response handled by the null condition below.
+            caughtException = ex;
         }
 
         if (translationResult is null)
         {
-            await notification.Message.RemoveReactionAsync(
-                notification.ReactionInfo.Emote,
-                notification.ReactionInfo.UserId,
-                new RequestOptions { CancelToken = cancellationToken });
+            _log.TranslationFailure(caughtException);
+
+            await _sender.Send(
+                new SendTempReply
+                {
+                    Text = "⚠️ Failed to translate text. Please try again.",
+                    ReactionInfo = notification.ReactionInfo,
+                    SourceMessage = notification.Message
+                },
+                cancellationToken);
 
             return;
         }
@@ -158,7 +169,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     {
         [LoggerMessage(
             Level = LogLevel.Information,
-            Message = "Reaction is neither a flag emoji nor a supported country. Skipping translation.")]
+            Message = "Reaction is not a supported country flag emoji. Skipping translation.")]
         public partial void NotASupportedCountryFlagEmoji();
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
@@ -168,6 +179,9 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceMessage();
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text.")]
+        public partial void TranslationFailure(Exception? ex);
 
         [LoggerMessage(
             Level = LogLevel.Warning,

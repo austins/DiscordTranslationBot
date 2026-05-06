@@ -246,4 +246,33 @@ public sealed class TranslateAutoMessageCommandHandlerTests
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>());
     }
+
+    [Fact]
+    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenExceptionThrown()
+    {
+        // Arrange
+        const string text = "text";
+
+        _message.Content.Returns(text);
+        _interaction.UserLocale.Returns("en-US");
+
+        _translationProviderFactory
+            .TranslateAsync(default!, TestContext.Current.CancellationToken)
+            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
+
+        // Act
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _translationProviderFactory
+            .ReceivedWithAnyArgs(1)
+            .TranslateAsync(default!, TestContext.Current.CancellationToken);
+
+        await _interaction
+            .Received(1)
+            .FollowupAsync(
+                "️⚠️ Failed to translate text. Please try again.",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>());
+    }
 }

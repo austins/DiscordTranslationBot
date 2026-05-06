@@ -99,7 +99,7 @@ public sealed class TranslateToMessageCommandHandlerTests
     [Theory]
     [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
     [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
-    public async Task Handle_ButtonExecutedNotification_FailureToDetectSourceLanguage(string buttonId)
+    public async Task Handle_ButtonExecutedNotification_FailureToDetectSourceLanguageOrResultIsSame(string buttonId)
     {
         // Arrange
         var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
@@ -168,6 +168,75 @@ public sealed class TranslateToMessageCommandHandlerTests
         receivedProperties
             .Content.Value.Should()
             .Be("⚠️ Couldn't detect the source language to translate from or the result is the same.");
+
+        receivedProperties.Components.Value.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
+    [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
+    public async Task Handle_ButtonExecutedNotification_Returns_WhenExceptionThrown(string buttonId)
+    {
+        // Arrange
+        var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
+        notification.Interaction.Data.CustomId.Returns(buttonId);
+        notification.Interaction.Message.Reference.Returns(new MessageReference(1UL));
+
+        _messageHelper
+        .GetJumpUrlsInMessage(Arg.Any<IMessage>())
+        .Returns(
+        [
+            new JumpUrl
+            {
+                IsDmChannel = false,
+                GuildId = 2UL,
+                ChannelId = 3UL,
+                MessageId = 4UL
+            }
+        ]);
+
+        var referencedMessage = Substitute.For<IMessage>();
+        const string referencedMessageContent = "test";
+        referencedMessage.Content.Returns(referencedMessageContent);
+
+        notification
+            .Interaction.Message.Channel.GetMessageAsync(Arg.Any<ulong>(), options: Arg.Any<RequestOptions?>())
+            .Returns(referencedMessage);
+
+        var receivedProperties = new MessageProperties();
+
+        notification
+            .Interaction
+            .When(x => x.ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
+            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+
+        const string selectedLanguageCode = "en-US";
+
+        notification.Interaction.Message.Components.Returns(
+        [
+            new ActionRowBuilder()
+                .WithSelectMenu(
+                    MessageCommandConstants.TranslateTo.SelectMenuId,
+                    [new SelectMenuOptionBuilder().WithLabel("test").WithValue(selectedLanguageCode).WithDefault(true)])
+                .Build()
+        ]);
+
+        _translationProvider.SupportedLanguages.Returns(
+            new Dictionary<string, string> { { selectedLanguageCode, "English" } }.ToFrozenDictionary());
+
+        _translationProvider
+            .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
+            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await notification
+            .Interaction.Received(1)
+            .ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>());
+
+        receivedProperties.Content.Value.Should().Be("️⚠️ Failed to translate text. Please try again.");
 
         receivedProperties.Components.Value.Should().BeNull();
     }

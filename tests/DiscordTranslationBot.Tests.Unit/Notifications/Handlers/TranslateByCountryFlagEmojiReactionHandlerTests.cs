@@ -180,25 +180,29 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs((TranslationResult)null!);
 
+        const string expectedReplyText = "⚠️ Failed to translate text. Please try again.";
+
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
 
         // Assert
-        await _sender.DidNotReceiveWithAnyArgs().Send(default!, TestContext.Current.CancellationToken);
-        await _message.Received(1).RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+        await _sender
+            .Received(1)
+            .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
     }
 
-    [Fact]
-    public async Task
-        Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenUnsupportedCountryExceptionIsThrown_ForLastTranslationProvider()
+    [Theory]
+    [MemberData(nameof(ExceptionData))]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenExceptionThrown(Exception ex)
     {
         // Arrange
-        const string exMessage = "exception message";
-
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs(
-                new TranslationFailureException("provider", new LanguageNotSupportedForCountryException(exMessage)));
+            .ThrowsAsyncForAnyArgs(ex);
+
+        var expectedReplyText = ex is TranslationFailureException
+            ? "🚫 Target language isn't supported"
+            : "⚠️ Failed to translate text. Please try again.";
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -207,11 +211,25 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         await _translationProviderFactory
             .ReceivedWithAnyArgs(1)
             .TranslateAsync(default!, TestContext.Current.CancellationToken);
-        await _sender.Received(1).Send(Arg.Any<SendTempReply>(), TestContext.Current.CancellationToken);
+
+        await _sender
+            .Received(1)
+            .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
 
         await _message
             .DidNotReceive()
             .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
+    }
+
+    public static TheoryData<Exception> ExceptionData()
+    {
+        return
+        [
+            new TranslationFailureException(
+                "provider",
+                new LanguageNotSupportedForCountryException("Target language isn't supported")),
+            new InvalidOperationException()
+        ];
     }
 
     [Fact]

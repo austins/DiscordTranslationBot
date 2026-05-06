@@ -85,7 +85,8 @@ internal sealed partial class TranslateToMessageCommandHandler
                 await notification.Interaction.ModifyOriginalResponseAsync(
                     m =>
                     {
-                        m.Content = "⚠️ Couldn't detect the source language to translate from or the result is the same.";
+                        m.Content =
+                            "⚠️ Couldn't detect the source language to translate from or the result is the same.";
                         m.Components = null;
                     },
                     new RequestOptions { CancelToken = cancellationToken });
@@ -127,6 +128,14 @@ internal sealed partial class TranslateToMessageCommandHandler
         catch (Exception ex)
         {
             _log.TranslationFailure(ex, translationProvider.GetType().Name);
+
+            await notification.Interaction.ModifyOriginalResponseAsync(
+                m =>
+                {
+                    m.Content = "️⚠️ Failed to translate text. Please try again.";
+                    m.Components = null;
+                },
+                new RequestOptions { CancelToken = cancellationToken });
         }
     }
 

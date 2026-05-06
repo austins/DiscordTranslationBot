@@ -56,6 +56,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
             return;
         }
 
+        // All follow-ups must be non-ephemeral as the translation will be shared publicly. As a result, any error responses have to be non-ephemeral.
         await notification.Interaction.DeferAsync(options: new RequestOptions { CancelToken = cancellationToken });
 
         var to = (string)options.First(o => o.Name == SlashCommandConstants.Translate.CommandToOptionName).Value;
@@ -106,6 +107,10 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
         catch (Exception ex)
         {
             _log.TranslationFailure(ex, translationProvider.GetType().Name);
+
+            await notification.Interaction.FollowupAsync(
+                "️⚠️ Failed to translate text. Please try again.",
+                options: new RequestOptions { CancelToken = cancellationToken });
         }
     }
 

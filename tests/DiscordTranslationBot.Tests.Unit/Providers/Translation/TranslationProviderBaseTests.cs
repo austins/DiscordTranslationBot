@@ -9,7 +9,7 @@ namespace DiscordTranslationBot.Tests.Unit.Providers.Translation;
 public sealed class TranslationProviderBaseTests
 {
     [Fact]
-    public async Task TranslateByCountryAsync_Throws_UnsupportedCountryException_IfLangCodeNotFound()
+    public async Task TranslateByCountryAsync_Throws_LanguageNotSupportedForCountryException_IfLangCodeNotFound()
     {
         // Arrange
         var country = new Country(Emoji.FlagUnitedStates, ["unsupported-lang-code"]);

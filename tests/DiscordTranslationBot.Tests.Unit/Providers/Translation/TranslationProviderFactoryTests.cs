@@ -197,7 +197,7 @@ public sealed class TranslationProviderFactoryTests
 
         _primaryProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
+            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
 
         var translationResult = new TranslationResult { TargetLanguageCode = "a" };
         _lastProvider
@@ -242,7 +242,7 @@ public sealed class TranslationProviderFactoryTests
 
         _lastProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs(new InvalidOperationException("test"));
+            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
 
         // Act & Assert
         await _sut
