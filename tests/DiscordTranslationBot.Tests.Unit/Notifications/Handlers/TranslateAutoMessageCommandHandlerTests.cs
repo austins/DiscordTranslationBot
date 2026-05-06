@@ -61,7 +61,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _message.Content.Returns("text");
         _interaction.UserLocale.Returns("en-US");
 
-        (string LangCode, string Name) supportedLanguage = (exactSupportedLanguage ? "en-US" : "en", "English");
+        var supportedLanguage = new SupportedLanguage(exactSupportedLanguage ? "en-US" : "en", "English");
 
         Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
         _translationProviderFactory
@@ -217,7 +217,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _message.Content.Returns(text);
         _interaction.UserLocale.Returns("en-US");
 
-        (string LangCode, string Name) supportedLanguage = ("en", "English");
+        var supportedLanguage = new SupportedLanguage("en", "English");
 
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)

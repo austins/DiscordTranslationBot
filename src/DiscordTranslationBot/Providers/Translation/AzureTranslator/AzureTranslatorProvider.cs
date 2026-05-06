@@ -97,7 +97,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
     public override async Task<TranslationResult> TranslateAsync(
-        (string LangCode, string Name) targetLanguage,
+        SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
         string? sourceLangCode = null)

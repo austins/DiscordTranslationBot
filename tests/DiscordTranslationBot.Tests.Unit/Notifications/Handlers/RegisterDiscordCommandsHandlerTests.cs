@@ -2,6 +2,7 @@
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
@@ -21,7 +22,7 @@ public sealed class RegisterDiscordCommandsHandlerTests
         _translationProvider = Substitute.For<ITranslationProvider>();
         _translationProvider.TranslateCommandLangCodes.Returns([]);
 
-        (string LangCode, string Name) supportedLanguage = ("en", "English");
+        var supportedLanguage = new SupportedLanguage("en", "English");
 
         _translationProvider.SupportedLanguages.Returns(
             new Dictionary<string, string> { { supportedLanguage.LangCode, supportedLanguage.Name } }

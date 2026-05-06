@@ -58,7 +58,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
     public async Task Translate_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        (string LangCode, string Name) targetLanguage = ("fr", "French");
+        var targetLanguage = new SupportedLanguage("fr", "French");
         const string sourceLangCode = "en";
 
         const string text = "test";

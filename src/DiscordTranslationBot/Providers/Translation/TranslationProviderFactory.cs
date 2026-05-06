@@ -1,17 +1,17 @@
 ﻿using Discord;
 using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 namespace DiscordTranslationBot.Providers.Translation;
 
 internal sealed partial class TranslationProviderFactory : ITranslationProviderFactory
 {
-    private const int MaxOptionsCount = SlashCommandOptionBuilder.MaxChoiceCount;
     private readonly Log _log;
     private readonly IReadOnlyList<ITranslationProvider> _providers;
     private bool _initialized;
-    private IReadOnlyList<(string LangCode, string Name)>? _supportedLanguagesForOptions;
+    private ImmutableArray<SupportedLanguage>? _supportedLanguagesForOptions;
 
     public TranslationProviderFactory(
         IEnumerable<ITranslationProvider> translationProviders,
@@ -60,18 +60,18 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
         return true;
     }
 
-    public IReadOnlyList<(string LangCode, string Name)> GetSupportedLanguagesForOptions()
+    public ImmutableArray<SupportedLanguage> GetSupportedLanguagesForOptions()
     {
         if (_supportedLanguagesForOptions is null)
         {
             // Gather list of language choices for the command's options.
-            List<(string LangCode, string Name)> supportedLanguages;
+            List<SupportedLanguage> supportedLanguages;
             if (PrimaryProvider.TranslateCommandLangCodes.Count == 0)
             {
                 // If no lang codes are specified, take the first up to the max options limit.
                 supportedLanguages = PrimaryProvider
-                    .SupportedLanguages.Take(MaxOptionsCount)
-                    .Select(l => (l.Key, l.Value))
+                    .SupportedLanguages.Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                    .Select(l => new SupportedLanguage(l.Key, l.Value))
                     .ToList();
             }
             else
@@ -79,28 +79,28 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                 // Get valid specified lang codes up to the limit.
                 supportedLanguages = PrimaryProvider
                     .SupportedLanguages.Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
-                    .Take(MaxOptionsCount)
-                    .Select(l => (l.Key, l.Value))
+                    .Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                    .Select(l => new SupportedLanguage(l.Key, l.Value))
                     .ToList();
 
                 // If there are fewer languages found than the max options and more supported languages,
                 // get the rest up to the max options limit.
-                if (supportedLanguages.Count < MaxOptionsCount
+                if (supportedLanguages.Count < SlashCommandOptionBuilder.MaxChoiceCount
                     && PrimaryProvider.SupportedLanguages.Count > supportedLanguages.Count)
                 {
                     supportedLanguages.AddRange(
                         PrimaryProvider
                             .SupportedLanguages.Where(l => supportedLanguages.All(sl => sl.LangCode != l.Key))
-                            .Take(MaxOptionsCount - supportedLanguages.Count)
-                            .Select(l => (l.Key, l.Value))
+                            .Take(SlashCommandOptionBuilder.MaxChoiceCount - supportedLanguages.Count)
+                            .Select(l => new SupportedLanguage(l.Key, l.Value))
                             .ToList());
                 }
             }
 
-            _supportedLanguagesForOptions = supportedLanguages.OrderBy(l => l.Name).ToList();
+            _supportedLanguagesForOptions = supportedLanguages.OrderBy(l => l.Name).ToImmutableArray();
         }
 
-        return _supportedLanguagesForOptions;
+        return _supportedLanguagesForOptions.Value;
     }
 
     public async Task<TranslationResult?> TranslateAsync(
@@ -184,7 +184,7 @@ internal interface ITranslationProviderFactory
 
     public Task<bool> InitializeProvidersAsync(CancellationToken cancellationToken);
 
-    public IReadOnlyList<(string LangCode, string Name)> GetSupportedLanguagesForOptions();
+    public ImmutableArray<SupportedLanguage> GetSupportedLanguagesForOptions();
 
     /// <summary>
     /// Iterates through available translation providers until a translation result is returned.

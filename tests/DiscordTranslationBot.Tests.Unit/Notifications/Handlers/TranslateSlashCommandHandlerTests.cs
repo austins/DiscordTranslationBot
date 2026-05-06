@@ -29,8 +29,8 @@ public sealed class TranslateSlashCommandHandlerTests
     public async Task Handle_SlashCommandExecutedNotification_Success()
     {
         // Arrange
-        (string LangCode, string Name) targetLanguage = ("fr", "French");
-        (string LangCode, string Name) sourceLanguage = ("en", "English");
+        var targetLanguage = new SupportedLanguage("fr", "French");
+        var sourceLanguage = new SupportedLanguage("en", "English");
 
         const string text = "text";
 
@@ -153,8 +153,8 @@ public sealed class TranslateSlashCommandHandlerTests
     public async Task Handle_SlashCommandExecutedEvent_Returns_OnFailureToDetectSourceLanguage()
     {
         // Arrange
-        (string LangCode, string Name) targetLanguage = ("fr", "French");
-        (string LangCode, string Name) sourceLanguage = ("en", "English");
+        var targetLanguage = new SupportedLanguage("fr", "French");
+        var sourceLanguage = new SupportedLanguage("en", "English");
 
         const string text = "text";
 

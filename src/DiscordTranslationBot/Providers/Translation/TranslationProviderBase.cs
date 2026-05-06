@@ -19,7 +19,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
     public abstract Task<TranslationResult> TranslateAsync(
-        (string LangCode, string Name) targetLanguage,
+        SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
         string? sourceLangCode = null);
@@ -30,12 +30,12 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         CancellationToken cancellationToken)
     {
         // Find first language code supported by both the country and the translation provider.
-        (string LangCode, string Name)? targetLanguage = null;
+        SupportedLanguage? targetLanguage = null;
         foreach (var langCode in country.LangCodes)
         {
             if (SupportedLanguages.TryGetValue(langCode, out var name))
             {
-                targetLanguage = (langCode, name);
+                targetLanguage = new SupportedLanguage(langCode, name);
                 break;
             }
         }
@@ -99,7 +99,7 @@ internal interface ITranslationProvider
     /// <param name="sourceLangCode">The supported lang code to translate from.</param>
     /// <returns>Translated text.</returns>
     public Task<TranslationResult> TranslateAsync(
-        (string LangCode, string Name) targetLanguage,
+        SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
         string? sourceLangCode = null);

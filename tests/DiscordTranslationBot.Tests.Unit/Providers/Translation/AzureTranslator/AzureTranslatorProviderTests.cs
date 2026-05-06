@@ -55,7 +55,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
     public async Task TranslateAsync_WithSourceLanguage_Returns_Expected()
     {
         // Arrange
-        (string LangCode, string Name) targetLanguage = ("fr", "French");
+        var targetLanguage = new SupportedLanguage("fr", "French");
         const string sourceLangCode = "en";
 
         const string text = "test";

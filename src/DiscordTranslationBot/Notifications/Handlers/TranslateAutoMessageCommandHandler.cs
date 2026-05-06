@@ -86,9 +86,9 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             translationResult = await _translationProviderFactory.TranslateAsync(
                 async (translationProvider, ct) =>
                 {
-                    (string LangCode, string Name)? targetLanguage =
+                    SupportedLanguage? targetLanguage =
                         translationProvider.SupportedLanguages.TryGetValue(userLocale, out var name)
-                            ? (userLocale, name)
+                            ? new SupportedLanguage(userLocale, name)
                             : null;
 
                     // Check for fallback lang code (e.g. en-US -> en).
@@ -103,7 +103,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                                 translationProvider.SupportedLanguages.TryGetValue(
                                     fallbackLangCode,
                                     out var fallbackName)
-                                    ? (fallbackLangCode, fallbackName)
+                                    ? new SupportedLanguage(fallbackLangCode, fallbackName)
                                     : null;
                         }
                     }

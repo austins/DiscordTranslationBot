@@ -2,6 +2,7 @@
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
+using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 using Humanizer;
@@ -68,8 +69,9 @@ internal sealed partial class TranslateToMessageCommandHandler
 
         try
         {
-            (string LangCode, string Name) targetLanguage =
-                (selectedLangCode, translationProvider.SupportedLanguages[selectedLangCode]);
+            var targetLanguage = new SupportedLanguage(
+                selectedLangCode,
+                translationProvider.SupportedLanguages[selectedLangCode]);
 
             var translationResult = await translationProvider.TranslateAsync(
                 targetLanguage,

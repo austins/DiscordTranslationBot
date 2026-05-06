@@ -33,7 +33,7 @@ public sealed class TranslationProviderBaseTests
         }
 
         public override Task<TranslationResult> TranslateAsync(
-            (string LangCode, string Name) targetLanguage,
+            SupportedLanguage targetLanguage,
             string text,
             CancellationToken cancellationToken,
             string? sourceLangCode = null)

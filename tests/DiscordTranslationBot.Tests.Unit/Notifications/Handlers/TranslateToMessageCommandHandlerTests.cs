@@ -15,18 +15,19 @@ public sealed class TranslateToMessageCommandHandlerTests
     private readonly IMessageHelper _messageHelper;
     private readonly TranslateToMessageCommandHandler _sut;
     private readonly ITranslationProvider _translationProvider;
+    private readonly ITranslationProviderFactory _translationProviderFactory;
 
     public TranslateToMessageCommandHandlerTests()
     {
         _translationProvider = Substitute.For<ITranslationProvider>();
 
-        var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
-        translationProviderFactory.PrimaryProvider.Returns(_translationProvider);
+        _translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
+        _translationProviderFactory.PrimaryProvider.Returns(_translationProvider);
 
         _messageHelper = Substitute.For<IMessageHelper>();
 
         _sut = new TranslateToMessageCommandHandler(
-            translationProviderFactory,
+            _translationProviderFactory,
             _messageHelper,
             new LoggerFake<TranslateToMessageCommandHandler>());
     }
@@ -340,6 +341,8 @@ public sealed class TranslateToMessageCommandHandlerTests
             .Interaction.WhenForAnyArgs(x => x.RespondAsync())
             .Do(x => messageComponents = x.Arg<MessageComponent>());
 
+        _translationProviderFactory.GetSupportedLanguagesForOptions().Returns([new SupportedLanguage("en", "English")]);
+
         // Act
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
 
@@ -394,6 +397,8 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification
             .Interaction.When(x => x.UpdateAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
             .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+
+        _translationProviderFactory.GetSupportedLanguagesForOptions().Returns([new SupportedLanguage("en", "English")]);
 
         // Act
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
