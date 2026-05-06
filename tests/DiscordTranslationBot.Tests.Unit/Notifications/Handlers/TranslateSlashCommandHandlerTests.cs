@@ -142,7 +142,7 @@ public sealed class TranslateSlashCommandHandlerTests
 
         await interaction
             .Received(1)
-            .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
+            .RespondAsync("⚠️ No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProvider
             .DidNotReceiveWithAnyArgs()
@@ -214,7 +214,7 @@ public sealed class TranslateSlashCommandHandlerTests
         await interaction
             .Received(1)
             .FollowupAsync(
-                "Couldn't detect the source language to translate from or the result is the same.",
+                "⚠️ Couldn't detect the source language to translate from or the result is the same.",
                 options: Arg.Any<RequestOptions>());
     }
 }

@@ -56,7 +56,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.TranslatingBotMessageDisallowed();
 
             await notification.Interaction.RespondAsync(
-                "Translating this bot's messages isn't allowed.",
+                "🚫 Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -69,7 +69,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.EmptySourceMessage();
 
             await notification.Interaction.RespondAsync(
-                "No text to translate.",
+                "⚠️ No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -127,7 +127,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
         {
             // Send message if no translation providers support the locale.
             await notification.Interaction.FollowupAsync(
-                $"Your locale {userLocale} isn't supported for translation via this action.",
+                $"🚫 Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -139,7 +139,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
             _log.FailureToDetectSourceLanguage();
 
             await notification.Interaction.FollowupAsync(
-                "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                "⚠️ The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 

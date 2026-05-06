@@ -137,7 +137,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         await _interaction
             .Received(1)
-            .RespondAsync("No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
+            .RespondAsync("⚠️ No text to translate.", ephemeral: true, options: Arg.Any<RequestOptions>());
 
         await _translationProviderFactory
             .DidNotReceiveWithAnyArgs()
@@ -159,7 +159,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _interaction
             .Received(1)
             .RespondAsync(
-                "Translating this bot's messages isn't allowed.",
+                "🚫 Translating this bot's messages isn't allowed.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>());
     }
@@ -197,7 +197,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _interaction
             .Received(1)
             .FollowupAsync(
-                $"Your locale {userLocale} isn't supported for translation via this action.",
+                $"🚫 Your locale {userLocale} isn't supported for translation via this action.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>());
 
@@ -242,7 +242,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _interaction
             .Received(1)
             .FollowupAsync(
-                "The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+                "⚠️ The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
                 ephemeral: true,
                 options: Arg.Any<RequestOptions>());
     }

@@ -49,7 +49,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
             _log.EmptySourceText();
 
             await notification.Interaction.RespondAsync(
-                "No text to translate.",
+                "⚠️ No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
@@ -86,7 +86,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
                 _log.FailureToDetectSourceLanguage();
 
                 await notification.Interaction.FollowupAsync(
-                    "Couldn't detect the source language to translate from or the result is the same.",
+                    "⚠️ Couldn't detect the source language to translate from or the result is the same.",
                     options: new RequestOptions { CancelToken = cancellationToken });
 
                 return;

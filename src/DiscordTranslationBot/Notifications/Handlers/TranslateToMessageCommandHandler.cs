@@ -54,7 +54,7 @@ internal sealed partial class TranslateToMessageCommandHandler
             await notification.Interaction.ModifyOriginalResponseAsync(
                 m =>
                 {
-                    m.Content = "No text to translate.";
+                    m.Content = "⚠️ No text to translate.";
                     m.Components = null;
                 },
                 new RequestOptions { CancelToken = cancellationToken });
@@ -85,7 +85,7 @@ internal sealed partial class TranslateToMessageCommandHandler
                 await notification.Interaction.ModifyOriginalResponseAsync(
                     m =>
                     {
-                        m.Content = "Couldn't detect the source language to translate from or the result is the same.";
+                        m.Content = "⚠️ Couldn't detect the source language to translate from or the result is the same.";
                         m.Components = null;
                     },
                     new RequestOptions { CancelToken = cancellationToken });
@@ -144,7 +144,7 @@ internal sealed partial class TranslateToMessageCommandHandler
 
             // We must acknowledge and respond to the message command.
             await notification.Interaction.RespondAsync(
-                "No text to translate.",
+                "⚠️ No text to translate.",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 

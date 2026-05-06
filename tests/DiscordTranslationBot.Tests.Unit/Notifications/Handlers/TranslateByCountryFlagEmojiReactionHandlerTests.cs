@@ -240,7 +240,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Received(1)
             .Send(
                 Arg.Is<SendTempReply>(x =>
-                    x.Text == "Couldn't detect the source language to translate from or the result is the same."),
+                    x.Text == "⚠️ Couldn't detect the source language to translate from or the result is the same."),
                 TestContext.Current.CancellationToken);
     }
 }
