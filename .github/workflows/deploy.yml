@@ -11,6 +11,7 @@ on:
             - 'global.json'
             - 'src/**'
             - 'tests/**'
+    workflow_dispatch:
 
 concurrency:
     group: deploy
