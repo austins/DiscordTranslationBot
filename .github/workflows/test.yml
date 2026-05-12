@@ -14,14 +14,14 @@ jobs:
                 uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
                 with:
                     dotnet-version: '10.x'
-            -   name: Restore dependencies
-                run: dotnet restore --locked-mode
             -   name: Cache NuGet packages
                 uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
                 with:
                     path: ${{ github.workspace }}/.nuget/packages
                     key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
                     restore-keys: ${{ runner.os }}-nuget-
+            -   name: Restore dependencies
+                run: dotnet restore --locked-mode
             -   name: Test
                 run: dotnet test --no-restore -c Release --results-directory ./test-results -- --report-ctrf
             -   if: always()
