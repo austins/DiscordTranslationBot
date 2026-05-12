@@ -6,11 +6,11 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:0191ff386e93923edf795d363ea
 # Copy source files.
 # The build should be run with the context at the root of the solution in order to copy necessary files.
 WORKDIR /app
-COPY .editorconfig Directory.Build.props ./
+COPY .editorconfig nuget.config Directory.Build.props ./
 COPY ./src/DiscordTranslationBot ./src/DiscordTranslationBot 
 
 # Restore dependencies.
-RUN dotnet restore ./src/DiscordTranslationBot
+RUN dotnet restore ./src/DiscordTranslationBot --locked-mode
 
 # Publish app.
 RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out
