@@ -23,6 +23,7 @@
                 "github-tags",
                 "nuget"
             ],
+            "internalChecksFilter": "strict",
             "minimumReleaseAge": "3 days"
         }
     ]
