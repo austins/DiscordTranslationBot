@@ -9,7 +9,6 @@ on:
             - '*.slnx'
             - 'Directory.Build.props'
             - 'global.json'
-            - '**/Dockerfile'
             - 'src/**'
             - 'tests/**'
     workflow_dispatch:
