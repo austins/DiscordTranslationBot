@@ -18,7 +18,7 @@ RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out
 ###################################################
 ## Runtime image creation stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra@sha256:1b1c1abae02538557994d868326bd7935266f4ec4cf89a9497f4960b26844262
 
 # Enable globalization.
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
