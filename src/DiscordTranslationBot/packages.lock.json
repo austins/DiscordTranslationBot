@@ -133,11 +133,11 @@
       },
       "Refit.HttpClientFactory": {
         "type": "Direct",
-        "requested": "[10.1.6, )",
-        "resolved": "10.1.6",
-        "contentHash": "brVgMXHX2pp6pMji7tJijygbMwxccIy2vSsPurPmOZ7jSChBjYpiT9bBbJkBDc0hhnNyzvLkkbx0uiHhJuTTEQ==",
+        "requested": "[11.0.1, )",
+        "resolved": "11.0.1",
+        "contentHash": "utRifuBUBPgCvRFn8EzFta8JlYUkHJrG1AQMZ+kC7aZii2+lbOvnmYftsup10nirePo43mW+aRrlALGS7BIP5w==",
         "dependencies": {
-          "Refit": "10.1.6"
+          "Refit": "11.0.1"
         }
       },
       "SonarAnalyzer.CSharp": {
@@ -329,8 +329,8 @@
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "10.1.6",
-        "contentHash": "j82mHFcXJpiJiaLqQgiikmLAu+oYKcIM8ZafipX2s2b2soOS0OGN+Oc+BXkhsG8x6j2M1J23Eac3068yOKLPFA=="
+        "resolved": "11.0.1",
+        "contentHash": "vGRw/8rgo86MXGNSz7qYD8zXKFJZbDrl41n9fhFFeUMuFo5KKnpVkKTv7ALDeN52CoGAAxghaB+w9P1NKNaH2g=="
       },
       "StyleCop.Analyzers.Unstable": {
         "type": "Transitive",

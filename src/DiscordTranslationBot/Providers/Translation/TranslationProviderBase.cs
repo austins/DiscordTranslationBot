@@ -59,7 +59,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         protected ILogger Logger { get; }
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Response failure with status {statusCode}: {message}")]
-        public partial void ResponseFailure(string message, HttpStatusCode statusCode, Exception? ex = null);
+        public partial void ResponseFailure(string message, HttpStatusCode? statusCode, Exception? ex = null);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
         public partial void NoLanguageCodesReturned();
