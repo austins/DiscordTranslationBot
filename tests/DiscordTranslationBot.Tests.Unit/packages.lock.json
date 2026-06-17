@@ -189,8 +189,8 @@
       },
       "Markdig.Signed": {
         "type": "Transitive",
-        "resolved": "1.2.0",
-        "contentHash": "NAVbdsCt8sLQ39IK7Huzzl5kDPPUmnFPFxOoUfb2gtQN6OnZfE70csEp3xkAvaydeuzMXoejWW+AWG9Wk6gtQg=="
+        "resolved": "1.3.0",
+        "contentHash": "KOu1/qgk0WEGyVWFxv3RH1+tkqbLic03M4eZ2r/qwyRn1T3Ac8whEpwrO+Fh078G432TDi/LZA9YHDobpWR+8w=="
       },
       "Mediator.Abstractions": {
         "type": "Transitive",
@@ -697,7 +697,7 @@
           "AspNetCore.HealthChecks.UI.Client": "[9.0.0, )",
           "Discord.Net": "[3.20.1, )",
           "Humanizer.Core": "[3.0.10, )",
-          "Markdig.Signed": "[1.2.0, )",
+          "Markdig.Signed": "[1.3.0, )",
           "Mediator.Abstractions": "[3.0.2, )",
           "Microsoft.Extensions.Http.Resilience": "[10.7.0, )",
           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.16.0, )",
