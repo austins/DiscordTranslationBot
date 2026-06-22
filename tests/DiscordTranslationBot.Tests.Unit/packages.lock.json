@@ -612,16 +612,16 @@
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "11.0.1",
-        "contentHash": "vGRw/8rgo86MXGNSz7qYD8zXKFJZbDrl41n9fhFFeUMuFo5KKnpVkKTv7ALDeN52CoGAAxghaB+w9P1NKNaH2g=="
+        "resolved": "11.2.0",
+        "contentHash": "SNxsfTEq62dXvK/TGdm1FDr2IYOpj2YeyuJSW9URY6JzAn/q9R4psfem4qmBnUC474ov6/W/18IlJPds2LZTFw=="
       },
       "Refit.HttpClientFactory": {
         "type": "Transitive",
-        "resolved": "11.0.1",
-        "contentHash": "utRifuBUBPgCvRFn8EzFta8JlYUkHJrG1AQMZ+kC7aZii2+lbOvnmYftsup10nirePo43mW+aRrlALGS7BIP5w==",
+        "resolved": "11.2.0",
+        "contentHash": "yr5REQHd+iBCYU0lD4qDVMpcag8fIuV2yPZk5FhQHpP4gKL+aFTIrWWUTc0OSGnBZGGZgDb2Udw2pamsvsm7vQ==",
         "dependencies": {
-          "Microsoft.Extensions.Http": "10.0.8",
-          "Refit": "11.0.1"
+          "Microsoft.Extensions.Http": "10.0.9",
+          "Refit": "11.2.0"
         }
       },
       "StyleCop.Analyzers.Unstable": {
@@ -706,7 +706,7 @@
           "OpenTelemetry.Instrumentation.Http": "[1.15.1, )",
           "OpenTelemetry.Instrumentation.Process": "[1.10.0-beta.1, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.15.1, )",
-          "Refit.HttpClientFactory": "[11.0.1, )",
+          "Refit.HttpClientFactory": "[11.2.0, )",
           "Unicode.net": "[2.0.0, )"
         }
       }
