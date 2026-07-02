@@ -610,18 +610,44 @@
           "System.Threading.RateLimiting": "8.0.0"
         }
       },
+      "ReactiveUI.Disposables": {
+        "type": "Transitive",
+        "resolved": "5.8.0",
+        "contentHash": "JR39TMydeqtQnsr9bqWXVpdeoYQmb+g8fxu9Glu+GN3FZo5/voN+FYmAuokQBiIPup4s5CbxyPoP+qlg2zZLEQ=="
+      },
+      "ReactiveUI.Primitives": {
+        "type": "Transitive",
+        "resolved": "5.8.0",
+        "contentHash": "VcwT0+zxMnpRcpNVDRprZN9qSG4/hunbUflPqpKUo7eGvu6XcUIVafco8KrhZGVOAIhmwhIBeY9pQdheK2WwHA==",
+        "dependencies": {
+          "ReactiveUI.Disposables": "5.8.0",
+          "ReactiveUI.Primitives.Core": "5.8.0"
+        }
+      },
+      "ReactiveUI.Primitives.Core": {
+        "type": "Transitive",
+        "resolved": "5.8.0",
+        "contentHash": "b0Li7p/ROQeYizNT/kTmmkDuiAtqCo+pyFaghHM+9NYl1axi4NTNaKhVg6ie3yBEvDPfN7sKLCFL7zII/EmK/g==",
+        "dependencies": {
+          "ReactiveUI.Disposables": "5.8.0"
+        }
+      },
       "Refit": {
         "type": "Transitive",
-        "resolved": "11.2.0",
-        "contentHash": "SNxsfTEq62dXvK/TGdm1FDr2IYOpj2YeyuJSW9URY6JzAn/q9R4psfem4qmBnUC474ov6/W/18IlJPds2LZTFw=="
+        "resolved": "12.1.0",
+        "contentHash": "YRNeWBc+CV2+drwi/u/trdNOOuF+ZQsvNfXKmJ1KxdWvphMgi+n4KFAufHe016yE8sLQn70/191o4A7PJjZcpQ==",
+        "dependencies": {
+          "ReactiveUI.Primitives": "5.8.0"
+        }
       },
       "Refit.HttpClientFactory": {
         "type": "Transitive",
-        "resolved": "11.2.0",
-        "contentHash": "yr5REQHd+iBCYU0lD4qDVMpcag8fIuV2yPZk5FhQHpP4gKL+aFTIrWWUTc0OSGnBZGGZgDb2Udw2pamsvsm7vQ==",
+        "resolved": "12.1.0",
+        "contentHash": "RiCuO3wOfKUMYss27RQYO9uD8dxdxtjhmsnF3CeOp5oC/NnK1+6CjdeioSH/oXIZ+VNgK4AhM5PzXeZyjErn6Q==",
         "dependencies": {
           "Microsoft.Extensions.Http": "10.0.9",
-          "Refit": "11.2.0"
+          "ReactiveUI.Primitives": "5.8.0",
+          "Refit": "12.1.0"
         }
       },
       "StyleCop.Analyzers.Unstable": {
@@ -706,7 +732,7 @@
           "OpenTelemetry.Instrumentation.Http": "[1.16.0, )",
           "OpenTelemetry.Instrumentation.Process": "[1.10.0-beta.1, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.15.1, )",
-          "Refit.HttpClientFactory": "[11.2.0, )",
+          "Refit.HttpClientFactory": "[12.1.0, )",
           "Unicode.net": "[2.0.0, )"
         }
       }
