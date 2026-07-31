@@ -65,7 +65,7 @@ internal static class TranslationProviderExtensions
         where TTranslationProvider : class, ITranslationProvider
     {
         var httpClientBuilder = services
-            .AddRefitClient<TRefitClient>(RefitSettings)
+            .AddRefitGeneratedClient<TRefitClient>(RefitSettings)
             .ConfigureHttpClient(c => c.BaseAddress = apiUrl);
 
         // Add any delegating handlers.
