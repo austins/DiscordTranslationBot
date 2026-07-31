@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Notifications.Events;
@@ -82,7 +82,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification
             .Interaction
             .When(x => x.ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
-            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+            .Do(x => x.Arg<Action<MessageProperties>>()!.Invoke(receivedProperties));
 
         // Act
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
@@ -132,7 +132,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification
             .Interaction
             .When(x => x.ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
-            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+            .Do(x => x.Arg<Action<MessageProperties>>()!.Invoke(receivedProperties));
 
         const string selectedLanguageCode = "en-US";
 
@@ -209,7 +209,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         notification
             .Interaction
             .When(x => x.ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
-            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+            .Do(x => x.Arg<Action<MessageProperties>>()!.Invoke(receivedProperties));
 
         const string selectedLanguageCode = "en-US";
 
@@ -294,7 +294,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Do(x =>
                 {
                     receivedProperties ??= new MessageProperties();
-                    x.Arg<Action<MessageProperties>>().Invoke(receivedProperties);
+                    x.Arg<Action<MessageProperties>>()!.Invoke(receivedProperties);
                 });
         }
         else if (buttonId == MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)
@@ -304,7 +304,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Do(x =>
                 {
                     receivedSentMessagetext = x.ArgAt<string>(0);
-                    receivedReferencedMessageId = x.Arg<MessageReference>().MessageId.Value;
+                    receivedReferencedMessageId = x.Arg<MessageReference>()!.MessageId.Value;
                 });
         }
 
@@ -425,7 +425,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         await notification
             .Interaction.Received(1)
             .RespondAsync(
-                Arg.Is<string>(x => x.StartsWith("What would you like to translate")),
+                Arg.Is<string>(x => x!.StartsWith("What would you like to translate")),
                 components: Arg.Any<MessageComponent>(),
                 ephemeral: true,
                 options: Arg.Any<RequestOptions?>());
@@ -471,7 +471,7 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         notification
             .Interaction.When(x => x.UpdateAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
-            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+            .Do(x => x.Arg<Action<MessageProperties>>()!.Invoke(receivedProperties));
 
         _translationProviderFactory.GetSupportedLanguagesForOptions().Returns([new SupportedLanguage("en", "English")]);
 

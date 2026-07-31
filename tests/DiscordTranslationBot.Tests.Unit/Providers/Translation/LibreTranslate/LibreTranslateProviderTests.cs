@@ -79,7 +79,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == sourceLangCode
+                    x!.SourceLangCode == sourceLangCode
                     && x.TargetLangCode == targetLanguage.LangCode
                     && x.Text == text),
                 TestContext.Current.CancellationToken)
@@ -125,7 +125,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == "auto" && x.TargetLangCode == targetLanguageCode && x.Text == text),
+                    x!.SourceLangCode == "auto" && x.TargetLangCode == targetLanguageCode && x.Text == text),
                 TestContext.Current.CancellationToken)
             .Returns(response);
 
@@ -177,7 +177,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
+                    x!.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 TestContext.Current.CancellationToken)
             .Returns(response);
 
@@ -209,7 +209,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 Arg.Is<TranslateRequest>(x =>
-                    x.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
+                    x!.SourceLangCode == "auto" && x.TargetLangCode == _country.LangCodes.First() && x.Text == text),
                 TestContext.Current.CancellationToken)
             .Returns(response);
 
