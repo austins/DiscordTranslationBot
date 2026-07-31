@@ -78,7 +78,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 expected.TargetLanguageCode,
-                Arg.Is<IList<TranslateRequest>>(x => x[0].Text == text),
+                Arg.Is<IList<TranslateRequest>>(x => x![0].Text == text),
                 TestContext.Current.CancellationToken,
                 sourceLangCode)
             .Returns(response);
@@ -124,7 +124,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _client
             .TranslateAsync(
                 expected.TargetLanguageCode,
-                Arg.Is<IList<TranslateRequest>>(x => x[0].Text == text),
+                Arg.Is<IList<TranslateRequest>>(x => x![0].Text == text),
                 TestContext.Current.CancellationToken,
                 Arg.Any<string?>())
             .Returns(response);
