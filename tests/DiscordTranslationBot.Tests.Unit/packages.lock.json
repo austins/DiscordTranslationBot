@@ -644,20 +644,20 @@
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "14.0.1",
-        "contentHash": "8e1Y0LnkSc91kDZJ1dasL59LDssJE0JsrV8hiV6kd4LjSBR9DbX6zzGJCqxaBsm+aW7/mv6bsqI1vPtiYjqZfg==",
+        "resolved": "15.0.0",
+        "contentHash": "vVD1hz0hfFX678Y/qoEF/7jag+YRFg+TMgm4uP4Zjx4+ekqgBmSqcT5+q8Qrgh5yf4aqdxvwI8Hr5mvSacxstA==",
         "dependencies": {
           "ReactiveUI.Primitives": "7.0.0"
         }
       },
       "Refit.HttpClientFactory": {
         "type": "Transitive",
-        "resolved": "14.0.1",
-        "contentHash": "03RFmYVHA4CLZ9+951gxhka6PtVLsaEnI67RRSa3cj/4RCtqiBWsPDMNbm6Z8Cw5pYZEQ+Jr6lMTbBQdrCz0lA==",
+        "resolved": "15.0.0",
+        "contentHash": "c8OwqZPs78c3K6uv+M+qNTBwY8jD66Ifs8PQuN138KBO0JdCWUowBe69C6TJ32MGuVOyoHoREaNz63BI1ouoYQ==",
         "dependencies": {
           "Microsoft.Extensions.Http": "10.0.10",
           "ReactiveUI.Primitives": "7.0.0",
-          "Refit": "14.0.1"
+          "Refit": "15.0.0"
         }
       },
       "StyleCop.Analyzers.Unstable": {
@@ -742,7 +742,7 @@
           "OpenTelemetry.Instrumentation.Http": "[1.17.0, )",
           "OpenTelemetry.Instrumentation.Process": "[1.10.0-beta.1, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.17.0, )",
-          "Refit.HttpClientFactory": "[14.0.1, )",
+          "Refit.HttpClientFactory": "[15.0.0, )",
           "Unicode.net": "[2.0.0, )"
         }
       }
