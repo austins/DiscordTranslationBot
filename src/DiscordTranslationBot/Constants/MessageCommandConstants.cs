@@ -33,6 +33,11 @@ internal static class MessageCommandConstants
         public const string SelectMenuId = $"{nameof(TranslateTo)}_SelectMenu";
 
         /// <summary>
+        /// The unique custom ID of the modal.
+        /// </summary>
+        public const string ModalId = $"{nameof(TranslateTo)}_Modal";
+
+        /// <summary>
         /// The unique custom ID of the translate button.
         /// </summary>
         public const string TranslateButtonId = $"{nameof(TranslateTo)}_TranslateButton";
