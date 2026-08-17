@@ -53,8 +53,8 @@ public sealed class RegisterDiscordCommandsHandlerTests
             .Guild.Received(1)
             .BulkOverwriteApplicationCommandsAsync(
                 Arg.Is<ApplicationCommandProperties[]>(x =>
-                    x!.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
-                    && x!.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
+                    x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
+                    && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
                 Arg.Any<RequestOptions>());
     }
 
@@ -77,8 +77,8 @@ public sealed class RegisterDiscordCommandsHandlerTests
             .Received(1)
             .BulkOverwriteApplicationCommandsAsync(
                 Arg.Is<ApplicationCommandProperties[]>(x =>
-                    x!.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
-                    && x!.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
+                    x.Count(y => y is MessageCommandProperties) == ExpectedMessageCommandCount
+                    && x.Count(y => y is SlashCommandProperties) == ExpectedSlashCommandCount),
                 Arg.Any<RequestOptions>());
     }
 
