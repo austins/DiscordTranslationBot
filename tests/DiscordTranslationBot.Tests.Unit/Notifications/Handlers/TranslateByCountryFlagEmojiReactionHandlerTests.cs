@@ -154,7 +154,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .TranslateAsync(default!, TestContext.Current.CancellationToken);
         await _sender
             .Received(1)
-            .Send(Arg.Is<SendTempReply>(x => x!.Text == ReplyText), TestContext.Current.CancellationToken);
+            .Send(Arg.Is<SendTempReply>(x => x.Text == ReplyText), TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         // Assert
         await _sender
             .Received(1)
-            .Send(Arg.Is<SendTempReply>(x => x!.Text == expectedReplyText), TestContext.Current.CancellationToken);
+            .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
     }
 
     [Theory]
@@ -223,7 +223,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
 
         await _sender
             .Received(1)
-            .Send(Arg.Is<SendTempReply>(x => x!.Text == expectedReplyText), TestContext.Current.CancellationToken);
+            .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
 
         await _message
             .DidNotReceive()
@@ -256,7 +256,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Received(1)
             .Send(
                 Arg.Is<SendTempReply>(x =>
-                    x!.Text
+                    x.Text
                     == $"{Emoji.Warning} Couldn't detect the source language to translate from or the result is the same."),
                 TestContext.Current.CancellationToken);
     }
