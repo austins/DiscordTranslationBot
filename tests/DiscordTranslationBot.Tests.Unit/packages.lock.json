@@ -622,42 +622,42 @@
       },
       "ReactiveUI.Disposables": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "bl3hwVjnuNP40UedJADZ3+842qu39iMkdS/kq86mKrGubnBZA75TSSmTpOwQFvo4JLIR+8Qm3yY/MOnm+uAh7g=="
+        "resolved": "7.1.1",
+        "contentHash": "bOTtTEY5F4DqDZGITklbMdfO1qWw8MCSiHHastJCN1yIQJImjKwyrbGobfSbBm05QN5yVtklaJxMPf7PTbF1Fg=="
       },
       "ReactiveUI.Primitives": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "B5WlTZhtHE2gRyX/W0kfW8CwKe9A58KmZsWuIxjyxjAUcVbUP2QDutxT908KCkz/K9H11oS6/85XmIm20tYogw==",
+        "resolved": "7.1.1",
+        "contentHash": "tRSFVUSFdmoH3NIXHLFQwNcxKj5x2SNWGmlGgbAbfCF3SK/yBb4cQcqJaq8CIda+wuOV+fnZAVhKMn18lHTGWA==",
         "dependencies": {
-          "ReactiveUI.Disposables": "7.0.0",
-          "ReactiveUI.Primitives.Core": "7.0.0"
+          "ReactiveUI.Disposables": "7.1.1",
+          "ReactiveUI.Primitives.Core": "7.1.1"
         }
       },
       "ReactiveUI.Primitives.Core": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "0Bndf1vnhZOWIcVVH+mNvML8jIw9oRes8tgU25OoEJEuFLdMAOUAlMgOnvt4TYkeqtL/vSck8qCF9GmtAN/5BQ==",
+        "resolved": "7.1.1",
+        "contentHash": "cM4eIYInI4gF39VRaErpN2vfuEAWQTehRYn5MqJvlVGoAJGuUcdtlr4TwyNTOJb5j8Vcs6rfVPoHgp87QbpW8A==",
         "dependencies": {
-          "ReactiveUI.Disposables": "7.0.0"
+          "ReactiveUI.Disposables": "7.1.1"
         }
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "15.0.0",
-        "contentHash": "vVD1hz0hfFX678Y/qoEF/7jag+YRFg+TMgm4uP4Zjx4+ekqgBmSqcT5+q8Qrgh5yf4aqdxvwI8Hr5mvSacxstA==",
+        "resolved": "15.1.0",
+        "contentHash": "EkyBI9ieWo2snV/eE6gHaaQ+lMft/ngxQVBvDLydi2Wh03iDW3G69v4Disg/o+BRA9RNGCibW6cc6fHOlVeDrw==",
         "dependencies": {
-          "ReactiveUI.Primitives": "7.0.0"
+          "ReactiveUI.Primitives": "7.1.1"
         }
       },
       "Refit.HttpClientFactory": {
         "type": "Transitive",
-        "resolved": "15.0.0",
-        "contentHash": "c8OwqZPs78c3K6uv+M+qNTBwY8jD66Ifs8PQuN138KBO0JdCWUowBe69C6TJ32MGuVOyoHoREaNz63BI1ouoYQ==",
+        "resolved": "15.1.0",
+        "contentHash": "MxpxyLjXSR3dVUk51LzxISIRcE7NjE5oxhAdjZuscTNj1RjKHnq10HPGYadHfEverjA+pd1xwCr49LeVhyy9JQ==",
         "dependencies": {
-          "Microsoft.Extensions.Http": "10.0.10",
-          "ReactiveUI.Primitives": "7.0.0",
-          "Refit": "15.0.0"
+          "Microsoft.Extensions.Http": "10.0.11",
+          "ReactiveUI.Primitives": "7.1.1",
+          "Refit": "15.1.0"
         }
       },
       "StyleCop.Analyzers.Unstable": {
@@ -742,7 +742,7 @@
           "OpenTelemetry.Instrumentation.Http": "[1.17.0, )",
           "OpenTelemetry.Instrumentation.Process": "[1.10.0-beta.1, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.17.0, )",
-          "Refit.HttpClientFactory": "[15.0.0, )",
+          "Refit.HttpClientFactory": "[15.1.0, )",
           "Unicode.net": "[2.0.0, )"
         }
       }
