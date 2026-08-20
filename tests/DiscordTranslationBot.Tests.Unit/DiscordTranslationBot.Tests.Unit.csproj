@@ -10,7 +10,6 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6"/>
         <PackageReference Include="NSubstitute" Version="6.2.0"/>
         <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17">
             <PrivateAssets>all</PrivateAssets>
@@ -35,9 +34,5 @@
         <Using Include="NSubstitute.ExceptionExtensions"/>
         <Using Include="NSubstitute.Extensions"/>
         <Using Include="Xunit"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 </Project>

@@ -26,15 +26,6 @@
         "resolved": "4.0.8",
         "contentHash": "vNi4NMG0CcJyjXxiNDcQ21FwV/whM9o9OEZKD+oP7tuxAqFEzX/x5OhC3OZJqW/w+8GOtCmJPBquYgMWgz0rfQ=="
       },
-      "Meziantou.Xunit.v3.ParallelTestFramework": {
-        "type": "Direct",
-        "requested": "[1.0.6, )",
-        "resolved": "1.0.6",
-        "contentHash": "zxTB5OB6WxXf2PTvMH9NUJzUQaN6YtnJU73FLjjMQGbbyWRAX5R00XtysLnzlO+qhl8KZ57/3HAYfYHcvB/gpg==",
-        "dependencies": {
-          "xunit.v3.extensibility.core": "3.0.0"
-        }
-      },
       "Microsoft.VisualStudio.Threading.Analyzers": {
         "type": "Direct",
         "requested": "[18.7.23, )",
