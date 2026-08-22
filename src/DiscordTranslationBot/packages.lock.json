@@ -133,12 +133,12 @@
       },
       "Refit.HttpClientFactory": {
         "type": "Direct",
-        "requested": "[15.1.0, )",
-        "resolved": "15.1.0",
-        "contentHash": "MxpxyLjXSR3dVUk51LzxISIRcE7NjE5oxhAdjZuscTNj1RjKHnq10HPGYadHfEverjA+pd1xwCr49LeVhyy9JQ==",
+        "requested": "[15.2.0, )",
+        "resolved": "15.2.0",
+        "contentHash": "b/CJh5xnQGY6ZNiEJ5QxmlgwLmSLnlsyCV7wj2IWadmjEeVYbs5I4Vj8LMqCDk49/QY6HtB7N6+jO6kn/Cq0OQ==",
         "dependencies": {
           "ReactiveUI.Primitives": "7.1.1",
-          "Refit": "15.1.0"
+          "Refit": "15.2.0"
         }
       },
       "SonarAnalyzer.CSharp": {
@@ -352,8 +352,8 @@
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "15.1.0",
-        "contentHash": "EkyBI9ieWo2snV/eE6gHaaQ+lMft/ngxQVBvDLydi2Wh03iDW3G69v4Disg/o+BRA9RNGCibW6cc6fHOlVeDrw==",
+        "resolved": "15.2.0",
+        "contentHash": "vJLEoFLzeCuAwnlTeKEwz218WR24W0cwMox3rV1bRlh/95SqtYMC6l3g/QPZ8ujBWmIbUD6Xko7alVia2mxNnA==",
         "dependencies": {
           "ReactiveUI.Primitives": "7.1.1"
         }
