@@ -70,7 +70,8 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
             {
                 // If no lang codes are specified, take the first up to the max options limit.
                 supportedLanguages = PrimaryProvider
-                    .SupportedLanguages.Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                    .SupportedLanguages
+                    .Take(SlashCommandOptionBuilder.MaxChoiceCount)
                     .Select(l => new SupportedLanguage(l.Key, l.Value))
                     .ToList();
             }
@@ -78,7 +79,8 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
             {
                 // Get valid specified lang codes up to the limit.
                 supportedLanguages = PrimaryProvider
-                    .SupportedLanguages.Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
+                    .SupportedLanguages
+                    .Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
                     .Take(SlashCommandOptionBuilder.MaxChoiceCount)
                     .Select(l => new SupportedLanguage(l.Key, l.Value))
                     .ToList();
@@ -88,12 +90,16 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                 if (supportedLanguages.Count < SlashCommandOptionBuilder.MaxChoiceCount
                     && PrimaryProvider.SupportedLanguages.Count > supportedLanguages.Count)
                 {
+                    var selectedLanguageCodes = supportedLanguages
+                        .Select(l => l.LangCode)
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
                     supportedLanguages.AddRange(
                         PrimaryProvider
-                            .SupportedLanguages.Where(l => supportedLanguages.All(sl => sl.LangCode != l.Key))
+                            .SupportedLanguages
+                            .Where(l => selectedLanguageCodes.Add(l.Key))
                             .Take(SlashCommandOptionBuilder.MaxChoiceCount - supportedLanguages.Count)
-                            .Select(l => new SupportedLanguage(l.Key, l.Value))
-                            .ToList());
+                            .Select(l => new SupportedLanguage(l.Key, l.Value)));
                 }
             }
 
