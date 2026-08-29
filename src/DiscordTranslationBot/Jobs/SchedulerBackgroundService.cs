@@ -5,6 +5,8 @@ namespace DiscordTranslationBot.Jobs;
 
 internal sealed partial class SchedulerBackgroundService : BackgroundService
 {
+    private const int MaxJobsPerTick = 10;
+
     /// <summary>
     /// Interval for getting and executing the next task in order to reduce overloading resources and deadlocking.
     /// </summary>
@@ -36,9 +38,14 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
         {
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
-                if (job != null)
+                for (var i = 0; i < MaxJobsPerTick; i++)
                 {
+                    var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
+                    if (job is null)
+                    {
+                        break;
+                    }
+
                     // Start a trace scope for this job execution.
                     using var traceActivity = _activitySource.StartActivity(
                         $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}: {{commandName}}");
