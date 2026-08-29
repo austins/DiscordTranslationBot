@@ -91,7 +91,8 @@ internal sealed partial class DiscordEventListener
 
     /// <summary>
     /// Publishes a notification in the background.
-    /// Events should run on a new thread to not block the gateway thread, so all logic within this method should be done within the Task.Run() call.
+    /// Events should run on a new thread to not block the gateway thread, so all logic within this method should be done
+    /// within the Task.Run() call.
     /// </summary>
     /// <param name="notificationFactory">The notification factory.</param>
     /// <param name="cancellationToken">Cancellation token to use.</param>
@@ -158,7 +159,6 @@ internal sealed partial class DiscordEventListener
         Dictionary<string, object> traceState,
         INotification notification)
     {
-        const string statePrefix = "trace.";
         const string guildIdKey = "guildId";
         const string channelIdKey = "channelId";
         const string userIdKey = "userId";
@@ -195,7 +195,7 @@ internal sealed partial class DiscordEventListener
         {
             if (value is not null)
             {
-                traceState.TryAdd($"{statePrefix}{name}", value);
+                traceState.TryAdd($"{TelemetryConstants.TraceStatePrefix}{name}", value);
             }
         }
     }

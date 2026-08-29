@@ -52,8 +52,8 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
 
                     traceActivity?.SetTag("commandName", job.CommandName);
 
-                    using var traceLogScope =
-                        _logger.BeginScope(new Dictionary<string, object> { ["trace.jobId"] = job.Id });
+                    using var traceLogScope = _logger.BeginScope(
+                        new Dictionary<string, object> { [$"{TelemetryConstants.TraceStatePrefix}jobId"] = job.Id });
 
                     try
                     {
