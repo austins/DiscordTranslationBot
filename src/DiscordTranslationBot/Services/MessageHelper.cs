@@ -22,18 +22,31 @@ internal sealed partial class MessageHelper : IMessageHelper
 
     public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message)
     {
-        var jumpUrls = new List<JumpUrl>();
-        foreach (var groups in JumpUrlRegex.Matches(message.CleanContent).Select(m => m.Groups))
+        List<JumpUrl> jumpUrls = [];
+        var content = message.CleanContent;
+
+        foreach (var url in JumpUrlRegex.EnumerateMatches(content))
         {
-            var isDmChannel = groups[1].Value == DmChannelId;
+            var match = content.AsSpan(url.Index, url.Length);
+
+            // The regex guarantees the tail shape "/{guildIdOrDm}/{channelId}/{messageId}", so the ids
+            // are read from the last three slash separators without any intermediate string allocations.
+            var messageSeparator = match.LastIndexOf('/');
+            var channelSeparator = match[..messageSeparator].LastIndexOf('/');
+            var guildSeparator = match[..channelSeparator].LastIndexOf('/');
+
+            var guildIdOrDm = match[(guildSeparator + 1)..channelSeparator];
+            var isDmChannel = guildIdOrDm.SequenceEqual(DmChannelId);
 
             jumpUrls.Add(
                 new JumpUrl
                 {
                     IsDmChannel = isDmChannel,
-                    GuildId = isDmChannel ? null : ulong.Parse(groups[1].Value, CultureInfo.InvariantCulture),
-                    ChannelId = ulong.Parse(groups[2].Value, CultureInfo.InvariantCulture),
-                    MessageId = ulong.Parse(groups[3].Value, CultureInfo.InvariantCulture)
+                    GuildId = isDmChannel ? null : ulong.Parse(guildIdOrDm, CultureInfo.InvariantCulture),
+                    ChannelId = ulong.Parse(
+                        match[(channelSeparator + 1)..messageSeparator],
+                        CultureInfo.InvariantCulture),
+                    MessageId = ulong.Parse(match[(messageSeparator + 1)..], CultureInfo.InvariantCulture)
                 });
         }
 

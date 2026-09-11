@@ -102,6 +102,40 @@ public sealed class MessageHelperTests
         result.Should().BeEquivalentTo(expected);
     }
 
+    [Fact]
+    public void GetJumpUrlsInMessage_MultipleUrls_ReturnsExpected()
+    {
+        // Arrange
+        var mainMessage = Substitute.For<IMessage>();
+        mainMessage.CleanContent.Returns(
+            "https://discord.com/channels/@me/444444444444444444/555555555555555555"
+            + " and https://discord.com/channels/111111111111111111/222222222222222222/333333333333333333");
+
+        var expected = new List<JumpUrl>
+        {
+            new()
+            {
+                IsDmChannel = true,
+                GuildId = null,
+                ChannelId = 444444444444444444UL,
+                MessageId = 555555555555555555UL
+            },
+            new()
+            {
+                IsDmChannel = false,
+                GuildId = 111111111111111111UL,
+                ChannelId = 222222222222222222UL,
+                MessageId = 333333333333333333UL
+            }
+        };
+
+        // Act
+        var result = _sut.GetJumpUrlsInMessage(mainMessage);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
+    }
+
     [Theory]
     [InlineData(null, null)]
     [InlineData(1UL, null)]
