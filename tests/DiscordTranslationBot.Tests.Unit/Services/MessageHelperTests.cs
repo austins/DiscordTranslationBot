@@ -99,7 +99,7 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrlsInMessage(mainMessage);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class MessageHelperTests
         var result = _sut.GetJumpUrlsInMessage(mainMessage);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
     }
 
     [Theory]
