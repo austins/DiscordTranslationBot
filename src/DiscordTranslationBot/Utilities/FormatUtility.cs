@@ -61,8 +61,8 @@ internal static partial class FormatUtility
         // Remove URLs starting with "http://" or "https://".
         result = UrlRegex.Replace(result, string.Empty);
 
-        // Remove all unicode emoji. Emoji are checked per code point, so surrogate pairs are grouped
-        // into a single unit before the check.
+        // Remove unicode emoji recognized by Unicode.net. Emoji are checked per code point, so
+        // surrogate pairs are grouped into a single unit before the check.
         var stringBuilder = new StringBuilder(result.Length);
         Span<char> surrogateUnit = stackalloc char[2];
         var index = 0;
