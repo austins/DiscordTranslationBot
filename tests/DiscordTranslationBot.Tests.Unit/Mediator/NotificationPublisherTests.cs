@@ -35,12 +35,10 @@ public sealed class NotificationPublisherTests
 
         var notificationName = notification.GetType().Name;
 
-        var publishingLog = _logger.Entries[0];
-        publishingLog.LogLevel.Should().Be(LogLevel.Information);
-        publishingLog.Message.Should().Be($"Publishing notification '{notificationName}'...");
+        _logger.Entries.Count.Should().Be(1);
 
-        var handlersExecutedLog = _logger.Entries[1];
-        handlersExecutedLog.LogLevel.Should().Be(LogLevel.Information);
+        var handlersExecutedLog = _logger.Entries[0];
+        handlersExecutedLog.LogLevel.Should().Be(LogLevel.Debug);
         handlersExecutedLog
             .Message.Should()
             .StartWith($"Executed notification handler(s) for '{notificationName}'. Elapsed time:");

@@ -32,23 +32,17 @@ internal sealed partial class NotificationPublisher : INotificationPublisher
             return;
         }
 
-        var notificationName = notification.GetType().Name;
-        _log.PublishingNotification(notificationName);
-
         var startingTimestamp = Stopwatch.GetTimestamp();
         await _taskWhenAllPublisher.Publish(handlers, notification, cancellationToken);
         var elapsed = Stopwatch.GetElapsedTime(startingTimestamp);
 
-        _log.NotificationHandlersExecuted(notificationName, elapsed.TotalMilliseconds);
+        _log.NotificationHandlersExecuted(notification.GetType().Name, elapsed.TotalMilliseconds);
     }
 
     private sealed partial class Log(ILogger logger)
     {
-        [LoggerMessage(Level = LogLevel.Information, Message = "Publishing notification '{notificationName}'...")]
-        public partial void PublishingNotification(string notificationName);
-
         [LoggerMessage(
-            Level = LogLevel.Information,
+            Level = LogLevel.Debug,
             Message = "Executed notification handler(s) for '{notificationName}'. Elapsed time: {elapsedMs}ms.")]
         public partial void NotificationHandlersExecuted(string notificationName, double elapsedMs);
     }

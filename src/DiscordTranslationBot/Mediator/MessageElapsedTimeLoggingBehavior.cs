@@ -45,25 +45,19 @@ internal sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespo
             return await next(message, cancellationToken);
         }
 
-        var messageName = message.GetType().Name;
-        _log.MessageExecuting(messageName);
-
         var startingTimestamp = Stopwatch.GetTimestamp();
         var result = await next(message, cancellationToken);
         var elapsed = Stopwatch.GetElapsedTime(startingTimestamp);
 
-        _log.MessageExecuted(messageName, elapsed.TotalMilliseconds);
+        _log.MessageExecuted(message.GetType().Name, elapsed.TotalMilliseconds);
 
         return result;
     }
 
     private sealed partial class Log(ILogger logger)
     {
-        [LoggerMessage(Level = LogLevel.Information, Message = "Executing message '{messageName}'...")]
-        public partial void MessageExecuting(string messageName);
-
         [LoggerMessage(
-            Level = LogLevel.Information,
+            Level = LogLevel.Debug,
             Message = "Executed message '{messageName}'. Elapsed time: {elapsedMs}ms.")]
         public partial void MessageExecuted(string messageName, double elapsedMs);
     }
