@@ -109,21 +109,25 @@ internal sealed partial class DiscordEventListener
                     var notification = await notificationFactory();
                     var notificationName = notification.GetType().Name;
 
-                    // Create a trace scope within the background thread.
-                    using var traceActivity = _activitySource.CreateActivity(
-                        $"{nameof(DiscordEventListener)}.{nameof(PublishInBackgroundAsync)}: {{notificationName}}",
-                        ActivityKind.Internal);
+                    // Only create the trace scope and trace state if this is not a log notification to
+                    // reduce polluting the logs and avoid the allocations of every other event.
+                    using var traceActivity = notification is LogNotification
+                        ? null
+                        : _activitySource.CreateActivity(
+                            $"{nameof(DiscordEventListener)}.{nameof(PublishInBackgroundAsync)}: {{notificationName}}",
+                            ActivityKind.Internal);
 
-                    // Only start the trace scope if this is not a log notification to reduce polluting the logs.
-                    Dictionary<string, object> traceState = [];
+                    Dictionary<string, object>? traceState = null;
                     if (notification is not LogNotification)
                     {
                         traceActivity?.Start();
                         traceActivity?.SetTag("notificationName", notificationName);
-                        traceState = BuildTraceState(traceState, notification);
+                        traceState = BuildTraceState(notification);
                     }
 
-                    using var traceLogScope = _logger.BeginScope(traceState);
+                    using var traceLogScope = traceState is null
+                        ? NoOpScope.Instance
+                        : _logger.BeginScope(traceState);
 
                     try
                     {
@@ -152,13 +156,11 @@ internal sealed partial class DiscordEventListener
     /// <summary>
     /// Builds a state with contextual information about a notification initiated by an event for a logger scope.
     /// </summary>
-    /// <param name="traceState">The trace state to add information to.</param>
     /// <param name="notification">The notification.</param>
     /// <returns>State for a logger scope.</returns>
-    private static Dictionary<string, object> BuildTraceState(
-        Dictionary<string, object> traceState,
-        INotification notification)
+    private static Dictionary<string, object> BuildTraceState(INotification notification)
     {
+        var traceState = new Dictionary<string, object>();
         const string guildIdKey = "guildId";
         const string channelIdKey = "channelId";
         const string userIdKey = "userId";
@@ -197,6 +199,18 @@ internal sealed partial class DiscordEventListener
             {
                 traceState.TryAdd($"{TelemetryConstants.TraceStatePrefix}{name}", value);
             }
+        }
+    }
+
+    /// <summary>
+    /// A cached no-op scope for log notifications, which don't have any contextual information to scope.
+    /// </summary>
+    private sealed class NoOpScope : IDisposable
+    {
+        public static NoOpScope Instance { get; } = new();
+
+        public void Dispose()
+        {
         }
     }
 
