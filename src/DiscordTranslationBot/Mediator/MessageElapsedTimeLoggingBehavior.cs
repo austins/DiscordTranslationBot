@@ -1,3 +1,4 @@
+using DiscordTranslationBot.Notifications.Events;
 using System.Diagnostics;
 
 namespace DiscordTranslationBot.Mediator;
@@ -37,6 +38,13 @@ internal sealed partial class MessageElapsedTimeLoggingBehavior<TMessage, TRespo
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken cancellationToken)
     {
+        // Log notifications can be raised per received message, so skip the logging and elapsed-time
+        // tracking to avoid doubling the log volume and overhead of the real notification.
+        if (message is LogNotification)
+        {
+            return await next(message, cancellationToken);
+        }
+
         var messageName = message.GetType().Name;
         _log.MessageExecuting(messageName);
 
