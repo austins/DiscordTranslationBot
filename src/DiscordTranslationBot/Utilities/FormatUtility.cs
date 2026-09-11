@@ -1,5 +1,5 @@
 using Markdig;
-using NeoSmart.Unicode;
+using System.Text;
 using System.Text.RegularExpressions;
 using Emoji = NeoSmart.Unicode.Emoji;
 
@@ -61,8 +61,35 @@ internal static partial class FormatUtility
         // Remove URLs starting with "http://" or "https://".
         result = UrlRegex.Replace(result, string.Empty);
 
-        // Remove all unicode emoji.
-        result = string.Concat(result.Letters().Where(letter => !Emoji.IsEmoji(letter)));
+        // Remove all unicode emoji. Emoji are checked per code point, so surrogate pairs are grouped
+        // into a single unit before the check.
+        var builder = new StringBuilder(result.Length);
+        Span<char> surrogateUnit = stackalloc char[2];
+        var index = 0;
+        while (index < result.Length)
+        {
+            var c = result[index];
+            if (char.IsHighSurrogate(c) && index + 1 < result.Length && char.IsLowSurrogate(result[index + 1]))
+            {
+                surrogateUnit[0] = c;
+                surrogateUnit[1] = result[index + 1];
+                if (!Emoji.IsEmoji(new string(surrogateUnit)))
+                {
+                    builder.Append(c).Append(result[index + 1]);
+                }
+
+                index++;
+            }
+            else if (char.IsSurrogate(c) || !Emoji.IsEmoji(c.ToString()))
+            {
+                // Lone surrogates are preserved because they are not valid code points to check.
+                builder.Append(c);
+            }
+
+            index++;
+        }
+
+        result = builder.ToString();
 
         // Trim and return sanitized text.
         return result.Trim();

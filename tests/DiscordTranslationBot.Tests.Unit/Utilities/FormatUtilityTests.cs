@@ -30,6 +30,9 @@ public sealed class FormatUtilityTests
             { "<:emote1:000000000000000000>", string.Empty },
             { "<:1234:000000000000000123>", string.Empty },
             { "test <a:test_emote:100000000000000123>", "test" },
+            { "mix ☺😀☕ and 😀", "mix  and" },
+            { "👨‍👩‍👧 family", "‍‍ family" },
+            { "a\uD83Db", "a\uD83Db" },
             { "<a:1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A:100000000000000123>", string.Empty },
             { "text with links http://example.com https://example.com/ test", "text with links   test" },
             {
