@@ -63,7 +63,7 @@ internal static partial class FormatUtility
 
         // Remove all unicode emoji. Emoji are checked per code point, so surrogate pairs are grouped
         // into a single unit before the check.
-        var builder = new StringBuilder(result.Length);
+        var stringBuilder = new StringBuilder(result.Length);
         Span<char> surrogateUnit = stackalloc char[2];
         var index = 0;
         while (index < result.Length)
@@ -75,7 +75,7 @@ internal static partial class FormatUtility
                 surrogateUnit[1] = result[index + 1];
                 if (!Emoji.IsEmoji(new string(surrogateUnit)))
                 {
-                    builder.Append(c).Append(result[index + 1]);
+                    stringBuilder.Append(c).Append(result[index + 1]);
                 }
 
                 index++;
@@ -83,13 +83,13 @@ internal static partial class FormatUtility
             else if (char.IsSurrogate(c) || !Emoji.IsEmoji(c.ToString()))
             {
                 // Lone surrogates are preserved because they are not valid code points to check.
-                builder.Append(c);
+                stringBuilder.Append(c);
             }
 
             index++;
         }
 
-        result = builder.ToString();
+        result = stringBuilder.ToString();
 
         // Trim and return sanitized text.
         return result.Trim();
