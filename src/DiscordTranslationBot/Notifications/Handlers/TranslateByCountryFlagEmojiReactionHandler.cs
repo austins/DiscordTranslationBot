@@ -134,7 +134,11 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
         if (translationResult is null)
         {
-            _log.TranslationFailure(caughtException);
+            // TranslationFailureException already logs an error message.
+            if (caughtException is not TranslationFailureException)
+            {
+                _log.TranslationFailure(caughtException);
+            }
 
             await _sender.Send(
                 new SendTempReply
