@@ -93,10 +93,10 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
             StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
+    /// <inheritdoc cref="TranslationProviderBase.TranslateCoreAsync" />
     /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
     /// <exception cref="InvalidOperationException">An error occured.</exception>
-    public override async Task<TranslationResult> TranslateAsync(
+    protected override async Task<TranslationResult> TranslateCoreAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,

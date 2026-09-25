@@ -1,6 +1,7 @@
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Utilities;
 using System.Collections.Frozen;
 using System.Net;
 
@@ -18,11 +19,16 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
 
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
-    public abstract Task<TranslationResult> TranslateAsync(
+    public async Task<TranslationResult> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
-        string? sourceLangCode = null);
+        string? sourceLangCode = null)
+    {
+        var result = await TranslateCoreAsync(targetLanguage, text, cancellationToken, sourceLangCode);
+        result.TranslatedText = FormatUtility.RestoreDiscordTokens(text, result.TranslatedText);
+        return result;
+    }
 
     public Task<TranslationResult> TranslateByCountryAsync(
         Country country,
@@ -48,6 +54,20 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
 
         return TranslateAsync(targetLanguage.Value, text, cancellationToken);
     }
+
+    /// <summary>
+    /// Translate text with the provider.
+    /// </summary>
+    /// <param name="targetLanguage">The supported language to translate to.</param>
+    /// <param name="text">The text to translate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="sourceLangCode">The supported lang code to translate from.</param>
+    /// <returns>Translated text.</returns>
+    protected abstract Task<TranslationResult> TranslateCoreAsync(
+        SupportedLanguage targetLanguage,
+        string text,
+        CancellationToken cancellationToken,
+        string? sourceLangCode = null);
 
     protected partial class Log
     {

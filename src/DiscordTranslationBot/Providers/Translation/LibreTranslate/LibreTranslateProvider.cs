@@ -59,9 +59,9 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
             StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <inheritdoc cref="ITranslationProvider.TranslateAsync" />
+    /// <inheritdoc cref="TranslationProviderBase.TranslateCoreAsync" />
     /// <exception cref="InvalidOperationException">An error occured.</exception>
-    public override async Task<TranslationResult> TranslateAsync(
+    protected override async Task<TranslationResult> TranslateCoreAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,

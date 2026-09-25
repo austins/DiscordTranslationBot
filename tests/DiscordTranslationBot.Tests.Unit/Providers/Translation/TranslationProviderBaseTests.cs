@@ -32,7 +32,7 @@ public sealed class TranslationProviderBaseTests
             return Task.CompletedTask;
         }
 
-        public override Task<TranslationResult> TranslateAsync(
+        protected override Task<TranslationResult> TranslateCoreAsync(
             SupportedLanguage targetLanguage,
             string text,
             CancellationToken cancellationToken,

@@ -15,6 +15,22 @@ public sealed class FormatUtilityTests
         result.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(
+        "check <#123456789012345678> and use </translate:1234567890123456789> at <t:1700000000:t>",
+        "เลือก <#123456789012345678> และใช้ </Translate:1234567890123456789> ที่ <t:1700000000:T>",
+        "เลือก <#123456789012345678> และใช้ </translate:1234567890123456789> ที่ <t:1700000000:t>")]
+    [InlineData("at <t:1700000000:t>", "à < T : 1700000000 : T >", "à <t:1700000000:t>")]
+    [InlineData("no tokens", "<T:1700000000:T>", "<T:1700000000:T>")]
+    public void RestoreDiscordTokens_Returns_AsExpected(string sourceText, string translatedText, string expected)
+    {
+        // Act
+        var result = FormatUtility.RestoreDiscordTokens(sourceText, translatedText);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
     public static TheoryData<string, string> TextData()
     {
         return new TheoryData<string, string>
