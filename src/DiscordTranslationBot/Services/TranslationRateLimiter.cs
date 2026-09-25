@@ -9,7 +9,7 @@ internal sealed partial class TranslationRateLimiter : ITranslationRateLimiter, 
 {
     public const int PermitLimit = 5;
 
-    public static readonly TimeSpan Window = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Window = TimeSpan.FromSeconds(30);
 
     private readonly PartitionedRateLimiter<ulong> _limiter;
     private readonly Log _log;
@@ -26,8 +26,9 @@ internal sealed partial class TranslationRateLimiter : ITranslationRateLimiter, 
                     PermitLimit = PermitLimit,
                     Window = Window,
                     SegmentsPerWindow = 3,
-                    QueueLimit = 0,
-                    AutoReplenishment = true
+
+                    // The partitioned limiter replenishes all partitions itself; avoids a timer per user.
+                    AutoReplenishment = false
                 }));
     }
 
