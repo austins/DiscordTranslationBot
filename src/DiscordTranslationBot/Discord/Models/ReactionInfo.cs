@@ -22,12 +22,18 @@ internal sealed class ReactionInfo
     /// </summary>
     public required IEmote Emote { get; init; }
 
+    /// <summary>
+    /// Whether the user who initiated the reaction is a bot.
+    /// </summary>
+    public bool IsBot { get; init; }
+
     public static ReactionInfo FromSocketReaction(SocketReaction socketReaction)
     {
         return new ReactionInfo
         {
             UserId = socketReaction.UserId,
-            Emote = socketReaction.Emote
+            Emote = socketReaction.Emote,
+            IsBot = socketReaction.User is { IsSpecified: true, Value.IsBot: true }
         };
     }
 }

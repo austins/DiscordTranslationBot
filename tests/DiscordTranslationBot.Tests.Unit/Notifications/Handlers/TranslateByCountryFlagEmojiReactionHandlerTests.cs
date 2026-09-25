@@ -92,6 +92,33 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     }
 
     [Fact]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_WhenReactionIsFromBot()
+    {
+        // Arrange
+        var notification = new ReactionAddedNotification
+        {
+            Message = _message,
+            Channel = _channel,
+            ReactionInfo = new ReactionInfo
+            {
+                UserId = 1UL,
+                Emote = _notification.ReactionInfo.Emote,
+                IsBot = true
+            }
+        };
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        _rateLimiter.DidNotReceiveWithAnyArgs().TryAcquire(default);
+
+        await _translationProviderFactory
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_WhenRateLimited()
     {
         // Arrange

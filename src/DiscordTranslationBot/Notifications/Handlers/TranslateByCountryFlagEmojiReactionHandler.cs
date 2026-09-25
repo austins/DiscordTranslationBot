@@ -58,6 +58,11 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     /// <param name="cancellationToken">Cancellation token.</param>
     public async ValueTask Handle(ReactionAddedNotification notification, CancellationToken cancellationToken)
     {
+        if (notification.ReactionInfo.IsBot)
+        {
+            return;
+        }
+
         if (!CountryConstants.SupportedCountries.TryGetValue(notification.ReactionInfo.Emote.Name, out var country))
         {
             _log.NotASupportedCountryFlagEmoji();
