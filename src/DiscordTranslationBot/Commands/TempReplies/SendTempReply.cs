@@ -73,6 +73,7 @@ internal sealed partial class SendTempReplyHandler : ICommandHandler<SendTempRep
             // Send reply message.
             reply = await command.SourceMessage.Channel.SendMessageAsync(
                 command.Text,
+                allowedMentions: AllowedMentions.None,
                 messageReference: new MessageReference(command.SourceMessage.Id),
                 options: new RequestOptions { CancelToken = cancellationToken });
 

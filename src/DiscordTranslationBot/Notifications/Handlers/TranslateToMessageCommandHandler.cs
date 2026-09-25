@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
@@ -119,6 +119,7 @@ internal sealed partial class TranslateToMessageCommandHandler
                             referencedMessage,
                             translationResult,
                             notification.Interaction.User.Id),
+                        allowedMentions: AllowedMentions.None,
                         messageReference: new MessageReference(referencedMessageId),
                         options: new RequestOptions { CancelToken = cancellationToken }));
             }

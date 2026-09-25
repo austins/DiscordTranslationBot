@@ -49,7 +49,20 @@ public sealed class SendTempReplyHandlerTests
 
         // Assert
         command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
-        await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
+        await command
+            .SourceMessage.Channel.Received(1)
+            .SendMessageAsync(
+                command.Text,
+                Arg.Any<bool>(),
+                Arg.Any<Embed>(),
+                Arg.Any<RequestOptions>(),
+                AllowedMentions.None,
+                Arg.Is<MessageReference>(x => x.MessageId.Value == sourceMessageId),
+                Arg.Any<MessageComponent>(),
+                Arg.Any<ISticker[]>(),
+                Arg.Any<Embed[]>(),
+                Arg.Any<MessageFlags>(),
+                Arg.Any<PollProperties>());
 
         await _scheduler
             .Received(1)

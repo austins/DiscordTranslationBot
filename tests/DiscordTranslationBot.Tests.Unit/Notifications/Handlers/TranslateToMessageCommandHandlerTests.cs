@@ -283,6 +283,7 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         MessageProperties? receivedProperties = null;
         string? receivedSentMessagetext = null;
+        AllowedMentions? receivedAllowedMentions = null;
         ulong? receivedReferencedMessageId = null;
 
         if (buttonId == MessageCommandConstants.TranslateTo.TranslateButtonId)
@@ -304,6 +305,7 @@ public sealed class TranslateToMessageCommandHandlerTests
                 .Do(x =>
                 {
                     receivedSentMessagetext = x.ArgAt<string>(0);
+                    receivedAllowedMentions = x.Arg<AllowedMentions>();
                     receivedReferencedMessageId = x.Arg<MessageReference>().MessageId.Value;
                 });
         }
@@ -348,6 +350,7 @@ public sealed class TranslateToMessageCommandHandlerTests
         {
             await notification.Interaction.Received(1).DeleteOriginalResponseAsync(Arg.Any<RequestOptions?>());
             await notification.Interaction.Message.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
+            receivedAllowedMentions.Should().BeSameAs(AllowedMentions.None);
             receivedSentMessagetext.Should().Be(translationReplytext);
             receivedReferencedMessageId.Should().Be(referencedMessageId);
         }

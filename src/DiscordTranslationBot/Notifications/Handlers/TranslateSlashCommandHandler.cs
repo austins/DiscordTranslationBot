@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
@@ -100,6 +100,7 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
                  To {Format.Italics(translationResult.TargetLanguageName)}:
                  {Format.Quote(translationResult.TranslatedText)}
                  """,
+                allowedMentions: AllowedMentions.None,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
             _log.TranslationSuccess(translationProvider.GetType().Name);

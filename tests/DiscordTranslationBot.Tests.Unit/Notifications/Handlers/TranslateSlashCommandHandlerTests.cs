@@ -93,6 +93,7 @@ public sealed class TranslateSlashCommandHandlerTests
             .Received(1)
             .FollowupAsync(
                 Arg.Is<string>(textSent => textSent.Contains("translated text from")),
+                allowedMentions: Arg.Is(AllowedMentions.None),
                 options: Arg.Any<RequestOptions>());
     }
 
