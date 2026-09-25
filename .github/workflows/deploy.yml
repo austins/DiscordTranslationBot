@@ -54,6 +54,7 @@ jobs:
                     push: true
                     tags: ${{ steps.meta.outputs.tags }}
                     labels: ${{ steps.meta.outputs.labels }}
+                    build-args: SOURCE_REVISION_ID=${{ github.sha }}
                     cache-from: type=gha,scope=deploy
                     cache-to: type=gha,mode=max,scope=deploy
                     github-token: ${{ secrets.GITHUB_TOKEN }}

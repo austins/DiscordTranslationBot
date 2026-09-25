@@ -13,7 +13,9 @@ COPY --link ./src/DiscordTranslationBot ./src/DiscordTranslationBot
 RUN dotnet restore ./src/DiscordTranslationBot --locked-mode
 
 # Publish app.
-RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out
+# The commit SHA is passed in because .git isn't copied, so Source Link can't add it to the informational version.
+ARG SOURCE_REVISION_ID
+RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out -p:SourceRevisionId=$SOURCE_REVISION_ID
 
 ###################################################
 ## Runtime image creation stage.

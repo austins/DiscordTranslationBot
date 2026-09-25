@@ -2,6 +2,7 @@
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace DiscordTranslationBot.Telemetry;
 
@@ -29,7 +30,12 @@ internal static class TelemetryExtensions
             .AddOpenTelemetry()
             .ConfigureResource(b =>
                 b
-                    .AddService(builder.Environment.ApplicationName)
+                    .AddService(
+                        builder.Environment.ApplicationName,
+                        serviceVersion: typeof(TelemetryExtensions)
+                            .Assembly
+                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                            ?.InformationalVersion)
                     .AddAttributes(
                         new Dictionary<string, object>
                         {
