@@ -2,6 +2,8 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator;
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Telemetry;
+using Microsoft.Extensions.Hosting;
 using NeoSmart.Unicode;
 using Refit;
 using System.Net;
@@ -13,6 +15,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 {
     private readonly IAzureTranslatorClient _client;
     private readonly Country _country;
+    private readonly Instrumentation _instrumentation;
     private readonly LoggerFake<AzureTranslatorProvider> _logger;
     private readonly AzureTranslatorProvider _sut;
 
@@ -38,7 +41,11 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 
         _logger = new LoggerFake<AzureTranslatorProvider>();
 
-        _sut = new AzureTranslatorProvider(_client, _logger);
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.ApplicationName.Returns("Test");
+        _instrumentation = new Instrumentation(environment);
+
+        _sut = new AzureTranslatorProvider(_client, _instrumentation, _logger);
     }
 
     public async ValueTask InitializeAsync()
@@ -48,6 +55,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
 
     public ValueTask DisposeAsync()
     {
+        _instrumentation.Dispose();
         return ValueTask.CompletedTask;
     }
 
@@ -149,7 +157,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _client.GetLanguagesAsync(TestContext.Current.CancellationToken).Returns(response);
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class _sut.
-        var sut = new AzureTranslatorProvider(_client, _logger);
+        var sut = new AzureTranslatorProvider(_client, _instrumentation, _logger);
 
         // Act & Assert
         await sut

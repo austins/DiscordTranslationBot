@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Providers.Translation.AzureTranslator.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Telemetry;
 using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
@@ -22,8 +23,13 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     /// Initializes a new instance of the <see cref="AzureTranslatorProvider" /> class.
     /// </summary>
     /// <param name="client">Azure Translator client to use.</param>
+    /// <param name="instrumentation">Instrumentation to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public AzureTranslatorProvider(IAzureTranslatorClient client, ILogger<AzureTranslatorProvider> logger)
+    public AzureTranslatorProvider(
+        IAzureTranslatorClient client,
+        Instrumentation instrumentation,
+        ILogger<AzureTranslatorProvider> logger)
+        : base(instrumentation)
     {
         _client = client;
         _log = new Log(logger);

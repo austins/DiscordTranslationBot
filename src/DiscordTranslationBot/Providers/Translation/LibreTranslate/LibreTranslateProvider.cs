@@ -1,5 +1,6 @@
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Telemetry;
 using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
@@ -16,8 +17,13 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
     /// Initializes a new instance of the <see cref="LibreTranslateProvider" /> class.
     /// </summary>
     /// <param name="client">LibreTranslate client to use.</param>
+    /// <param name="instrumentation">Instrumentation to use.</param>
     /// <param name="logger">Logger to use.</param>
-    public LibreTranslateProvider(ILibreTranslateClient client, ILogger<LibreTranslateProvider> logger)
+    public LibreTranslateProvider(
+        ILibreTranslateClient client,
+        Instrumentation instrumentation,
+        ILogger<LibreTranslateProvider> logger)
+        : base(instrumentation)
     {
         _client = client;
         _log = new Log(logger);

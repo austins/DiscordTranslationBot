@@ -1,6 +1,7 @@
 using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Telemetry;
 using DiscordTranslationBot.Utilities;
 using System.Collections.Frozen;
 using System.Net;
@@ -12,6 +13,17 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 internal abstract partial class TranslationProviderBase : ITranslationProvider
 {
+    private readonly Instrumentation _instrumentation;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TranslationProviderBase" /> class.
+    /// </summary>
+    /// <param name="instrumentation">Instrumentation to use.</param>
+    protected TranslationProviderBase(Instrumentation instrumentation)
+    {
+        _instrumentation = instrumentation;
+    }
+
     public FrozenDictionary<string, string> SupportedLanguages { get; protected set; } =
         FrozenDictionary<string, string>.Empty;
 
@@ -26,6 +38,11 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         string? sourceLangCode = null)
     {
         var result = await TranslateCoreAsync(targetLanguage, text, cancellationToken, sourceLangCode);
+
+        _instrumentation.TranslationCharacters.Add(
+            text.Length,
+            new KeyValuePair<string, object?>("provider", GetType().Name));
+
         result.TranslatedText = FormatUtility.RestoreDiscordTokens(text, result.TranslatedText);
         return result;
     }

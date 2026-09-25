@@ -37,6 +37,7 @@ internal static class TelemetryExtensions
                         }))
             .WithMetrics(b =>
                 b
+                    .AddMeter(builder.Environment.ApplicationName)
                     .AddProcessInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddAspNetCoreInstrumentation()

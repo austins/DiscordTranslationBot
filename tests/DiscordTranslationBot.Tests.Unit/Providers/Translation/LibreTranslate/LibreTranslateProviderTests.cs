@@ -2,6 +2,8 @@ using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using DiscordTranslationBot.Providers.Translation.LibreTranslate.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Telemetry;
+using Microsoft.Extensions.Hosting;
 using NeoSmart.Unicode;
 using Refit;
 using System.Net;
@@ -12,6 +14,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
 {
     private readonly ILibreTranslateClient _client;
     private readonly Country _country;
+    private readonly Instrumentation _instrumentation;
     private readonly LoggerFake<LibreTranslateProvider> _logger;
     private readonly LibreTranslateProvider _sut;
 
@@ -41,7 +44,11 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
 
         _logger = new LoggerFake<LibreTranslateProvider>();
 
-        _sut = new LibreTranslateProvider(_client, _logger);
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.ApplicationName.Returns("Test");
+        _instrumentation = new Instrumentation(environment);
+
+        _sut = new LibreTranslateProvider(_client, _instrumentation, _logger);
     }
 
     public async ValueTask InitializeAsync()
@@ -51,6 +58,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
 
     public ValueTask DisposeAsync()
     {
+        _instrumentation.Dispose();
         return ValueTask.CompletedTask;
     }
 
@@ -149,7 +157,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         _client.GetLanguagesAsync(TestContext.Current.CancellationToken).Returns(response);
 
         // Create a new instance of the SUT as the constructor has already called InitializeSupportedLanguagesAsync on the class SUT.
-        var sut = new LibreTranslateProvider(_client, _logger);
+        var sut = new LibreTranslateProvider(_client, _instrumentation, _logger);
 
         // Act & Assert
         await sut
