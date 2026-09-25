@@ -46,7 +46,8 @@ internal static class TelemetryExtensions
             .WithTracing(b =>
                 b
                     .AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation()
+                    .AddAspNetCoreInstrumentation(o =>
+                        o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/_health", StringComparison.OrdinalIgnoreCase))
                     .AddHttpClientInstrumentation()
                     .AddOtlpExporter());
     }
