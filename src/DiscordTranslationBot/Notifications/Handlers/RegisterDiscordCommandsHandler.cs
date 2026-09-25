@@ -72,6 +72,8 @@ internal sealed partial class RegisterDiscordCommandsHandler
             return;
         }
 
+        ApplicationCommandProperties[] commands = [.. discordCommandsToRegister];
+
         _log.RegisteringCommandsForGuilds(guilds.Count);
 
         await Parallel.ForEachAsync(
@@ -87,7 +89,7 @@ internal sealed partial class RegisterDiscordCommandsHandler
                 {
                     // Use the bulk overwrite method instead of create method to ensure commands are consistent with those that are added.
                     await guild.BulkOverwriteApplicationCommandsAsync(
-                        [.. discordCommandsToRegister],
+                        commands,
                         new RequestOptions { CancelToken = ct });
 
                     _log.RegisteredCommandsForGuild(guild.Id);
