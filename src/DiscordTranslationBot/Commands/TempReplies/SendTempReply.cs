@@ -64,9 +64,6 @@ internal sealed partial class SendTempReplyHandler : ICommandHandler<SendTempRep
     /// <param name="cancellationToken">The cancellation token.</param>
     public async ValueTask<Unit> Handle(SendTempReply command, CancellationToken cancellationToken)
     {
-        var typingState =
-            command.SourceMessage.Channel.EnterTypingState(new RequestOptions { CancelToken = cancellationToken });
-
         IUserMessage reply;
         try
         {
@@ -83,10 +80,6 @@ internal sealed partial class SendTempReplyHandler : ICommandHandler<SendTempRep
         {
             _log.FailedToSendTempReply(ex, command.SourceMessage.Id);
             throw;
-        }
-        finally
-        {
-            typingState.Dispose();
         }
 
         await _scheduler.ScheduleAsync(

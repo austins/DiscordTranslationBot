@@ -48,7 +48,6 @@ public sealed class SendTempReplyHandlerTests
         await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
-        command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command
             .SourceMessage.Channel.Received(1)
             .SendMessageAsync(
@@ -98,7 +97,6 @@ public sealed class SendTempReplyHandlerTests
             .Should()
             .ThrowAsync<Exception>();
 
-        command.SourceMessage.Channel.ReceivedWithAnyArgs(1).EnterTypingState();
         await command.SourceMessage.Channel.ReceivedWithAnyArgs(1).SendMessageAsync();
 
         _logger.Entries.Should().ContainSingle();
