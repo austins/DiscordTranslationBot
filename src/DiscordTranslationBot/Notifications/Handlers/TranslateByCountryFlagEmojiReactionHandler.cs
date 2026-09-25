@@ -65,7 +65,6 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
         if (!CountryConstants.SupportedCountries.TryGetValue(notification.ReactionInfo.Emote.Name, out var country))
         {
-            _log.NotASupportedCountryFlagEmoji();
             return;
         }
 
@@ -183,11 +182,6 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
 
     private sealed partial class Log(ILogger logger)
     {
-        [LoggerMessage(
-            Level = LogLevel.Information,
-            Message = "Reaction is not a supported country flag emoji. Skipping translation.")]
-        public partial void NotASupportedCountryFlagEmoji();
-
         [LoggerMessage(Level = LogLevel.Information, Message = "Translating this bot's messages isn't allowed.")]
         public partial void TranslatingBotMessageDisallowed();
 

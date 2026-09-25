@@ -1,5 +1,6 @@
 using Discord;
 using Discord.WebSocket;
+using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Telemetry;
@@ -73,16 +74,20 @@ internal sealed partial class DiscordEventListener
             new SlashCommandExecutedNotification { Interaction = slashCommand },
             cancellationToken);
 
-        _client.ReactionAdded += (message, channel, reaction) => PublishInBackgroundAsync(
-            async () => new ReactionAddedNotification
-            {
-                // The message and channel are retrieved lazily in the background.
-                // We can't use the Cacheable types directly as they cannot be constructed directly/tested.
-                Message = await message.GetOrDownloadAsync(),
-                Channel = await channel.GetOrDownloadAsync(),
-                ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
-            },
-            cancellationToken);
+        _client.ReactionAdded += (message, channel, reaction) =>
+            // Only country flag reactions are handled, so skip downloading the message and channel for others.
+            !CountryConstants.SupportedCountries.ContainsKey(reaction.Emote.Name)
+                ? Task.CompletedTask
+                : PublishInBackgroundAsync(
+                    async () => new ReactionAddedNotification
+                    {
+                        // The message and channel are retrieved lazily in the background.
+                        // We can't use the Cacheable types directly as they cannot be constructed directly/tested.
+                        Message = await message.GetOrDownloadAsync(),
+                        Channel = await channel.GetOrDownloadAsync(),
+                        ReactionInfo = ReactionInfo.FromSocketReaction(reaction)
+                    },
+                    cancellationToken);
 
         _log.EventsInitialized();
 
