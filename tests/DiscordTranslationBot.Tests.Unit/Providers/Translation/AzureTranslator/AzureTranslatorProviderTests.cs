@@ -165,7 +165,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
     public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
     {
         // Arrange
-        var text = new string('a', AzureTranslatorProvider.TextCharacterLimit);
+        var text = new string('a', AzureTranslatorProvider.TextCharacterLimit + 1);
 
         // Act & Assert
         await _sut

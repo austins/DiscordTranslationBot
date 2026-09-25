@@ -102,7 +102,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         CancellationToken cancellationToken,
         string? sourceLangCode = null)
     {
-        if (text.Length >= TextCharacterLimit)
+        if (text.Length > TextCharacterLimit)
         {
             _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
 
