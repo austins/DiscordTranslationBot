@@ -83,6 +83,25 @@ public sealed class RegisterDiscordCommandsHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ReadyNotification_OnlyRegistersOnce()
+    {
+        // Arrange
+        var guild = Substitute.For<IGuild>();
+        _client.GetGuildsAsync(options: Arg.Any<RequestOptions>()).Returns([guild]);
+
+        // Act
+        await _sut.Handle(new ReadyNotification(), TestContext.Current.CancellationToken);
+        await _sut.Handle(new ReadyNotification(), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _client.Received(1).GetGuildsAsync(options: Arg.Any<RequestOptions>());
+
+        await guild
+            .ReceivedWithAnyArgs(1)
+            .BulkOverwriteApplicationCommandsAsync(default!, Arg.Any<RequestOptions>());
+    }
+
+    [Fact]
     public async Task Handle_ReadyNotification_NoGuilds_Returns()
     {
         // Arrange

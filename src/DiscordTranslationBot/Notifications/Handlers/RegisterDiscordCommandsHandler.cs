@@ -17,6 +17,7 @@ internal sealed partial class RegisterDiscordCommandsHandler
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly ITranslationProviderFactory _translationProviderFactory;
+    private bool _registeredOnReady;
 
     /// <summary>
     /// Instantiates a new instance of the <see cref="RegisterDiscordCommandsHandler" /> class.
@@ -41,6 +42,13 @@ internal sealed partial class RegisterDiscordCommandsHandler
 
     public async ValueTask Handle(ReadyNotification notification, CancellationToken cancellationToken)
     {
+        // Ready fires on every gateway re-identify, but commands only need to be registered once per process.
+        // Guilds joined afterward are handled by the JoinedGuild notification.
+        if (_registeredOnReady)
+        {
+            return;
+        }
+
         var guilds = await _client.GetGuildsAsync(options: new RequestOptions { CancelToken = cancellationToken });
         if (guilds.Count == 0)
         {
@@ -48,6 +56,7 @@ internal sealed partial class RegisterDiscordCommandsHandler
         }
 
         await RegisterDiscordCommandsAsync(guilds, cancellationToken);
+        _registeredOnReady = true;
     }
 
     private async Task RegisterDiscordCommandsAsync(
