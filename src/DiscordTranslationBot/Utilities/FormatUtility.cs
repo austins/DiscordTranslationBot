@@ -1,4 +1,5 @@
 using Markdig;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Emoji = NeoSmart.Unicode.Emoji;
@@ -93,32 +94,24 @@ internal static partial class FormatUtility
         // Remove URLs starting with "http://" or "https://".
         result = UrlRegex.Replace(result, string.Empty);
 
-        // Remove unicode emoji recognized by Unicode.net. Emoji are checked per code point, so
-        // surrogate pairs are grouped into a single unit before the check.
+        // Remove unicode emoji recognized by Unicode.net. Text is checked per grapheme cluster so
+        // multi-code point emoji (ZWJ sequences, skin tones, variation selectors, keycaps) are removed whole.
         var stringBuilder = new StringBuilder(result.Length);
-        Span<char> surrogateUnit = stackalloc char[2];
         var index = 0;
         while (index < result.Length)
         {
-            var c = result[index];
-            if (char.IsHighSurrogate(c) && index + 1 < result.Length && char.IsLowSurrogate(result[index + 1]))
-            {
-                surrogateUnit[0] = c;
-                surrogateUnit[1] = result[index + 1];
-                if (!Emoji.IsEmoji(new string(surrogateUnit)))
-                {
-                    stringBuilder.Append(c).Append(result[index + 1]);
-                }
+            var length = StringInfo.GetNextTextElementLength(result.AsSpan(index));
+            var element = result.AsSpan(index, length);
 
-                index++;
-            }
-            else if (char.IsSurrogate(c) || !Emoji.IsEmoji(c.ToString()))
+            // A lone ASCII char is never an emoji, so skip the costly check. Lone surrogates are
+            // preserved because they are not valid code points to check.
+            if ((length == 1 && (char.IsAscii(element[0]) || char.IsSurrogate(element[0])))
+                || !Emoji.IsEmoji(element.ToString()))
             {
-                // Lone surrogates are preserved because they are not valid code points to check.
-                stringBuilder.Append(c);
+                stringBuilder.Append(element);
             }
 
-            index++;
+            index += length;
         }
 
         result = stringBuilder.ToString();
