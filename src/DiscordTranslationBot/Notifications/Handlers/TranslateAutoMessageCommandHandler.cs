@@ -132,7 +132,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                 },
                 cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             // TranslationFailureException already logs an error message.
             if (ex is not TranslationFailureException)

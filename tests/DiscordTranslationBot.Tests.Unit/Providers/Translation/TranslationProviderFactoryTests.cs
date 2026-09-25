@@ -254,4 +254,30 @@ public sealed class TranslationProviderFactoryTests
             .ThrowAsync<TranslationFailureException>()
             .Where(ex => !string.IsNullOrWhiteSpace(ex.ProviderName) && ex.InnerException is InvalidOperationException);
     }
+
+    [Fact]
+    public async Task TranslateAsync_Cancelled_DoesNotFailOver()
+    {
+        // Arrange
+        await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
+
+        var cancelledToken = new CancellationToken(canceled: true);
+
+        _primaryProvider
+            .TranslateAsync(default!, default!, cancelledToken)
+            .ThrowsAsyncForAnyArgs(new OperationCanceledException(cancelledToken));
+
+        // Act & Assert
+        await _sut
+            .Awaiting(x => x.TranslateAsync(
+                async (translationProvider, ct) =>
+                    await translationProvider.TranslateAsync(new SupportedLanguage("a", "a"), "text", ct),
+                cancelledToken))
+            .Should()
+            .ThrowAsync<OperationCanceledException>();
+
+        await _lastProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, default!, cancelledToken);
+    }
 }

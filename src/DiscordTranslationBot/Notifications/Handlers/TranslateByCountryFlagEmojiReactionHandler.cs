@@ -109,7 +109,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
                     await translationProvider.TranslateByCountryAsync(country, sanitizedMessage, ct),
                 cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             if (ex is TranslationFailureException translationFailureException
                 && translationFailureException.InnerException is LanguageNotSupportedForCountryException innerEx)

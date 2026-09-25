@@ -155,7 +155,7 @@ internal sealed partial class TranslateToMessageCommandHandler
 
             _log.TranslationSuccess(translationProvider.GetType().Name);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             _log.TranslationFailure(ex, translationProvider.GetType().Name);
 

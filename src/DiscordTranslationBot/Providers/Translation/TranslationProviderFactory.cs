@@ -130,7 +130,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _log.TranslationFailure(ex, providerName);
 
