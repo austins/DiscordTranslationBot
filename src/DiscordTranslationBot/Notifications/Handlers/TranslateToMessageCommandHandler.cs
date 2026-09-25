@@ -59,6 +59,21 @@ internal sealed partial class TranslateToMessageCommandHandler
             referencedMessageId,
             options: new RequestOptions { CancelToken = cancellationToken });
 
+        if (referencedMessage is null)
+        {
+            _log.ReferencedMessageNotFound(referencedMessageId);
+
+            await notification.Interaction.ModifyOriginalResponseAsync(
+                m =>
+                {
+                    m.Content = $"{NeoSmart.Unicode.Emoji.Warning} The original message was deleted.";
+                    m.Components = null;
+                },
+                new RequestOptions { CancelToken = cancellationToken });
+
+            return;
+        }
+
         // Parse the input text.
         var sanitizedText = FormatUtility.SanitizeText(referencedMessage.Content);
         if (string.IsNullOrWhiteSpace(sanitizedText))
@@ -241,6 +256,11 @@ internal sealed partial class TranslateToMessageCommandHandler
             Level = LogLevel.Information,
             Message = "Nothing to translate. The sanitized source message is empty.")]
         public partial void EmptySourceText();
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Referenced message ID {messageId} was not found. It was likely deleted.")]
+        public partial void ReferencedMessageNotFound(ulong messageId);
 
         [LoggerMessage(Level = LogLevel.Information, Message = "Successfully translated text with {providerName}.")]
         public partial void TranslationSuccess(string providerName);

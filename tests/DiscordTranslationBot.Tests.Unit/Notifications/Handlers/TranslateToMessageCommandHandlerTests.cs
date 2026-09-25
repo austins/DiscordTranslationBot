@@ -133,6 +133,52 @@ public sealed class TranslateToMessageCommandHandlerTests
         receivedProperties.Components.Value.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Handle_ButtonExecutedNotification_ReferencedMessageDeleted()
+    {
+        // Arrange
+        var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
+        notification.Interaction.Data.CustomId.Returns(MessageCommandConstants.TranslateTo.TranslateButtonId);
+
+        _messageHelper
+            .GetJumpUrlsInMessage(Arg.Any<IMessage>())
+            .Returns(
+            [
+                new JumpUrl
+                {
+                    IsDmChannel = false,
+                    GuildId = 2UL,
+                    ChannelId = 3UL,
+                    MessageId = 4UL
+                }
+            ]);
+
+        notification
+            .Interaction.Message.Channel.GetMessageAsync(Arg.Any<ulong>(), options: Arg.Any<RequestOptions?>())
+            .Returns((IMessage?)null);
+
+        var receivedProperties = new MessageProperties();
+
+        notification
+            .Interaction
+            .When(x => x.ModifyOriginalResponseAsync(Arg.Any<Action<MessageProperties>>(), Arg.Any<RequestOptions?>()))
+            .Do(x => x.Arg<Action<MessageProperties>>().Invoke(receivedProperties));
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        receivedProperties
+            .Content.Value.Should()
+            .Be($"{NeoSmart.Unicode.Emoji.Warning} The original message was deleted.");
+
+        receivedProperties.Components.Value.Should().BeNull();
+
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
+    }
+
     [Theory]
     [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
     [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
