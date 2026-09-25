@@ -54,12 +54,12 @@ internal sealed class Worker : IHostedService
             return;
         }
 
+        // Initialize the Discord event listener before connecting so no events are missed.
+        await _eventListener.InitializeEventsAsync(cancellationToken);
+
         // Initialize the Discord client.
         await _client.LoginAsync(TokenType.Bot, _discordOptions.Value.BotToken);
         await _client.StartAsync();
-
-        // Initialize the Discord event listener.
-        await _eventListener.InitializeEventsAsync(cancellationToken);
     }
 
     /// <summary>
