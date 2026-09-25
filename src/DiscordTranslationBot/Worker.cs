@@ -55,7 +55,8 @@ internal sealed class Worker : IHostedService
         }
 
         // Initialize the Discord event listener before connecting so no events are missed.
-        await _eventListener.InitializeEventsAsync(cancellationToken);
+        // The StartAsync token only covers startup, so events use the stopping token instead.
+        await _eventListener.InitializeEventsAsync(_hostApplicationLifetime.ApplicationStopping);
 
         // Initialize the Discord client.
         await _client.LoginAsync(TokenType.Bot, _discordOptions.Value.BotToken);
