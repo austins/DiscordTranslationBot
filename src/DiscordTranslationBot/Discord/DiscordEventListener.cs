@@ -138,8 +138,14 @@ internal sealed partial class DiscordEventListener
                     {
                         await _mediator.Publish(notification, cancellationToken);
                     }
+                    catch (Exception) when (cancellationToken.IsCancellationRequested)
+                    {
+                        _log.NotificationCancelled(notificationName);
+                    }
                     catch (Exception ex)
                     {
+                        traceActivity?.AddException(ex);
+                        traceActivity?.SetStatus(ActivityStatusCode.Error);
                         _log.NotificationException(ex, notificationName);
                     }
                 }
@@ -228,6 +234,11 @@ internal sealed partial class DiscordEventListener
             Level = LogLevel.Error,
             Message = "An exception was thrown while publishing notification '{notificationName}'.")]
         public partial void NotificationException(Exception ex, string notificationName);
+
+        [LoggerMessage(
+            Level = LogLevel.Information,
+            Message = "Notification '{notificationName}' was cancelled because the application is stopping.")]
+        public partial void NotificationCancelled(string notificationName);
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to publish notification in background.")]
         public partial void FailedToPublishInBackground(Exception ex);
