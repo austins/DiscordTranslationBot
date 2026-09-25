@@ -13,6 +13,7 @@ namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 public sealed class TranslateToMessageCommandHandlerTests
 {
     private readonly IMessageHelper _messageHelper;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly TranslateToMessageCommandHandler _sut;
     private readonly ITranslationProvider _translationProvider;
     private readonly ITranslationProviderFactory _translationProviderFactory;
@@ -26,10 +27,46 @@ public sealed class TranslateToMessageCommandHandlerTests
 
         _messageHelper = Substitute.For<IMessageHelper>();
 
+        _rateLimiter = Substitute.For<ITranslationRateLimiter>();
+        _rateLimiter.TryAcquire(Arg.Any<ulong>()).Returns(true);
+
         _sut = new TranslateToMessageCommandHandler(
             _translationProviderFactory,
             _messageHelper,
+            _rateLimiter,
             new LoggerFake<TranslateToMessageCommandHandler>());
+    }
+
+    [Theory]
+    [InlineData(MessageCommandConstants.TranslateTo.TranslateButtonId)]
+    [InlineData(MessageCommandConstants.TranslateTo.TranslateAndShareButtonId)]
+    public async Task Handle_ButtonExecutedNotification_Returns_WhenRateLimited(string buttonId)
+    {
+        // Arrange
+        var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
+        notification.Interaction.Data.CustomId.Returns(buttonId);
+        notification.Interaction.User.Id.Returns(1UL);
+
+        _rateLimiter.TryAcquire(1UL).Returns(false);
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await notification.Interaction.Received(1).DeferAsync(true, Arg.Any<RequestOptions>());
+
+        await notification
+            .Interaction.Received(1)
+            .FollowupAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>());
+
+        _messageHelper.DidNotReceiveWithAnyArgs().GetJumpUrlsInMessage(default!);
+
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

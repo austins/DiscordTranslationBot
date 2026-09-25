@@ -18,6 +18,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
     private readonly IMessageCommandInteraction _interaction;
     private readonly IMessage _message;
     private readonly MessageCommandExecutedNotification _notification;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly TranslateAutoMessageCommandHandler _sut;
 
     public TranslateAutoMessageCommandHandlerTests()
@@ -45,11 +46,40 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         _notification = new MessageCommandExecutedNotification { Interaction = _interaction };
 
+        _rateLimiter = Substitute.For<ITranslationRateLimiter>();
+        _rateLimiter.TryAcquire(Arg.Any<ulong>()).Returns(true);
+
         _sut = new TranslateAutoMessageCommandHandler(
             client,
             _translationProviderFactory,
             messageHelper,
+            _rateLimiter,
             new LoggerFake<TranslateAutoMessageCommandHandler>());
+    }
+
+    [Fact]
+    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenRateLimited()
+    {
+        // Arrange
+        _message.Content.Returns("text");
+        _rateLimiter.TryAcquire(Arg.Any<ulong>()).Returns(false);
+
+        // Act
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _interaction
+            .Received(1)
+            .RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>());
+
+        await _interaction.DidNotReceiveWithAnyArgs().DeferAsync();
+
+        await _translationProviderFactory
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, TestContext.Current.CancellationToken);
     }
 
     [Theory]

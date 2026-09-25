@@ -22,6 +22,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly ISender _sender;
     private readonly ITranslationProviderFactory _translationProviderFactory;
 
@@ -32,18 +33,21 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="sender">Mediator sender to use.</param>
     /// <param name="messageHelper">Message helper to use.</param>
+    /// <param name="rateLimiter">Translation rate limiter to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateByCountryFlagEmojiReactionHandler(
         IDiscordClient client,
         ITranslationProviderFactory translationProviderFactory,
         ISender sender,
         IMessageHelper messageHelper,
+        ITranslationRateLimiter rateLimiter,
         ILogger<TranslateByCountryFlagEmojiReactionHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
         _sender = sender;
         _messageHelper = messageHelper;
+        _rateLimiter = rateLimiter;
         _log = new Log(logger);
     }
 
@@ -82,6 +86,12 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
                 notification.ReactionInfo.UserId,
                 new RequestOptions { CancelToken = cancellationToken });
 
+            return;
+        }
+
+        // Silently ignore rate limited reactions to avoid making additional Discord API calls.
+        if (!_rateLimiter.TryAcquire(notification.ReactionInfo.UserId))
+        {
             return;
         }
 

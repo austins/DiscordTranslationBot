@@ -3,6 +3,7 @@ using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
 
 namespace DiscordTranslationBot.Notifications.Handlers;
@@ -10,18 +11,22 @@ namespace DiscordTranslationBot.Notifications.Handlers;
 internal sealed partial class TranslateSlashCommandHandler : INotificationHandler<SlashCommandExecutedNotification>
 {
     private readonly Log _log;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslateSlashCommandHandler" /> class.
     /// </summary>
     /// <param name="translationProviderFactory">Translation provider factory.</param>
+    /// <param name="rateLimiter">Translation rate limiter to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateSlashCommandHandler(
         ITranslationProviderFactory translationProviderFactory,
+        ITranslationRateLimiter rateLimiter,
         ILogger<TranslateSlashCommandHandler> logger)
     {
         _translationProviderFactory = translationProviderFactory;
+        _rateLimiter = rateLimiter;
         _log = new Log(logger);
     }
 
@@ -50,6 +55,16 @@ internal sealed partial class TranslateSlashCommandHandler : INotificationHandle
 
             await notification.Interaction.RespondAsync(
                 $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
+            return;
+        }
+
+        if (!_rateLimiter.TryAcquire(notification.Interaction.User.Id))
+        {
+            await notification.Interaction.RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 

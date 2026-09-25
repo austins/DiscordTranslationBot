@@ -36,6 +36,7 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     private readonly IUserMessage _message;
     private readonly ReactionAddedNotification _notification;
     private readonly ISender _sender;
+    private readonly ITranslationRateLimiter _rateLimiter;
 
     private readonly TranslateByCountryFlagEmojiReactionHandler _sut;
 
@@ -78,12 +79,37 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             }
         };
 
+        _rateLimiter = Substitute.For<ITranslationRateLimiter>();
+        _rateLimiter.TryAcquire(Arg.Any<ulong>()).Returns(true);
+
         _sut = new TranslateByCountryFlagEmojiReactionHandler(
             client,
             _translationProviderFactory,
             _sender,
             messageHelper,
+            _rateLimiter,
             new LoggerFake<TranslateByCountryFlagEmojiReactionHandler>());
+    }
+
+    [Fact]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_Returns_WhenRateLimited()
+    {
+        // Arrange
+        _rateLimiter.TryAcquire(_notification.ReactionInfo.UserId).Returns(false);
+
+        // Act
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _translationProviderFactory
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, TestContext.Current.CancellationToken);
+
+        await _sender.DidNotReceiveWithAnyArgs().Send(Arg.Any<SendTempReply>(), TestContext.Current.CancellationToken);
+
+        await _message
+            .DidNotReceive()
+            .RemoveReactionAsync(Arg.Any<IEmote>(), Arg.Any<ulong>(), Arg.Any<RequestOptions>());
     }
 
     [Fact]

@@ -52,6 +52,7 @@ builder
             }))
     .AddSingleton<DiscordEventListener>()
     .AddSingleton<IMessageHelper, MessageHelper>()
+    .AddSingleton<ITranslationRateLimiter, TranslationRateLimiter>()
     .AddJobs()
     .AddHostedService<Worker>();
 

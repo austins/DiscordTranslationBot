@@ -4,12 +4,14 @@ using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
+using DiscordTranslationBot.Services;
 using System.Collections.Frozen;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Handlers;
 
 public sealed class TranslateSlashCommandHandlerTests
 {
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly TranslateSlashCommandHandler _sut;
     private readonly ITranslationProvider _translationProvider;
 
@@ -20,9 +22,52 @@ public sealed class TranslateSlashCommandHandlerTests
         var translationProviderFactory = Substitute.For<ITranslationProviderFactory>();
         translationProviderFactory.PrimaryProvider.Returns(_translationProvider);
 
+        _rateLimiter = Substitute.For<ITranslationRateLimiter>();
+        _rateLimiter.TryAcquire(Arg.Any<ulong>()).Returns(true);
+
         _sut = new TranslateSlashCommandHandler(
             translationProviderFactory,
+            _rateLimiter,
             new LoggerFake<TranslateSlashCommandHandler>());
+    }
+
+    [Fact]
+    public async Task Handle_SlashCommandExecutedNotification_Returns_WhenRateLimited()
+    {
+        // Arrange
+        var data = Substitute.For<IApplicationCommandInteractionData>();
+        data.Name.Returns(SlashCommandConstants.Translate.CommandName);
+
+        var textOption = Substitute.For<IApplicationCommandInteractionDataOption>();
+        textOption.Name.Returns(SlashCommandConstants.Translate.CommandTextOptionName);
+        textOption.Value.Returns("text");
+
+        data.Options.Returns([textOption]);
+
+        var interaction = Substitute.For<ISlashCommandInteraction>();
+        interaction.Data.Returns(data);
+        interaction.User.Id.Returns(1UL);
+
+        _rateLimiter.TryAcquire(1UL).Returns(false);
+
+        var notification = new SlashCommandExecutedNotification { Interaction = interaction };
+
+        // Act
+        await _sut.Handle(notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await interaction
+            .Received(1)
+            .RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
+                ephemeral: true,
+                options: Arg.Any<RequestOptions>());
+
+        await interaction.DidNotReceive().DeferAsync(Arg.Any<bool>(), Arg.Any<RequestOptions>());
+
+        await _translationProvider
+            .DidNotReceiveWithAnyArgs()
+            .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]

@@ -16,15 +16,18 @@ internal sealed partial class TranslateToMessageCommandHandler
 {
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly ITranslationProviderFactory _translationProviderFactory;
 
     public TranslateToMessageCommandHandler(
         ITranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
+        ITranslationRateLimiter rateLimiter,
         ILogger<TranslateToMessageCommandHandler> logger)
     {
         _translationProviderFactory = translationProviderFactory;
         _messageHelper = messageHelper;
+        _rateLimiter = rateLimiter;
         _log = new Log(logger);
     }
 
@@ -38,6 +41,17 @@ internal sealed partial class TranslateToMessageCommandHandler
         }
 
         await notification.Interaction.DeferAsync(true, new RequestOptions { CancelToken = cancellationToken });
+
+        // Send a follow-up instead of modifying the original response so the user can retry with the same message.
+        if (!_rateLimiter.TryAcquire(notification.Interaction.User.Id))
+        {
+            await notification.Interaction.FollowupAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
+            return;
+        }
 
         var referencedMessageId = _messageHelper.GetJumpUrlsInMessage(notification.Interaction.Message)[0].MessageId;
 

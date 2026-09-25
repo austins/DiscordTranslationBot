@@ -18,6 +18,7 @@ internal sealed partial class TranslateAutoMessageCommandHandler
     private readonly IDiscordClient _client;
     private readonly Log _log;
     private readonly IMessageHelper _messageHelper;
+    private readonly ITranslationRateLimiter _rateLimiter;
     private readonly ITranslationProviderFactory _translationProviderFactory;
 
     /// <summary>
@@ -26,16 +27,19 @@ internal sealed partial class TranslateAutoMessageCommandHandler
     /// <param name="client">Discord client to use.</param>
     /// <param name="translationProviderFactory">Translation provider factory to use.</param>
     /// <param name="messageHelper">Message helper to use.</param>
+    /// <param name="rateLimiter">Translation rate limiter to use.</param>
     /// <param name="logger">Logger to use.</param>
     public TranslateAutoMessageCommandHandler(
         IDiscordClient client,
         ITranslationProviderFactory translationProviderFactory,
         IMessageHelper messageHelper,
+        ITranslationRateLimiter rateLimiter,
         ILogger<TranslateAutoMessageCommandHandler> logger)
     {
         _client = client;
         _translationProviderFactory = translationProviderFactory;
         _messageHelper = messageHelper;
+        _rateLimiter = rateLimiter;
         _log = new Log(logger);
     }
 
@@ -70,6 +74,16 @@ internal sealed partial class TranslateAutoMessageCommandHandler
 
             await notification.Interaction.RespondAsync(
                 $"{NeoSmart.Unicode.Emoji.Warning} No text to translate.",
+                ephemeral: true,
+                options: new RequestOptions { CancelToken = cancellationToken });
+
+            return;
+        }
+
+        if (!_rateLimiter.TryAcquire(notification.Interaction.User.Id))
+        {
+            await notification.Interaction.RespondAsync(
+                $"{NeoSmart.Unicode.Emoji.Warning} {ITranslationRateLimiter.RateLimitedMessage}",
                 ephemeral: true,
                 options: new RequestOptions { CancelToken = cancellationToken });
 
