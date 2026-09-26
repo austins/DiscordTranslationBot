@@ -26,21 +26,14 @@ internal static class TelemetryExtensions
         });
 
         builder
-            .Services
             .AddOpenTelemetry()
             .ConfigureResource(b =>
-                b
-                    .AddService(
-                        builder.Environment.ApplicationName,
-                        serviceVersion: typeof(TelemetryExtensions)
-                            .Assembly
-                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                            ?.InformationalVersion)
-                    .AddAttributes(
-                        new Dictionary<string, object>
-                        {
-                            ["deployment.environment"] = builder.Environment.EnvironmentName
-                        }))
+                b.AddService(
+                    builder.Environment.ApplicationName,
+                    serviceVersion: typeof(TelemetryExtensions)
+                        .Assembly
+                        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                        ?.InformationalVersion))
             .WithMetrics(b =>
                 b
                     .AddMeter(builder.Environment.ApplicationName)
