@@ -133,12 +133,12 @@
       },
       "Refit.HttpClientFactory": {
         "type": "Direct",
-        "requested": "[16.1.0, )",
-        "resolved": "16.1.0",
-        "contentHash": "iDqswfpxL5CEXfHJWRH0NW/eVOZpGh4VKTDwndzTanm73ASBupSg/K/i7Q6F4dZyQ7FspxVMnBZTl7MNOV781w==",
+        "requested": "[16.3.0, )",
+        "resolved": "16.3.0",
+        "contentHash": "K43qHN+iXSm3rgShKsZfPre/8BvJqI9Xh/tO9ehoX0gE7IZXvzZ+y+ypsjmBdjYPKTwJpX0irAvc/XKtPmLucQ==",
         "dependencies": {
-          "ReactiveUI.Primitives": "8.0.0",
-          "Refit": "16.1.0"
+          "ReactiveUI.Primitives": "8.2.0",
+          "Refit": "16.3.0"
         }
       },
       "SonarAnalyzer.CSharp": {
@@ -330,32 +330,32 @@
       },
       "ReactiveUI.Disposables": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "/kdZNJhwm+ehPCaFBGQ0ncgHIWlgA4ElMpfdxQ1ukqx/tFnkTAMVdaQs3IhKA6Ogk1LrA5SimFWCauFuh/dJaA=="
+        "resolved": "8.2.0",
+        "contentHash": "vpNi3q3oyIyQYLHcUfnmYeV4dBlrCoWFgaFuJXvI+yaKOq/sFcN+cZiuUzV+8Pl6cVnOYPoWPIx2WNzVI/WzcQ=="
       },
       "ReactiveUI.Primitives": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "/XGecYDWhzwD+kXDbnSsrigzOdBfZsmKGDg091F5VBV2IQ20ebXJHJaMmD1Tchr6wQ5dfx2AoAgsUptAmes28g==",
+        "resolved": "8.2.0",
+        "contentHash": "Hlog9ANgfh7tcHX0XXhojZPBXStCgqF7XCzcH+niN8eRLi+RE8CAUEf2ufrgLOOwQMTCKlUTy8wU2fvP5YjMqA==",
         "dependencies": {
-          "ReactiveUI.Disposables": "8.0.0",
-          "ReactiveUI.Primitives.Core": "8.0.0"
+          "ReactiveUI.Disposables": "8.2.0",
+          "ReactiveUI.Primitives.Core": "8.2.0"
         }
       },
       "ReactiveUI.Primitives.Core": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "bQDmkhRifHDn9a3IwMLlEXV2TNr8rPpWnoNLGQ+//SwEN1zRbvsH+927MrXwYrvADLoMdvntTlNx8W/i5TSDrg==",
+        "resolved": "8.2.0",
+        "contentHash": "PNBtwHrBFoR8IE8aMMQMZZSH/pH4l8gFqs2fwRERObBlapQf82vT833BYlW28oT1aJKm7sXamEWgf7TR25DPiQ==",
         "dependencies": {
-          "ReactiveUI.Disposables": "8.0.0"
+          "ReactiveUI.Disposables": "8.2.0"
         }
       },
       "Refit": {
         "type": "Transitive",
-        "resolved": "16.1.0",
-        "contentHash": "VBIuKAptJbYJyLcqqyjOfg9bXhmF7Hq24AsbLRbUbhsTgwWhG0O/A0lyiPu7y9wn/0oe+svEk8SsiVLm59sILw==",
+        "resolved": "16.3.0",
+        "contentHash": "tQS8KnCqSrQPFIjYNglhU1heHSo0NOR82fLSqa4btzrtsvNs3JR8/VETFil2wFB+vncJ/vUpULhR4T0YxfZzTQ==",
         "dependencies": {
-          "ReactiveUI.Primitives": "8.0.0"
+          "ReactiveUI.Primitives": "8.2.0"
         }
       },
       "StyleCop.Analyzers.Unstable": {
