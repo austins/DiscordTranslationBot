@@ -4,6 +4,7 @@
     <File Path=".editorconfig" />
     <File Path=".gitattributes" />
     <File Path=".gitignore" />
+    <File Path="AGENTS.md" />
     <File Path="Directory.Build.props" />
     <File Path="global.json" />
     <File Path="LICENSE" />
