@@ -62,12 +62,8 @@ internal sealed partial class DiscordEventListener
             new MessageCommandExecutedNotification { Interaction = messageCommand },
             cancellationToken);
 
-        _client.SelectMenuExecuted += interaction => PublishInBackgroundAsync(
-            new SelectMenuExecutedNotification { Interaction = interaction },
-            cancellationToken);
-
-        _client.ButtonExecuted += interaction => PublishInBackgroundAsync(
-            new ButtonExecutedNotification { Interaction = interaction },
+        _client.ModalSubmitted += modal => PublishInBackgroundAsync(
+            new ModalSubmittedNotification { Interaction = modal },
             cancellationToken);
 
         _client.SlashCommandExecuted += slashCommand => PublishInBackgroundAsync(
@@ -130,9 +126,7 @@ internal sealed partial class DiscordEventListener
                         traceState = BuildTraceState(notification);
                     }
 
-                    using var traceLogScope = traceState is null
-                        ? NoOpScope.Instance
-                        : _logger.BeginScope(traceState);
+                    using var traceLogScope = traceState is null ? NoOpScope.Instance : _logger.BeginScope(traceState);
 
                     try
                     {

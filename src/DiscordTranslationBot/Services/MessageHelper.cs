@@ -1,58 +1,12 @@
 using Discord;
-using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
-using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using IMessage = Discord.IMessage;
 
 namespace DiscordTranslationBot.Services;
 
-internal sealed partial class MessageHelper : IMessageHelper
+internal sealed class MessageHelper : IMessageHelper
 {
-    public const string DmChannelId = "@me";
-
-    [GeneratedRegex($@"https:\/\/discord\.com\/channels\/({DmChannelId}|\d+)\/(\d+)\/(\d+)")]
-    private static partial Regex JumpUrlRegex { get; }
-
-    public Uri GetJumpUrl(IMessage message)
-    {
-        return new Uri(message.GetJumpUrl(), UriKind.Absolute);
-    }
-
-    public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message)
-    {
-        List<JumpUrl> jumpUrls = [];
-        var content = message.CleanContent;
-
-        foreach (var url in JumpUrlRegex.EnumerateMatches(content))
-        {
-            var match = content.AsSpan(url.Index, url.Length);
-
-            // The regex guarantees the tail shape "/{guildIdOrDm}/{channelId}/{messageId}", so the ids
-            // are read from the last three slash separators without any intermediate string allocations.
-            var messageSeparator = match.LastIndexOf('/');
-            var channelSeparator = match[..messageSeparator].LastIndexOf('/');
-            var guildSeparator = match[..channelSeparator].LastIndexOf('/');
-
-            var guildIdOrDm = match[(guildSeparator + 1)..channelSeparator];
-            var isDmChannel = guildIdOrDm.SequenceEqual(DmChannelId);
-
-            jumpUrls.Add(
-                new JumpUrl
-                {
-                    IsDmChannel = isDmChannel,
-                    GuildId = isDmChannel ? null : ulong.Parse(guildIdOrDm, CultureInfo.InvariantCulture),
-                    ChannelId = ulong.Parse(
-                        match[(channelSeparator + 1)..messageSeparator],
-                        CultureInfo.InvariantCulture),
-                    MessageId = ulong.Parse(match[(messageSeparator + 1)..], CultureInfo.InvariantCulture)
-                });
-        }
-
-        return jumpUrls;
-    }
-
     public string BuildTranslationReplyWithReference(
         IMessage referencedMessage,
         TranslationResult translationResult,
@@ -61,7 +15,7 @@ internal sealed partial class MessageHelper : IMessageHelper
         var stringBuilder =
             new StringBuilder(interactionUserId is null ? "You" : MentionUtils.MentionUser(interactionUserId.Value))
                 .Append(" translated ")
-                .Append(GetJumpUrl(referencedMessage));
+                .Append(referencedMessage.GetJumpUrl());
 
         if (interactionUserId != referencedMessage.Author.Id)
         {
@@ -87,18 +41,6 @@ internal sealed partial class MessageHelper : IMessageHelper
 
 internal interface IMessageHelper
 {
-    /// <summary>
-    /// Get a jump URL for a message.
-    /// </summary>
-    /// <remarks>
-    /// Discord.Net's <see cref="MessageExtensions.GetJumpUrl" /> is an extension. In order to test it, we must wrap it.
-    /// </remarks>
-    /// <param name="message">The message to get a jump URL for.</param>
-    /// <returns>Jump URL of the message.</returns>
-    public Uri GetJumpUrl(IMessage message);
-
-    public IReadOnlyList<JumpUrl> GetJumpUrlsInMessage(IMessage message);
-
     /// <summary>
     /// Build a reply for a message being translated with a jump URL and info about the referenced message.
     /// </summary>
