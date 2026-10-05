@@ -33,9 +33,9 @@ set in your Discord settings. Only you can see the translation.
 
 ### `Translate To...` message command
 
-Right-click a message (or long-press on mobile), then select _Apps_ > _Translate To..._ and choose a language from the
-menu. Select _Translate_ to see the translation yourself, or _Translate & Share_ to post it in the channel as a reply to
-the original message.
+Right-click a message (or long-press on mobile), then select _Apps_ > _Translate To..._ and pick a language in the form
+that opens. Only you see the translation unless you tick _Share in channel_, which posts it as a reply to the original
+message.
 
 ### Limitations
 

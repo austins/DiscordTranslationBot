@@ -4,13 +4,13 @@ using DiscordTranslationBot.Notifications.Events;
 
 namespace DiscordTranslationBot.Tests.Unit.Notifications.Events;
 
-public sealed class ButtonExecutedNotificationTests
+public sealed class ModalSubmittedNotificationTests
 {
     [Fact]
     public void Valid_Validates_WithNoErrors()
     {
         // Arrange
-        var notification = new ButtonExecutedNotification { Interaction = Substitute.For<IComponentInteraction>() };
+        var notification = new ModalSubmittedNotification { Interaction = Substitute.For<IModalInteraction>() };
 
         // Act
         var isValid = notification.TryValidate(out var validationResults);
@@ -24,7 +24,7 @@ public sealed class ButtonExecutedNotificationTests
     public void Invalid_Interaction_Validates_WithErrors()
     {
         // Arrange
-        var notification = new ButtonExecutedNotification { Interaction = null! };
+        var notification = new ModalSubmittedNotification { Interaction = null! };
 
         // Act
         var isValid = notification.TryValidate(out var validationResults);

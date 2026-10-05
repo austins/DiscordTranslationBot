@@ -28,18 +28,18 @@ internal static class MessageCommandConstants
         public const string CommandName = "Translate To...";
 
         /// <summary>
-        /// The unique custom ID of the select menu.
+        /// The custom ID prefix of the modal, followed by the ID of the message to translate.
         /// </summary>
-        public const string SelectMenuId = $"{nameof(TranslateTo)}_SelectMenu";
+        public const string ModalIdPrefix = $"{nameof(TranslateTo)}_Modal:";
 
         /// <summary>
-        /// The unique custom ID of the translate button.
+        /// The unique custom ID of the language select menu in the modal.
         /// </summary>
-        public const string TranslateButtonId = $"{nameof(TranslateTo)}_TranslateButton";
+        public const string LanguageSelectMenuId = $"{nameof(TranslateTo)}_LanguageSelectMenu";
 
         /// <summary>
-        /// The unique custom ID of the translate and share button.
+        /// The unique custom ID of the share checkbox in the modal.
         /// </summary>
-        public const string TranslateAndShareButtonId = $"{nameof(TranslateTo)}_TranslateAndShareButton";
+        public const string ShareCheckboxId = $"{nameof(TranslateTo)}_ShareCheckbox";
     }
 }
