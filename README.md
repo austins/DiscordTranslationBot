@@ -2,41 +2,71 @@
 
 <img src="https://github.com/austins/DiscordTranslationBot/assets/1623983/96f1b58b-94f4-4df6-a81c-34e4f0342dc0" align="right" alt="Globe with flags" />
 
-A Discord bot that allows translations of messages in a Discord server (guild) using country flags and `/translate`
-command, powered by .NET
-and [Discord.Net](https://github.com/discord-net/Discord.Net).
+A Discord bot that translates messages in a Discord server (guild) using country flag reactions, the `/translate`
+command, and message commands, powered by .NET and [Discord.Net](https://github.com/discord-net/Discord.Net).
 
-It supports the following translation providers, all of which are disabled by default, that run in the following order:
+It supports the following translation providers, all of which are disabled by default, in this order of priority:
 
-1. [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) (has a free tier)
+1. [Azure Translator](https://azure.microsoft.com/en-us/products/ai-foundry/tools/translator) (has a free tier)
 2. [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) (free and open-source)
 
-If any provider fails to provide a translation, the bot will use the next provider if any as a fallback. At least one
-provider is required or else the app will exit with an error.
+If a provider fails to translate, the bot falls back to the next enabled provider. At least one provider must be
+enabled or the app will exit.
 
-Which providers are enabled can be configured per the instructions below.
+## Features
+
+### Country flag reactions
+
+React to a message with a country flag emoji to translate it to that country's language. The bot replies to the
+message with the translation, then deletes the reply and removes your reaction after 90 seconds. If the translation
+fails, the bot posts an error reply that is deleted after 15 seconds.
+
+### `/translate` slash command
+
+Translate any text and post the result in the channel. The `to` and `text` options are required. If you leave out
+`from`, the source language is detected automatically.
+
+### `Translate (Auto)` message command
+
+Right-click a message (or long-press on mobile), then select _Apps_ > _Translate (Auto)_ to translate it to the language
+set in your Discord settings. Only you can see the translation.
+
+### `Translate To...` message command
+
+Right-click a message (or long-press on mobile), then select _Apps_ > _Translate To..._ and choose a language from the
+menu. Select _Translate_ to see the translation yourself, or _Translate & Share_ to post it in the channel as a reply to
+the original message.
+
+### Limitations
+
+* The `/translate` and `Translate To...` commands only use the first enabled translation provider. Their language
+  choices are limited to 25 of that provider's supported languages because of Discord's limit on the number of
+  choices.
+* Messages sent by the bot can't be translated.
+* Each user can request up to 5 translations every 30 seconds. Flag reactions beyond this limit are ignored.
 
 ## Requirements
 
-### Create a Discord Bot
+### Create a Discord bot
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and create a new application with
    the name you want the bot to have.
-2. Go to the "Bot" tab in the sidebar and create a bot. Take note of the bot token to use for development or production.
-   Check the setting for whether you want it to be a Public Bot or not.
-3. Enable "Message Content Intent" under _Privileged Gateway Intents_.
-4. Go to the "OAuth2" -> "URL Generator" tab in the sidebar. Check the following scopes: `bot` and
-   permissions: `Send Messages`, `Manage Messages`, and `Read Message History`.
-5. Copy the Generated URL and open it in your browser to add the bot to your Discord server.
+2. Go to the "Bot" page in the sidebar and click "Reset Token" to get the bot token. Save it somewhere safe, as you
+   can't view it again. Turn off "Public Bot" if you don't want other people to add the bot to their servers.
+3. On the same page, enable "Message Content Intent" under _Privileged Gateway Intents_.
+4. Go to the "OAuth2" page in the sidebar and use the URL generator. Select the `bot` scope and the `Send Messages`,
+   `Manage Messages`, and `Read Message History` permissions.
+5. Open the generated URL in your browser to add the bot to your Discord server.
 
 ### Optional: Run LibreTranslate
 
-1. See the [LibreTranslate repository](https://github.com/LibreTranslate/LibreTranslate) and their Docker Compose files for instructions on how to run a LibreTranslate Docker container.
-2. Optionally, you can mount a named volume `/home/libretranslate/.local` to persist the language models and avoid redownloading them on startup.
+1. See the [LibreTranslate repository](https://github.com/LibreTranslate/LibreTranslate) for how to run it with Docker.
+2. To keep the language models between restarts, mount a named volume at `/home/libretranslate/.local`.
 
 ## Development
 
-1. Configure the user secrets file with the required environment variables. Example below:
+1. Configure the [user secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) file for
+   `src/DiscordTranslationBot` with the required settings. Example below:
 
 ```json
 {
@@ -46,7 +76,7 @@ Which providers are enabled can be configured per the instructions below.
   "TranslationProviders": {
     "AzureTranslator": {
       "Enabled": true,
-      "ApiUrl": "https://api.cognitive.microsofttranslator.com", 
+      "ApiUrl": "https://api.cognitive.microsofttranslator.com",
       "Region": "",
       "SecretKey": ""
     },
@@ -54,7 +84,7 @@ Which providers are enabled can be configured per the instructions below.
       "Enabled": true,
       "ApiUrl": "http://localhost:5000"
     }
-  }, 
+  },
   "Telemetry": {
     "Enabled": true
   },
@@ -68,10 +98,10 @@ Which providers are enabled can be configured per the instructions below.
 
 ## Deployment
 
-1. Build a Docker image with `docker build -t discordtranslationbot -f ./src/DiscordTranslationBot/Dockerfile .` in the directory that contains the `Dockerfile`.
-2. Create and run a container with `docker run discordtranslationbot` and the following environment variables
-   configured. Make sure that you've created a Discord bot and have configured at least one translation provider using
-   the steps above. Example below:
+1. Build a Docker image by running `docker build -t discordtranslationbot -f ./src/DiscordTranslationBot/Dockerfile .`
+   from the repository root.
+2. Run a container with `docker run --env-file <file> discordtranslationbot`, where the file sets the following
+   environment variables:
 
 ```
 Discord__BotToken=
@@ -80,28 +110,24 @@ TranslationProviders__AzureTranslator__ApiUrl=https://api.cognitive.microsofttra
 TranslationProviders__AzureTranslator__Region=
 TranslationProviders__AzureTranslator__SecretKey=
 TranslationProviders__LibreTranslate__Enabled=true
-TranslationProviders__LibreTranslate__ApiUrl=http://localhost:5000
+TranslationProviders__LibreTranslate__ApiUrl=http://libretranslate:5000
 ```
 
-_All translation providers are disabled by default. Set the `TranslationProviders__ProviderName__Enabled` config setting
-to `true` for those you which to
-enable. When a provider is enabled, you must provide the related config settings for the provider or the app will exit
-with an error._
+_Set `TranslationProviders__<ProviderName>__Enabled` to `true` for each provider you want to enable. An enabled
+provider must have all of its settings configured or the app will exit with an error._
 
 ## Telemetry
 
-This app logs general information, warnings, and errors that may occur during runtime, along with metrics and traces for
-performance and detection of any issues from code or external calls; the bot does not log contents of messages.
+The app logs information, warnings, and errors, and collects metrics and traces for performance and troubleshooting. It
+doesn't log the contents of messages.
 
-You can configure the app to persist logging, metric, and trace output using the OpenTelemetry protocol by enabling the
-following option via an environment variable:
+To export logs, metrics, and traces using the OpenTelemetry protocol, enable the following setting:
 
 ```
 Telemetry__Enabled=true
 ```
 
-Then you'll need to configure the OpenTelemetry Exporter. Here are some example environment variables for a global
-endpoint:
+Then configure the OpenTelemetry exporter. Example environment variables:
 
 ```
 OTEL_EXPORTER_OTLP_ENDPOINT=

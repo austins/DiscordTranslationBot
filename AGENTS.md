@@ -16,7 +16,8 @@
 ## Conventions
 
 - Log IDs, names, and counts only; message contents stay out of logs and traces (a privacy promise in the README).
-- Keep both README config examples in sync with the options classes: user-secrets JSON and `Section__Key` env vars.
+- Keep the README in sync: both config examples (user-secrets JSON, `Section__Key` env vars) with the options classes,
+  and Features with the handlers' delays and limits.
 - Discord API calls pass `options: new RequestOptions { CancelToken = cancellationToken }`, and bot messages pass
   `allowedMentions: AllowedMentions.None`.
 
