@@ -45,9 +45,9 @@
       },
       "Markdig.Signed": {
         "type": "Direct",
-        "requested": "[1.4.0, )",
-        "resolved": "1.4.0",
-        "contentHash": "qCRMzlmmkBOy2mo1vH58+6YoxRLuT79izKoGUyveRLqploap0Pg7/y1smZZa1i9OCy0ATfB8v5yOEuSUb9DPXw=="
+        "requested": "[1.4.1, )",
+        "resolved": "1.4.1",
+        "contentHash": "S0iUG4xpq5UQdBfuFtNFNBdvN1+msL0TPWLPA9w06DvjF2XyGX1MjKBWIrrCJy7IDLrZkx5/9HrmE1cC3mjFvA=="
       },
       "Mediator.Abstractions": {
         "type": "Direct",
