@@ -18,9 +18,11 @@ jobs:
                 uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
                 with:
                     path: ${{ github.workspace }}/.nuget/packages
-                    key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+                    key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', '**/nuget.config', 'global.json') }}
+                    restore-keys: |
+                        ${{ runner.os }}-nuget-
             -   name: Restore dependencies
-                run: dotnet restore --locked-mode
+                run: dotnet restore
             -   name: Test
                 run: dotnet test --no-restore -c Release --results-directory ./test-results -- --report-xunit-ctrf
             -   if: always()

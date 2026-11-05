@@ -4,7 +4,6 @@
 
 - `dotnet build` is the lint: analyzers run in the build and warnings are errors.
 - `dotnet test`; one class: `dotnet test -- --filter-class "*TranslateSlashCommandHandlerTests"`.
-- After changing packages, commit every updated `packages.lock.json`; CI restores with `--locked-mode`.
 
 ## Architecture
 

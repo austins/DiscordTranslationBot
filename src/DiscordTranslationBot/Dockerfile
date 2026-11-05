@@ -10,7 +10,7 @@ COPY --link .editorconfig nuget.config Directory.Build.props ./
 COPY --link ./src/DiscordTranslationBot ./src/DiscordTranslationBot 
 
 # Restore dependencies.
-RUN dotnet restore ./src/DiscordTranslationBot --locked-mode
+RUN dotnet restore ./src/DiscordTranslationBot
 
 # Publish app.
 # The commit SHA is passed in because .git isn't copied, so Source Link can't add it to the informational version.
