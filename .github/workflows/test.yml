@@ -13,7 +13,7 @@ jobs:
             -   name: Set up .NET Core SDK
                 uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
                 with:
-                    dotnet-version: '10.x'
+                    dotnet-version: '11.x'
             -   name: Cache NuGet packages
                 uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
                 with:

@@ -17,7 +17,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
         IEnumerable<ITranslationProvider> translationProviders,
         ILogger<TranslationProviderFactory> logger)
     {
-        _providers = translationProviders.ToList();
+        _providers = [.. translationProviders];
         _log = new Log(logger);
     }
 
@@ -69,21 +69,25 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
             if (PrimaryProvider.TranslateCommandLangCodes.Count == 0)
             {
                 // If no lang codes are specified, take the first up to the max options limit.
-                supportedLanguages = PrimaryProvider
-                    .SupportedLanguages
-                    .Take(SlashCommandOptionBuilder.MaxChoiceCount)
-                    .Select(l => new SupportedLanguage(l.Key, l.Value))
-                    .ToList();
+                supportedLanguages =
+                [
+                    .. PrimaryProvider
+                        .SupportedLanguages
+                        .Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                        .Select(l => new SupportedLanguage(l.Key, l.Value))
+                ];
             }
             else
             {
                 // Get valid specified lang codes up to the limit.
-                supportedLanguages = PrimaryProvider
-                    .SupportedLanguages
-                    .Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
-                    .Take(SlashCommandOptionBuilder.MaxChoiceCount)
-                    .Select(l => new SupportedLanguage(l.Key, l.Value))
-                    .ToList();
+                supportedLanguages =
+                [
+                    .. PrimaryProvider
+                        .SupportedLanguages
+                        .Where(l => PrimaryProvider.TranslateCommandLangCodes.Contains(l.Key))
+                        .Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                        .Select(l => new SupportedLanguage(l.Key, l.Value))
+                ];
 
                 // If there are fewer languages found than the max options and more supported languages,
                 // get the rest up to the max options limit.
@@ -103,7 +107,7 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
                 }
             }
 
-            _supportedLanguagesForOptions = supportedLanguages.OrderBy(l => l.Name).ToImmutableArray();
+            _supportedLanguagesForOptions = [.. supportedLanguages.OrderBy(l => l.Name, StringComparer.Ordinal)];
         }
 
         return _supportedLanguagesForOptions.Value;

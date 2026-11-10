@@ -6,12 +6,7 @@ namespace DiscordTranslationBot.Tests.Unit.Mediator;
 
 public sealed class MessageValidationBehaviorTests
 {
-    private readonly MessageValidationBehavior<IMessage, bool> _sut;
-
-    public MessageValidationBehaviorTests()
-    {
-        _sut = new MessageValidationBehavior<IMessage, bool>();
-    }
+    private readonly MessageValidationBehavior<IMessage, bool> _sut = new();
 
     [Fact]
     public async Task Handle_ValidMessage_NotValidatable_Success()
@@ -67,10 +62,14 @@ public sealed class MessageValidationBehaviorTests
                     TestContext.Current.CancellationToken))
                 .Should()
                 .ThrowAsync<MessageValidationException>())
-            .Which.ValidationResults.Should()
+            .Which
+            .ValidationResults
+            .Should()
             .HaveCount(2)
-            .And.ContainSingle(x => x.MemberNames.Contains(nameof(message.Name)))
-            .And.ContainSingle(x => x.MemberNames.Contains(nameof(message.Value)));
+            .And
+            .ContainSingle(x => x.MemberNames.Contains(nameof(message.Name)))
+            .And
+            .ContainSingle(x => x.MemberNames.Contains(nameof(message.Value)));
     }
 
     private sealed class MessageFake : IMessage

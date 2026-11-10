@@ -38,33 +38,44 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
         {
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                for (var i = 0; i < MaxJobsPerTick; i++)
+                try
                 {
-                    var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
-                    if (job is null)
+                    for (var i = 0; i < MaxJobsPerTick; i++)
                     {
-                        break;
+                        var job = await _scheduler.GetNextJobDueAsync(stoppingToken);
+                        if (job is null)
+                        {
+                            break;
+                        }
+
+                        // Start a trace scope for this job execution.
+                        using var traceActivity = _activitySource.StartActivity(
+                            $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}: {{commandName}}");
+
+                        traceActivity?.SetTag("commandName", job.CommandName);
+
+                        using var traceLogScope = _logger.BeginScope(
+                            new Dictionary<string, object>
+                            {
+                                [$"{TelemetryConstants.TraceStatePrefix}jobId"] = job.Id
+                            });
+
+                        try
+                        {
+                            _log.TaskExecuting(job.Id, job.CommandName);
+                            await job.Action(stoppingToken);
+                            _log.TaskExecuted(job.Id, job.CommandName);
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.TaskFailed(ex, job.Id);
+                        }
                     }
-
-                    // Start a trace scope for this job execution.
-                    using var traceActivity = _activitySource.StartActivity(
-                        $"{nameof(SchedulerBackgroundService)}.{nameof(ExecuteAsync)}: {{commandName}}");
-
-                    traceActivity?.SetTag("commandName", job.CommandName);
-
-                    using var traceLogScope = _logger.BeginScope(
-                        new Dictionary<string, object> { [$"{TelemetryConstants.TraceStatePrefix}jobId"] = job.Id });
-
-                    try
-                    {
-                        _log.TaskExecuting(job.Id, job.CommandName);
-                        await job.Action(stoppingToken);
-                        _log.TaskExecuted(job.Id, job.CommandName);
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.TaskFailed(ex, job.Id);
-                    }
+                }
+                catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
+                {
+                    // An unhandled exception here would stop the host.
+                    _log.TickFailed(ex);
                 }
             }
         }
@@ -96,5 +107,8 @@ internal sealed partial class SchedulerBackgroundService : BackgroundService
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to execute scheduled task ID {jobId}.")]
         public partial void TaskFailed(Exception ex, Guid jobId);
+
+        [LoggerMessage(Level = LogLevel.Error, Message = "Failed to process the scheduler tick.")]
+        public partial void TickFailed(Exception ex);
     }
 }

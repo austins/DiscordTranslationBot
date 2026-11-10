@@ -11,7 +11,9 @@ public sealed class SlashCommandExecutedNotificationTests
     {
         // Arrange
         var notification = new SlashCommandExecutedNotification
-            { Interaction = Substitute.For<ISlashCommandInteraction>() };
+        {
+            Interaction = Substitute.For<ISlashCommandInteraction>()
+        };
 
         // Act
         var isValid = notification.TryValidate(out var validationResults);

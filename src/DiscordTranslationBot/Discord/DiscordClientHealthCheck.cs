@@ -15,7 +15,7 @@ internal sealed class DiscordClientHealthCheck : IHealthCheck
         _client = (DiscordSocketClient)client;
     }
 
-    public async Task<HealthCheckResult> CheckHealthAsync(
+    public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
@@ -23,13 +23,15 @@ internal sealed class DiscordClientHealthCheck : IHealthCheck
 
         if (_client.ConnectionState is ConnectionState.Connected)
         {
-            return HealthCheckResult.Healthy(
-                description,
-                new Dictionary<string, object> { { "GuildCount", _client.Guilds.Count } });
+            return Task.FromResult(
+                HealthCheckResult.Healthy(
+                    description,
+                    new Dictionary<string, object> { { "GuildCount", _client.Guilds.Count } }));
         }
 
-        return _client.ConnectionState is ConnectionState.Connecting or ConnectionState.Disconnecting
-            ? HealthCheckResult.Degraded(description)
-            : HealthCheckResult.Unhealthy(description);
+        return Task.FromResult(
+            _client.ConnectionState is ConnectionState.Connecting or ConnectionState.Disconnecting
+                ? HealthCheckResult.Degraded(description)
+                : HealthCheckResult.Unhealthy(description));
     }
 }

@@ -87,7 +87,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
                 response.Error);
         }
 
-        if (response.Content?.LangCodes?.Any() != true)
+        if (response.Content?.LangCodes is not { Count: > 0 })
         {
             _log.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
@@ -141,7 +141,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         }
 
         var translation = response.Content?.FirstOrDefault();
-        if (translation?.Translations?.Any() != true)
+        if (translation?.Translations is not { Count: > 0 })
         {
             _log.NoTranslationReturned();
             throw new InvalidOperationException("No translation returned.");

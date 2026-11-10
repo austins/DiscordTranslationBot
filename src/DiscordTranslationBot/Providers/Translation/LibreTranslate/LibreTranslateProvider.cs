@@ -53,7 +53,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
                 response.Error);
         }
 
-        if (response.Content?.Any() != true)
+        if (response.Content is not { Count: > 0 })
         {
             _log.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");

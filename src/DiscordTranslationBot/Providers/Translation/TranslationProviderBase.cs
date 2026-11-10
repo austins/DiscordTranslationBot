@@ -24,8 +24,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         _instrumentation = instrumentation;
     }
 
-    public FrozenDictionary<string, string> SupportedLanguages { get; protected set; } =
-        FrozenDictionary<string, string>.Empty;
+    public FrozenDictionary<string, string> SupportedLanguages { get; protected set; } = [];
 
     public virtual FrozenSet<string> TranslateCommandLangCodes { get; } = [];
 

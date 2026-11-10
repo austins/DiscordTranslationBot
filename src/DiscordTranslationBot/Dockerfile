@@ -1,7 +1,7 @@
 ###################################################
 ## Build stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0-alpine@sha256:52556c0fb9d0f609ae9aeab9efeeba96f4acc2f7038f7696f2235ccbdbb8e290 AS build
 
 # Copy source files.
 # The build should be run with the context at the root of the solution in order to copy necessary files.
@@ -20,7 +20,7 @@ RUN dotnet publish ./src/DiscordTranslationBot --no-restore -c Release -o ./out 
 ###################################################
 ## Runtime image creation stage.
 ###################################################
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine-extra@sha256:bec30376e2d1b66f1937f57cb792704081a3f0d5ece69a650fe70882a3dd4c27
+FROM mcr.microsoft.com/dotnet/aspnet:11.0-alpine-extra@sha256:cd3d2caabadeef985cafe1cedd48f80357c2c72887ac3e74d48a1e70011277c9
 
 # Enable globalization.
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

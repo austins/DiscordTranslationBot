@@ -2,7 +2,7 @@
 
 internal sealed class ScheduledJob
 {
-    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid Id { get; } = Guid.CreateVersion7();
 
     public required string CommandName { get; init; }
 

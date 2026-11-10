@@ -39,10 +39,7 @@ public sealed class MessageElapsedTimeLoggingBehaviorTests
     public async Task Handle_LogNotification_DoesNotLog()
     {
         // Arrange
-        var message = new LogNotification
-        {
-            LogMessage = new LogMessage(LogSeverity.Info, "source1", "message1", null)
-        };
+        var message = new LogNotification { LogMessage = new LogMessage(LogSeverity.Info, "source1", "message1") };
 
         // Act
         await _sut.Handle(message, (_, _) => ValueTask.FromResult(true), TestContext.Current.CancellationToken);

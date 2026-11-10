@@ -11,7 +11,9 @@ public sealed class MessageCommandExecutedNotificationTests
     {
         // Arrange
         var notification = new MessageCommandExecutedNotification
-            { Interaction = Substitute.For<IMessageCommandInteraction>() };
+        {
+            Interaction = Substitute.For<IMessageCommandInteraction>()
+        };
 
         // Act
         var isValid = notification.TryValidate(out var validationResults);

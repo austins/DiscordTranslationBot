@@ -192,6 +192,8 @@ internal sealed partial class DiscordEventListener
                     case ReactionInfo reaction:
                         TryAddStateIfNotNull(userIdKey, reaction.UserId);
                         break;
+                    default:
+                        break;
                 }
             }
         }

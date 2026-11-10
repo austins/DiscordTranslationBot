@@ -216,7 +216,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
             .ReturnsForAnyArgs((TranslationResult?)null);
 
         var translationProvider = Substitute.For<ITranslationProvider>();
-        translationProvider.SupportedLanguages.Returns(FrozenDictionary<string, string>.Empty);
+        translationProvider.SupportedLanguages.Returns([]);
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);

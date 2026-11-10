@@ -30,7 +30,6 @@ internal class LoggerFake : ILogger
         {
             LogLevel = logLevel,
             EventId = eventId,
-            State = state,
             Exception = exception,
             Message = formatter(state, exception)
         };
@@ -64,8 +63,6 @@ internal sealed class LogEntry
     public required LogLevel LogLevel { get; init; }
 
     public required EventId EventId { get; init; }
-
-    public required object? State { get; init; }
 
     public required Exception? Exception { get; init; }
 

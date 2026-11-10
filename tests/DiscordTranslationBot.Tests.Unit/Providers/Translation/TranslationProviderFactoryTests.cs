@@ -90,7 +90,8 @@ public sealed class TranslationProviderFactoryTests
         logger.Entries[0].LogLevel.Should().Be(LogLevel.Error);
         logger
             .Entries[0]
-            .Message.Should()
+            .Message
+            .Should()
             .Be("No translation providers enabled. Please configure and enable at least one translation provider.");
     }
 
@@ -128,11 +129,13 @@ public sealed class TranslationProviderFactoryTests
             // Empty TranslateCommandLangCodes - take first N from SupportedLanguages.
             _primaryProvider.TranslateCommandLangCodes.Returns([]);
 
-            expectedResult = supportedLanguages
-                .Take(SlashCommandOptionBuilder.MaxChoiceCount)
-                .Select(lc => new SupportedLanguage(lc.Key, lc.Value))
-                .OrderBy(l => l.Name)
-                .ToImmutableArray();
+            expectedResult =
+            [
+                .. supportedLanguages
+                    .Take(SlashCommandOptionBuilder.MaxChoiceCount)
+                    .Select(lc => new SupportedLanguage(lc.Key, lc.Value))
+                    .OrderBy(l => l.Name, StringComparer.Ordinal)
+            ];
         }
         else if (fillRemaining)
         {
@@ -261,7 +264,7 @@ public sealed class TranslationProviderFactoryTests
         // Arrange
         await _sut.InitializeProvidersAsync(TestContext.Current.CancellationToken);
 
-        var cancelledToken = new CancellationToken(canceled: true);
+        var cancelledToken = new CancellationToken(true);
 
         _primaryProvider
             .TranslateAsync(default!, default!, cancelledToken)
@@ -276,8 +279,6 @@ public sealed class TranslationProviderFactoryTests
             .Should()
             .ThrowAsync<OperationCanceledException>();
 
-        await _lastProvider
-            .DidNotReceiveWithAnyArgs()
-            .TranslateAsync(default!, default!, cancelledToken);
+        await _lastProvider.DidNotReceiveWithAnyArgs().TranslateAsync(default!, default!, cancelledToken);
     }
 }
