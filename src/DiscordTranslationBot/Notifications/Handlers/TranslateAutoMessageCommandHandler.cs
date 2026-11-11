@@ -113,12 +113,16 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                         {
                             var fallbackLangCode = userLocale[..indexOfHyphen];
 
-                            targetLanguage =
-                                translationProvider.SupportedLanguages.TryGetValue(
+                            if (translationProvider.SupportedLanguages.TryGetValue(
                                     fallbackLangCode,
-                                    out var fallbackName)
-                                    ? new SupportedLanguage(fallbackLangCode, fallbackName)
-                                    : null;
+                                    out var fallbackName))
+                            {
+                                targetLanguage = new SupportedLanguage(fallbackLangCode, fallbackName);
+                            }
+                            else
+                            {
+                                targetLanguage = null;
+                            }
                         }
                     }
 
