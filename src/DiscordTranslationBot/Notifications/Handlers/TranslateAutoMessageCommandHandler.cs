@@ -2,7 +2,6 @@
 using DiscordTranslationBot.Constants;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
@@ -94,10 +93,10 @@ internal sealed partial class TranslateAutoMessageCommandHandler
 
         var userLocale = notification.Interaction.UserLocale;
 
-        TranslationResult? translationResult = null;
+        TranslationOutcome outcome;
         try
         {
-            translationResult = await _translationProviderFactory.TranslateAsync(
+            outcome = await _translationProviderFactory.TranslateAsync(
                 async (translationProvider, ct) =>
                 {
                     SupportedLanguage? targetLanguage =
@@ -119,17 +118,14 @@ internal sealed partial class TranslateAutoMessageCommandHandler
                             {
                                 targetLanguage = new SupportedLanguage(fallbackLangCode, fallbackName);
                             }
-                            else
-                            {
-                                targetLanguage = null;
-                            }
                         }
                     }
 
                     if (targetLanguage is null)
                     {
-                        _log.UnsupportedLocale(userLocale, translationProvider.GetType().Name);
-                        return null;
+                        var providerName = translationProvider.GetType().Name;
+                        _log.UnsupportedLocale(userLocale, providerName);
+                        return new UnsupportedTargetLanguage(providerName);
                     }
 
                     return await translationProvider.TranslateAsync(targetLanguage.Value, sanitizedMessage, ct);
@@ -138,45 +134,35 @@ internal sealed partial class TranslateAutoMessageCommandHandler
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
-            // TranslationFailureException already logs an error message.
-            if (ex is not TranslationFailureException)
-            {
-                _log.TranslationFailure(ex);
-            }
-
-            await notification.Interaction.FollowupAsync(
-                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken });
-
-            return;
+            _log.TranslationFailure(ex);
+            outcome = new ProviderFailure("Translation failed.", Cause: ex);
         }
 
-        if (translationResult is null)
-        {
-            // Send message if no translation providers support the locale.
-            await notification.Interaction.FollowupAsync(
-                $"{NeoSmart.Unicode.Emoji.NoEntry} Your locale {userLocale} isn't supported for translation via this action.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken });
+        var sameText = outcome.Value is TranslationResult { TranslatedText: var translatedText }
+            && translatedText == sanitizedMessage;
 
-            return;
-        }
-
-        if (translationResult.TranslatedText == sanitizedMessage)
+        if (sameText)
         {
             _log.FailureToDetectSourceLanguage();
-
-            await notification.Interaction.FollowupAsync(
-                $"{NeoSmart.Unicode.Emoji.Warning} The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken });
-
-            return;
         }
 
+#pragma warning disable CA1508 // The analyzer does not track union case patterns.
+        var reply = outcome switch
+        {
+            TranslationResult when sameText =>
+                $"{NeoSmart.Unicode.Emoji.Warning} The message couldn't be translated. It might already be in your language or the translator failed to detect its source language.",
+            TranslationResult result => _messageHelper.BuildTranslationReplyWithReference(
+                notification.Interaction.Data.Message,
+                result),
+            UnsupportedTargetLanguage =>
+                $"{NeoSmart.Unicode.Emoji.NoEntry} Your locale {userLocale} isn't supported for translation via this action.",
+            ProviderFailure => $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
+            null => throw new InvalidOperationException("The translation factory returned an empty outcome.")
+        };
+#pragma warning restore CA1508
+
         await notification.Interaction.FollowupAsync(
-            _messageHelper.BuildTranslationReplyWithReference(notification.Interaction.Data.Message, translationResult),
+            reply,
             ephemeral: true,
             options: new RequestOptions { CancelToken = cancellationToken });
     }

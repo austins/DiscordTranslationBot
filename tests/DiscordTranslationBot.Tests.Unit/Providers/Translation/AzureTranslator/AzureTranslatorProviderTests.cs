@@ -99,7 +99,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
             sourceLangCode);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Value.Should().BeOfType<TranslationResult>().Which.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         var result = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Value.Should().BeOfType<TranslationResult>().Which.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -170,16 +170,14 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task TranslateByCountryAsync_Throws_ArgumentException_TextExceedsCharacterLimit()
+    public async Task TranslateByCountryAsync_TextExceedsCharacterLimit_ReturnsProviderFailure()
     {
         // Arrange
         var text = new string('a', AzureTranslatorProvider.TextCharacterLimit + 1);
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<ArgumentException>();
+        var outcome = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.Reason.Should().Contain("can't exceed");
 
         await _client
             .DidNotReceiveWithAnyArgs()
@@ -192,7 +190,7 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
     [InlineData(HttpStatusCode.TooManyRequests)]
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
-    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
+    public async Task TranslateByCountryAsync_UnsuccessfulStatusCode_ReturnsProviderFailure(
         HttpStatusCode statusCode)
     {
         // Arrange
@@ -205,16 +203,14 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _client.TranslateAsync(default!, default!, TestContext.Current.CancellationToken).ReturnsForAnyArgs(response);
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+        var outcome = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.StatusCode.Should().Be(statusCode);
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
-    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslations()
+    public async Task TranslateByCountryAsync_NoTranslations_ReturnsProviderFailure()
     {
         // Arrange
         const string text = "test";
@@ -233,11 +229,23 @@ public sealed class AzureTranslatorProviderTests : IAsyncLifetime
         _client.TranslateAsync(default!, default!, TestContext.Current.CancellationToken).ReturnsForAnyArgs(response);
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+        var outcome = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.Reason.Should().Be("No translation returned.");
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task TranslateByCountryAsync_TransportException_ReturnsProviderFailure()
+    {
+        // Arrange
+        var error = new HttpRequestException("Translation endpoint unreachable.");
+        _client.TranslateAsync(default!, default!, TestContext.Current.CancellationToken).ThrowsAsyncForAnyArgs(error);
+
+        // Act
+        var outcome = await _sut.TranslateByCountryAsync(_country, "test", TestContext.Current.CancellationToken);
+
+        // Assert
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.Cause.Should().BeSameAs(error);
     }
 }

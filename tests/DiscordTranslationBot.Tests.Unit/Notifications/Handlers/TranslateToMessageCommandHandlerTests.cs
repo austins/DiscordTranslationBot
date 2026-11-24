@@ -309,11 +309,11 @@ public sealed class TranslateToMessageCommandHandlerTests
         _translationProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     TargetLanguageCode = SelectedLanguageCode,
                     TranslatedText = "text"
-                });
+                }));
 
         // Act
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
@@ -328,15 +328,19 @@ public sealed class TranslateToMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions?>());
     }
 
-    [Fact]
-    public async Task Handle_ModalSubmittedNotification_Returns_WhenExceptionThrown()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_ModalSubmittedNotification_TranslationFails_SendsGenericReply(bool throws)
     {
         // Arrange
         var notification = CreateModalSubmittedNotification();
 
         _translationProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
+            .ReturnsForAnyArgs(_ => throws
+                ? Task.FromException<TranslationOutcome>(new InvalidOperationException())
+                : Task.FromResult<TranslationOutcome>(new ProviderFailure("Internal provider detail.")));
 
         // Act
         await _sut.Handle(notification, TestContext.Current.CancellationToken);
@@ -362,11 +366,11 @@ public sealed class TranslateToMessageCommandHandlerTests
         _translationProvider
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     TargetLanguageCode = SelectedLanguageCode,
                     TranslatedText = "translated text"
-                });
+                }));
 
         const string translationReplyText = "result";
         _messageHelper

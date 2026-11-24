@@ -11,7 +11,6 @@ namespace DiscordTranslationBot.Providers.Translation.LibreTranslate;
 internal sealed class LibreTranslateProvider : TranslationProviderBase
 {
     private readonly ILibreTranslateClient _client;
-    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LibreTranslateProvider" /> class.
@@ -23,10 +22,9 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
         ILibreTranslateClient client,
         Instrumentation instrumentation,
         ILogger<LibreTranslateProvider> logger)
-        : base(instrumentation)
+        : base(instrumentation, logger)
     {
         _client = client;
-        _log = new Log(logger);
     }
 
     /// <inheritdoc cref="ITranslationProvider.InitializeSupportedLanguagesAsync" />
@@ -43,7 +41,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
         var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure(
+            ProviderLog.ResponseFailure(
                 "Languages endpoint returned unsuccessful status code.",
                 response.StatusCode,
                 response.Error);
@@ -55,7 +53,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
 
         if (response.Content is not { Count: > 0 })
         {
-            _log.NoLanguageCodesReturned();
+            ProviderLog.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -66,8 +64,7 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="TranslationProviderBase.TranslateCoreAsync" />
-    /// <exception cref="InvalidOperationException">An error occured.</exception>
-    protected override async Task<TranslationResult> TranslateCoreAsync(
+    protected override async Task<TranslationOutcome> TranslateCoreAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
@@ -90,20 +87,15 @@ internal sealed class LibreTranslateProvider : TranslationProviderBase
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure(
+            return new ProviderFailure(
                 "Translate endpoint returned unsuccessful status code.",
                 response.StatusCode,
-                response.Error);
-
-            throw new InvalidOperationException(
-                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.",
                 response.Error);
         }
 
         if (string.IsNullOrWhiteSpace(response.Content?.TranslatedText))
         {
-            _log.NoTranslationReturned();
-            throw new InvalidOperationException("No translation returned.");
+            return new ProviderFailure("No translation returned.", response.StatusCode, response.Error);
         }
 
         result.DetectedLanguageCode = response.Content.DetectedLanguage?.LanguageCode;

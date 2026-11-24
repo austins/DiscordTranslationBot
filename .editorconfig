@@ -132,3 +132,4 @@ dotnet_diagnostic.CA1859.severity = none
 dotnet_diagnostic.S1075.severity = none
 dotnet_diagnostic.SA1515.severity = none
 dotnet_diagnostic.CA1873.severity = none
+stylecop.maintainability.topLevelTypes = class, interface, struct, enum, delegate

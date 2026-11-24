@@ -156,10 +156,25 @@ internal sealed partial class TranslateToMessageCommandHandler
                 selectedLangCode,
                 translationProvider.SupportedLanguages[selectedLangCode]);
 
-            var translationResult = await translationProvider.TranslateAsync(
+            var outcome = await translationProvider.TranslateAsync(
                 targetLanguage,
                 sanitizedText,
                 cancellationToken);
+
+#pragma warning disable CA1508 // The analyzer does not track union case patterns.
+            var translationResult = outcome switch
+            {
+                TranslationResult result => result,
+                UnsupportedTargetLanguage or ProviderFailure => null,
+                null => throw new InvalidOperationException("The translation provider returned an empty outcome.")
+            };
+
+            if (translationResult is null)
+            {
+                await SendFailureAsync();
+                return;
+            }
+#pragma warning restore CA1508
 
             if (translationResult.TranslatedText == sanitizedText)
             {
@@ -212,11 +227,13 @@ internal sealed partial class TranslateToMessageCommandHandler
         {
             _log.TranslationFailure(ex, translationProvider.GetType().Name);
 
-            await notification.Interaction.FollowupAsync(
-                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
-                ephemeral: true,
-                options: new RequestOptions { CancelToken = cancellationToken });
+            await SendFailureAsync();
         }
+
+        Task SendFailureAsync() => notification.Interaction.FollowupAsync(
+            $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
+            ephemeral: true,
+            options: new RequestOptions { CancelToken = cancellationToken });
     }
 
     private Modal BuildModal(ulong messageId)

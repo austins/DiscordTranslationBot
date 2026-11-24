@@ -113,14 +113,14 @@ public sealed class TranslateSlashCommandHandlerTests
         _translationProvider
             .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
             .Returns(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     DetectedLanguageCode = null,
                     DetectedLanguageName = null,
                     TargetLanguageCode = targetLanguage.LangCode,
                     TargetLanguageName = targetLanguage.Name,
                     TranslatedText = "translated text"
-                });
+                }));
 
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
@@ -241,14 +241,14 @@ public sealed class TranslateSlashCommandHandlerTests
         _translationProvider
             .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
             .Returns(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     DetectedLanguageCode = null,
                     DetectedLanguageName = null,
                     TargetLanguageCode = targetLanguage.LangCode,
                     TargetLanguageName = targetLanguage.Name,
                     TranslatedText = text
-                });
+                }));
 
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 
@@ -267,8 +267,10 @@ public sealed class TranslateSlashCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
-    public async Task Handle_SlashCommandExecutedEvent_Returns_WhenExceptionThrown()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_SlashCommandExecutedEvent_TranslationFails_SendsGenericReply(bool throws)
     {
         // Arrange
         var targetLanguage = new SupportedLanguage("fr", "French");
@@ -309,7 +311,9 @@ public sealed class TranslateSlashCommandHandlerTests
 
         _translationProvider
             .TranslateAsync(targetLanguage, text, TestContext.Current.CancellationToken, sourceLanguage.LangCode)
-            .ThrowsAsync<InvalidOperationException>();
+            .Returns(_ => throws
+                ? Task.FromException<TranslationOutcome>(new InvalidOperationException())
+                : Task.FromResult<TranslationOutcome>(new ProviderFailure("Internal provider detail.")));
 
         var notification = new SlashCommandExecutedNotification { Interaction = interaction };
 

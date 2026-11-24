@@ -8,7 +8,7 @@ namespace DiscordTranslationBot.Providers.Translation.AzureTranslator;
 /// <summary>
 /// Provider for Azure Translator.
 /// </summary>
-internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
+internal sealed class AzureTranslatorProvider : TranslationProviderBase
 {
     /// <summary>
     /// Azure has a limit of 10,000 characters for text in a request.
@@ -17,7 +17,6 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     public const int TextCharacterLimit = 10000;
 
     private readonly IAzureTranslatorClient _client;
-    private readonly Log _log;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureTranslatorProvider" /> class.
@@ -29,10 +28,9 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         IAzureTranslatorClient client,
         Instrumentation instrumentation,
         ILogger<AzureTranslatorProvider> logger)
-        : base(instrumentation)
+        : base(instrumentation, logger)
     {
         _client = client;
-        _log = new Log(logger);
     }
 
     /// <inheritdoc cref="ITranslationProvider.TranslateCommandLangCodes" />
@@ -77,7 +75,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         var response = await _client.GetLanguagesAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure(
+            ProviderLog.ResponseFailure(
                 "Languages endpoint returned unsuccessful status code.",
                 response.StatusCode,
                 response.Error);
@@ -89,7 +87,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         if (response.Content?.LangCodes is not { Count: > 0 })
         {
-            _log.NoLanguageCodesReturned();
+            ProviderLog.NoLanguageCodesReturned();
             throw new InvalidOperationException("Languages endpoint returned no language codes.");
         }
 
@@ -100,9 +98,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     }
 
     /// <inheritdoc cref="TranslationProviderBase.TranslateCoreAsync" />
-    /// <exception cref="ArgumentException">Text exceeds character limit.</exception>
-    /// <exception cref="InvalidOperationException">An error occured.</exception>
-    protected override async Task<TranslationResult> TranslateCoreAsync(
+    protected override async Task<TranslationOutcome> TranslateCoreAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
@@ -110,9 +106,7 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
     {
         if (text.Length > TextCharacterLimit)
         {
-            _log.CharacterLimitExceeded(TextCharacterLimit, text.Length);
-
-            throw new ArgumentException(
+            return new ProviderFailure(
                 $"The text can't exceed {TextCharacterLimit} characters including spaces. Length: {text.Length}.");
         }
 
@@ -130,21 +124,16 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
 
         if (!response.IsSuccessStatusCode)
         {
-            _log.ResponseFailure(
+            return new ProviderFailure(
                 "Translate endpoint returned unsuccessful status code.",
                 response.StatusCode,
-                response.Error);
-
-            throw new InvalidOperationException(
-                $"Translate endpoint returned unsuccessful status code {response.StatusCode}.",
                 response.Error);
         }
 
         var translation = response.Content?.FirstOrDefault();
         if (translation?.Translations is not { Count: > 0 })
         {
-            _log.NoTranslationReturned();
-            throw new InvalidOperationException("No translation returned.");
+            return new ProviderFailure("No translation returned.", response.StatusCode, response.Error);
         }
 
         result.DetectedLanguageCode = translation.DetectedLanguage?.LanguageCode;
@@ -156,13 +145,5 @@ internal sealed partial class AzureTranslatorProvider : TranslationProviderBase
         result.TranslatedText = translation.Translations[0].Text;
 
         return result;
-    }
-
-    private new sealed partial class Log(ILogger logger) : TranslationProviderBase.Log(logger)
-    {
-        [LoggerMessage(
-            Level = LogLevel.Error,
-            Message = "The text can't exceed {textCharacterLimit} characters including spaces. Length: {textLength}.")]
-        public partial void CharacterLimitExceeded(int textCharacterLimit, int textLength);
     }
 }

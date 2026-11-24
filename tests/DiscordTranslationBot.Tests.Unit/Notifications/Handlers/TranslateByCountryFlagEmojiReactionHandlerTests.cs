@@ -1,11 +1,10 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
-using DiscordTranslationBot.Countries.Exceptions;
+using DiscordTranslationBot.Countries;
 using DiscordTranslationBot.Discord.Models;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Notifications.Handlers;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using Mediator;
@@ -191,12 +190,12 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     DetectedLanguageCode = "en",
                     TargetLanguageCode = "fr",
                     TranslatedText = "translated_text"
-                });
+                }));
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -227,12 +226,12 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_TranslateByCountryFlagEmojiReaction_NoTranslationResult()
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_ProviderFailure_SendsGenericReply()
     {
         // Arrange
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ReturnsForAnyArgs((TranslationResult)null!);
+            .ReturnsForAnyArgs(new TranslationOutcome(new ProviderFailure("Internal provider detail.")));
 
         var expectedReplyText = $"{Emoji.Warning} Failed to translate text. Please try again.";
 
@@ -245,26 +244,35 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
             .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenExceptionThrown(
-        bool isTranslationFailureException)
+    [Fact]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_UnsupportedTargetLanguage_SendsUnsupportedReply()
     {
         // Arrange
-        Exception ex = isTranslationFailureException
-            ? new TranslationFailureException(
-                "provider",
-                new LanguageNotSupportedForCountryException("Target language isn't supported"))
-            : new InvalidOperationException();
-
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs(ex);
+            .ReturnsForAnyArgs(new TranslationOutcome(new UnsupportedTargetLanguage("provider")));
 
-        var expectedReplyText = ex is TranslationFailureException
-            ? $"{Emoji.NoEntry} Target language isn't supported"
-            : $"{Emoji.Warning} Failed to translate text. Please try again.";
+        var country = CountryConstants.SupportedCountries[_notification.ReactionInfo.Emote.Name];
+        var expectedReplyText = $"{Emoji.NoEntry} Target language isn't supported by provider for {country.Name}.";
+
+        // Act
+        await _sut.Handle(_notification, TestContext.Current.CancellationToken);
+
+        // Assert
+        await _sender
+            .Received(1)
+            .Send(Arg.Is<SendTempReply>(x => x.Text == expectedReplyText), TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Handle_TranslateByCountryFlagEmojiReaction_TempReplySent_WhenExceptionThrown()
+    {
+        // Arrange
+        _translationProviderFactory
+            .TranslateAsync(default!, TestContext.Current.CancellationToken)
+            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
+
+        var expectedReplyText = $"{Emoji.Warning} Failed to translate text. Please try again.";
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -290,12 +298,12 @@ public sealed class TranslateByCountryFlagEmojiReactionHandlerTests
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     DetectedLanguageCode = "en",
                     TargetLanguageCode = "fr",
                     TranslatedText = ExpectedSanitizedMessage
-                });
+                }));
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);

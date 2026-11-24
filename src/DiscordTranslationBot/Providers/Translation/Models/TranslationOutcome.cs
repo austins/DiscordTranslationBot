@@ -1,4 +1,12 @@
+using System.Net;
+
 namespace DiscordTranslationBot.Providers.Translation.Models;
+
+internal readonly union TranslationOutcome(TranslationResult, UnsupportedTargetLanguage, ProviderFailure);
+
+internal sealed record UnsupportedTargetLanguage(string ProviderName);
+
+internal sealed record ProviderFailure(string Reason, HttpStatusCode? StatusCode = null, Exception? Cause = null);
 
 /// <summary>
 /// Translation data to use in a Discord message.

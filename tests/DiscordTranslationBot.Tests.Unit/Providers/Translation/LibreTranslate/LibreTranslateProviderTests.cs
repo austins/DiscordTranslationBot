@@ -101,7 +101,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             sourceLangCode);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Value.Should().BeOfType<TranslationResult>().Which.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
         var result = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Value.Should().BeOfType<TranslationResult>().Which.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
     [Theory]
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.ServiceUnavailable)]
-    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenStatusCodeUnsuccessful(
+    public async Task TranslateByCountryAsync_UnsuccessfulStatusCode_ReturnsProviderFailure(
         HttpStatusCode statusCode)
     {
         // Arrange
@@ -190,16 +190,14 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+        var outcome = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.StatusCode.Should().Be(statusCode);
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
-    public async Task TranslateByCountryAsync_Throws_InvalidOperationException_WhenNoTranslatedText()
+    public async Task TranslateByCountryAsync_NoTranslatedText_ReturnsProviderFailure()
     {
         // Arrange
         const string text = "test";
@@ -222,10 +220,8 @@ public sealed class LibreTranslateProviderTests : IAsyncLifetime
             .Returns(response);
 
         // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<InvalidOperationException>();
+        var outcome = await _sut.TranslateByCountryAsync(_country, text, TestContext.Current.CancellationToken);
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.Reason.Should().Be("No translation returned.");
 
         await _client.ReceivedWithAnyArgs(1).TranslateAsync(default!, TestContext.Current.CancellationToken);
     }

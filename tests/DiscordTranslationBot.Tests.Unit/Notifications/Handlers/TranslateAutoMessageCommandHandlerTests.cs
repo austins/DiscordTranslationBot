@@ -93,10 +93,10 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         var supportedLanguage = new SupportedLanguage(exactSupportedLanguage ? "en-US" : "en", "English");
 
-        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
+        Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>>? action = null;
         _translationProviderFactory
             .WhenForAnyArgs(x => x.TranslateAsync(default!, TestContext.Current.CancellationToken))
-            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>>());
+            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>>>());
 
         var expectedTranslationResult = new TranslationResult
         {
@@ -109,7 +109,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ReturnsForAnyArgs(expectedTranslationResult);
+            .ReturnsForAnyArgs(new TranslationOutcome(expectedTranslationResult));
 
         var translationProvider = Substitute.For<ITranslationProvider>();
         translationProvider.SupportedLanguages.Returns(
@@ -118,7 +118,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         translationProvider
             .TranslateAsync(supportedLanguage, Arg.Any<string>(), TestContext.Current.CancellationToken)
-            .Returns(expectedTranslationResult);
+            .Returns(new TranslationOutcome(expectedTranslationResult));
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -132,7 +132,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         await _interaction.Received(1).FollowupAsync(ReplyText, ephemeral: true, options: Arg.Any<RequestOptions>());
 
         _ = translationProvider.Received(exactSupportedLanguage ? 1 : 2).SupportedLanguages;
-        translationResult.Should().Be(translationResult);
+        translationResult.Value.Should().BeSameAs(expectedTranslationResult);
         await translationProvider
             .Received(1)
             .TranslateAsync(supportedLanguage, Arg.Any<string>(), TestContext.Current.CancellationToken);
@@ -206,14 +206,14 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         const string userLocale = "en-US";
         _interaction.UserLocale.Returns(userLocale);
 
-        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>? action = null;
+        Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>>? action = null;
         _translationProviderFactory
             .WhenForAnyArgs(x => x.TranslateAsync(default!, TestContext.Current.CancellationToken))
-            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>>>());
+            .Do(x => action = x.Arg<Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>>>());
 
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ReturnsForAnyArgs((TranslationResult?)null);
+            .ReturnsForAnyArgs(new TranslationOutcome(new UnsupportedTargetLanguage("provider")));
 
         var translationProvider = Substitute.For<ITranslationProvider>();
         translationProvider.SupportedLanguages.Returns([]);
@@ -235,7 +235,7 @@ public sealed class TranslateAutoMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
 
         _ = translationProvider.Received(2).SupportedLanguages;
-        translationResult.Should().BeNull();
+        translationResult.Value.Should().BeOfType<UnsupportedTargetLanguage>();
         await translationProvider
             .DidNotReceiveWithAnyArgs()
             .TranslateAsync(default!, default!, TestContext.Current.CancellationToken);
@@ -255,14 +255,14 @@ public sealed class TranslateAutoMessageCommandHandlerTests
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
             .ReturnsForAnyArgs(
-                new TranslationResult
+                new TranslationOutcome(new TranslationResult
                 {
                     DetectedLanguageCode = "fr",
                     DetectedLanguageName = "French",
                     TargetLanguageCode = supportedLanguage.LangCode,
                     TargetLanguageName = supportedLanguage.Name,
                     TranslatedText = text
-                });
+                }));
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);
@@ -280,8 +280,10 @@ public sealed class TranslateAutoMessageCommandHandlerTests
                 options: Arg.Any<RequestOptions>());
     }
 
-    [Fact]
-    public async Task Handle_MessageCommandExecutedNotification_Returns_WhenExceptionThrown()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_MessageCommandExecutedNotification_TranslationFails_SendsGenericReply(bool throws)
     {
         // Arrange
         const string text = "text";
@@ -291,7 +293,9 @@ public sealed class TranslateAutoMessageCommandHandlerTests
 
         _translationProviderFactory
             .TranslateAsync(default!, TestContext.Current.CancellationToken)
-            .ThrowsAsyncForAnyArgs<InvalidOperationException>();
+            .ReturnsForAnyArgs(_ => throws
+                ? Task.FromException<TranslationOutcome>(new InvalidOperationException())
+                : Task.FromResult<TranslationOutcome>(new ProviderFailure("Internal provider detail.")));
 
         // Act
         await _sut.Handle(_notification, TestContext.Current.CancellationToken);

@@ -1,4 +1,3 @@
-using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Telemetry;
@@ -19,56 +18,85 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
     /// Initializes a new instance of the <see cref="TranslationProviderBase" /> class.
     /// </summary>
     /// <param name="instrumentation">Instrumentation to use.</param>
-    protected TranslationProviderBase(Instrumentation instrumentation)
+    /// <param name="logger">Logger to use.</param>
+    protected TranslationProviderBase(Instrumentation instrumentation, ILogger logger)
     {
         _instrumentation = instrumentation;
+        ProviderLog = new Log(logger);
     }
 
     public FrozenDictionary<string, string> SupportedLanguages { get; protected set; } = [];
 
     public virtual FrozenSet<string> TranslateCommandLangCodes { get; } = [];
 
+    protected Log ProviderLog { get; }
+
     public abstract Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken);
 
-    public async Task<TranslationResult> TranslateAsync(
+    public async Task<TranslationOutcome> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
         string? sourceLangCode = null)
     {
-        var result = await TranslateCoreAsync(targetLanguage, text, cancellationToken, sourceLangCode);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        _instrumentation.TranslationCharacters.Add(
-            text.Length,
-            new KeyValuePair<string, object?>("provider", GetType().Name));
+        TranslationOutcome outcome;
+        try
+        {
+            outcome = await TranslateCoreAsync(targetLanguage, text, cancellationToken, sourceLangCode);
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Convert unexpected errors so the factory can still fall back to the next provider.
+            outcome = new ProviderFailure("Translation request failed.", (ex as HttpRequestException)?.StatusCode, ex);
+        }
 
-        result.TranslatedText = FormatUtility.RestoreDiscordTokens(text, result.TranslatedText);
-        return result;
+        cancellationToken.ThrowIfCancellationRequested();
+
+#pragma warning disable CA1508 // The analyzer does not track union case patterns.
+        return outcome switch
+        {
+            TranslationResult result => CompleteTranslation(result),
+            ProviderFailure failure => LogFailure(failure),
+            UnsupportedTargetLanguage => outcome,
+            null => throw new InvalidOperationException("The translation provider returned an empty outcome.")
+        };
+#pragma warning restore CA1508
+
+        TranslationOutcome CompleteTranslation(TranslationResult result)
+        {
+            _instrumentation.TranslationCharacters.Add(
+                text.Length,
+                new KeyValuePair<string, object?>("provider", GetType().Name));
+
+            result.TranslatedText = FormatUtility.RestoreDiscordTokens(text, result.TranslatedText);
+            return result;
+        }
+
+        TranslationOutcome LogFailure(ProviderFailure failure)
+        {
+            ProviderLog.TranslationFailed(GetType().Name, failure.Reason, failure.StatusCode, failure.Cause);
+            return failure;
+        }
     }
 
-    public Task<TranslationResult> TranslateByCountryAsync(
+    public Task<TranslationOutcome> TranslateByCountryAsync(
         Country country,
         string text,
         CancellationToken cancellationToken)
     {
         // Find first language code supported by both the country and the translation provider.
-        SupportedLanguage? targetLanguage = null;
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (var langCode in country.LangCodes)
         {
             if (SupportedLanguages.TryGetValue(langCode, out var name))
             {
-                targetLanguage = new SupportedLanguage(langCode, name);
-                break;
+                return TranslateAsync(new SupportedLanguage(langCode, name), text, cancellationToken);
             }
         }
 
-        if (!targetLanguage.HasValue)
-        {
-            throw new LanguageNotSupportedForCountryException(
-                $"Target language isn't supported by {GetType().Name} for {country.Name}.");
-        }
-
-        return TranslateAsync(targetLanguage.Value, text, cancellationToken);
+        return Task.FromResult<TranslationOutcome>(new UnsupportedTargetLanguage(GetType().Name));
     }
 
     /// <summary>
@@ -78,8 +106,8 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="sourceLangCode">The supported lang code to translate from.</param>
-    /// <returns>Translated text.</returns>
-    protected abstract Task<TranslationResult> TranslateCoreAsync(
+    /// <returns>The translation outcome.</returns>
+    protected abstract Task<TranslationOutcome> TranslateCoreAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
@@ -92,7 +120,7 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
             Logger = logger;
         }
 
-        protected ILogger Logger { get; }
+        private ILogger Logger { get; }
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Response failure with status {statusCode}: {message}")]
         public partial void ResponseFailure(string message, HttpStatusCode? statusCode, Exception? ex = null);
@@ -100,8 +128,12 @@ internal abstract partial class TranslationProviderBase : ITranslationProvider
         [LoggerMessage(Level = LogLevel.Error, Message = "Languages endpoint returned no language codes.")]
         public partial void NoLanguageCodesReturned();
 
-        [LoggerMessage(Level = LogLevel.Error, Message = "No translation returned.")]
-        public partial void NoTranslationReturned();
+        [LoggerMessage(Level = LogLevel.Error, Message = "Translation failed with {providerName} and status {statusCode}: {reason}")]
+        public partial void TranslationFailed(
+            string providerName,
+            string reason,
+            HttpStatusCode? statusCode,
+            Exception? ex);
     }
 }
 
@@ -133,8 +165,8 @@ internal interface ITranslationProvider
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="sourceLangCode">The supported lang code to translate from.</param>
-    /// <returns>Translated text.</returns>
-    public Task<TranslationResult> TranslateAsync(
+    /// <returns>The translation outcome.</returns>
+    public Task<TranslationOutcome> TranslateAsync(
         SupportedLanguage targetLanguage,
         string text,
         CancellationToken cancellationToken,
@@ -146,9 +178,8 @@ internal interface ITranslationProvider
     /// <param name="country">The country containing language codes to translate to.</param>
     /// <param name="text">The text to translate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Translated text.</returns>
-    /// <exception cref="LanguageNotSupportedForCountryException">Country does not support the provider's supported lang codes.</exception>
-    public Task<TranslationResult> TranslateByCountryAsync(
+    /// <returns>The translation outcome.</returns>
+    public Task<TranslationOutcome> TranslateByCountryAsync(
         Country country,
         string text,
         CancellationToken cancellationToken);

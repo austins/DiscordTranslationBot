@@ -1,4 +1,3 @@
-using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Countries.Models;
 using DiscordTranslationBot.Providers.Translation;
 using DiscordTranslationBot.Providers.Translation.Models;
@@ -28,8 +27,10 @@ public sealed class TranslationProviderBaseTests : IDisposable
         _instrumentation.Dispose();
     }
 
-    [Fact]
-    public async Task TranslateAsync_Records_TranslationCharacters()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TranslateAsync_RecordsTranslationCharactersOnlyOnSuccess(bool success)
     {
         // Arrange
         var measurements = new List<(long Value, object? Provider)>();
@@ -49,42 +50,75 @@ public sealed class TranslationProviderBaseTests : IDisposable
         meterListener.Start();
 
         // Act
-        await _sut.TranslateAsync(new SupportedLanguage("fr", "French"), "hello", TestContext.Current.CancellationToken);
+        _sut.Outcome = success
+            ? new TranslationOutcome(new TranslationResult { TargetLanguageCode = "fr", TranslatedText = "bonjour" })
+            : new TranslationOutcome(new ProviderFailure("No translation returned."));
+        var outcome = await _sut.TranslateAsync(
+            new SupportedLanguage("fr", "French"), "hello", TestContext.Current.CancellationToken);
 
         // Assert
-        measurements.Should().ContainSingle().Which.Should().Be((5L, nameof(TranslationProviderFake)));
+        outcome.Should().Be(_sut.Outcome);
+        if (success)
+        {
+            measurements.Should().ContainSingle().Which.Should().Be((5L, nameof(TranslationProviderFake)));
+        }
+        else
+        {
+            measurements.Should().BeEmpty();
+        }
     }
 
     [Fact]
-    public async Task TranslateByCountryAsync_Throws_LanguageNotSupportedForCountryException_IfLangCodeNotFound()
+    public async Task TranslateAsync_CoreThrows_ReturnsProviderFailureWithCause()
+    {
+        // Arrange
+        var error = new InvalidOperationException("Unexpected.");
+        _sut.Error = error;
+
+        // Act
+        var outcome = await _sut.TranslateAsync(
+            new SupportedLanguage("fr", "French"),
+            "hello",
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        outcome.Value.Should().BeOfType<ProviderFailure>().Which.Cause.Should().BeSameAs(error);
+    }
+
+    [Fact]
+    public async Task TranslateByCountryAsync_LanguageNotFound_ReturnsUnsupportedTargetLanguage()
     {
         // Arrange
         var country = new Country(Emoji.FlagUnitedStates, ["unsupported-lang-code"]);
 
         const string text = "test";
 
-        // Act & Assert
-        await _sut
-            .Awaiting(x => x.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken))
-            .Should()
-            .ThrowAsync<LanguageNotSupportedForCountryException>();
+        // Act
+        var outcome = await _sut.TranslateByCountryAsync(country, text, TestContext.Current.CancellationToken);
+
+        // Assert
+        outcome.Value.Should().Be(new UnsupportedTargetLanguage(nameof(TranslationProviderFake)));
     }
 
     private sealed class TranslationProviderFake(Instrumentation instrumentation)
-        : TranslationProviderBase(instrumentation)
+        : TranslationProviderBase(instrumentation, new LoggerFake<TranslationProviderFake>())
     {
+        public TranslationOutcome Outcome { get; set; }
+
+        public Exception? Error { get; set; }
+
         public override Task InitializeSupportedLanguagesAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
 
-        protected override Task<TranslationResult> TranslateCoreAsync(
+        protected override Task<TranslationOutcome> TranslateCoreAsync(
             SupportedLanguage targetLanguage,
             string text,
             CancellationToken cancellationToken,
             string? sourceLangCode = null)
         {
-            return Task.FromResult(new TranslationResult { TargetLanguageCode = "test", TranslatedText = text });
+            return Error is null ? Task.FromResult(Outcome) : Task.FromException<TranslationOutcome>(Error);
         }
     }
 }

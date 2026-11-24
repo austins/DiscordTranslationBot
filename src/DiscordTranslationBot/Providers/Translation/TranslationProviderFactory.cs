@@ -1,5 +1,4 @@
 ﻿using Discord;
-using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -113,40 +112,49 @@ internal sealed partial class TranslationProviderFactory : ITranslationProviderF
         return _supportedLanguagesForOptions.Value;
     }
 
-    public async Task<TranslationResult?> TranslateAsync(
-        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>> action,
+    public async Task<TranslationOutcome> TranslateAsync(
+        Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>> action,
         CancellationToken cancellationToken)
     {
         ThrowIfProvidersNotInitialized();
 
-        TranslationResult? translationResult = null;
+        // Providers are guaranteed non-empty after initialization, so this holds the last provider's outcome.
+        TranslationOutcome outcome = default;
         foreach (var translationProvider in _providers)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var providerName = translationProvider.GetType().Name;
             _log.TranslatorAttempt(providerName);
 
             try
             {
-                translationResult = await action(translationProvider, cancellationToken);
-                if (translationResult is not null)
-                {
-                    _log.TranslationSuccess(providerName);
-                    break;
-                }
+                outcome = await action(translationProvider, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
+                // Treat unexpected errors as a provider failure so the next provider is tried.
                 _log.TranslationFailure(ex, providerName);
+                outcome = new ProviderFailure("Translation action failed.", Cause: ex);
+            }
 
-                // If this is the last provider, rethrow the exception.
-                if (ReferenceEquals(translationProvider, _providers[^1]))
-                {
-                    throw new TranslationFailureException(providerName, ex);
-                }
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var succeeded = outcome switch
+            {
+                TranslationResult => true,
+                UnsupportedTargetLanguage or ProviderFailure => false,
+                null => throw new InvalidOperationException("The translation action returned an empty outcome.")
+            };
+
+            if (succeeded)
+            {
+                _log.TranslationSuccess(providerName);
+                return outcome;
             }
         }
 
-        return translationResult;
+        return outcome;
     }
 
     private void ThrowIfProvidersNotInitialized([CallerMemberName] string? memberName = null)
@@ -201,9 +209,8 @@ internal interface ITranslationProviderFactory
     /// </summary>
     /// <param name="action">The action to take on the current translation provider.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Translation result or null.</returns>
-    /// <exception cref="TranslationFailureException">If the last provider failed.</exception>
-    public Task<TranslationResult?> TranslateAsync(
-        Func<ITranslationProvider, CancellationToken, Task<TranslationResult?>> action,
+    /// <returns>The first successful translation, or the final provider's outcome if none succeeds.</returns>
+    public Task<TranslationOutcome> TranslateAsync(
+        Func<ITranslationProvider, CancellationToken, Task<TranslationOutcome>> action,
         CancellationToken cancellationToken);
 }

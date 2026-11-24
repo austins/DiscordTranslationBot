@@ -1,10 +1,8 @@
 ﻿using Discord;
 using DiscordTranslationBot.Commands.TempReplies;
 using DiscordTranslationBot.Countries;
-using DiscordTranslationBot.Countries.Exceptions;
 using DiscordTranslationBot.Notifications.Events;
 using DiscordTranslationBot.Providers.Translation;
-using DiscordTranslationBot.Providers.Translation.Exceptions;
 using DiscordTranslationBot.Providers.Translation.Models;
 using DiscordTranslationBot.Services;
 using DiscordTranslationBot.Utilities;
@@ -18,6 +16,7 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
     : INotificationHandler<ReactionAddedNotification>
 {
     private static readonly TimeSpan TempReplyDeletionDelay = TimeSpan.FromMinutes(1.5);
+    private static readonly TimeSpan FailureReplyDeletionDelay = TimeSpan.FromSeconds(15);
 
     private readonly IDiscordClient _client;
     private readonly Log _log;
@@ -99,87 +98,62 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
             return;
         }
 
-        TranslationResult? translationResult = null;
-        Exception? caughtException = null;
+        TranslationOutcome outcome;
         try
         {
-            translationResult = await _translationProviderFactory.TranslateAsync(
-                async (translationProvider, ct) =>
-                    await translationProvider.TranslateByCountryAsync(country, sanitizedMessage, ct),
+            outcome = await _translationProviderFactory.TranslateAsync(
+                (translationProvider, ct) => translationProvider.TranslateByCountryAsync(country, sanitizedMessage, ct),
                 cancellationToken);
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
-            if (ex is TranslationFailureException translationFailureException
-                && translationFailureException.InnerException is LanguageNotSupportedForCountryException innerEx)
-            {
-                // Send message if this is the last available translation provider.
-                _log.LanguageNotSupportedForCountry(innerEx, translationFailureException.ProviderName, country.Name);
-
-                await _sender.Send(
-                    new SendTempReply
-                    {
-                        Text = $"{NeoSmart.Unicode.Emoji.NoEntry} {innerEx.Message}",
-                        ReactionInfo = notification.ReactionInfo,
-                        SourceMessage = notification.Message
-                    },
-                    cancellationToken);
-
-                return;
-            }
-
-            // Error logging and response handled by the null condition below.
-            caughtException = ex;
+            _log.TranslationFailure(ex);
+            outcome = new ProviderFailure("Translation failed.", Cause: ex);
         }
 
-        if (translationResult is null)
-        {
-            // TranslationFailureException already logs an error message.
-            if (caughtException is not TranslationFailureException)
-            {
-                _log.TranslationFailure(caughtException);
-            }
+        var sameText = outcome.Value is TranslationResult { TranslatedText: var translatedText }
+            && translatedText == sanitizedMessage;
 
-            await _sender.Send(
-                new SendTempReply
-                {
-                    Text = $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
-                    ReactionInfo = notification.ReactionInfo,
-                    SourceMessage = notification.Message
-                },
-                cancellationToken);
-
-            return;
-        }
-
-        if (translationResult.TranslatedText == sanitizedMessage)
+        if (sameText)
         {
             _log.FailureToDetectSourceLanguage();
-
-            await _sender.Send(
-                new SendTempReply
-                {
-                    Text =
-                        $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.",
-                    ReactionInfo = notification.ReactionInfo,
-                    SourceMessage = notification.Message
-                },
-                cancellationToken);
-
-            return;
         }
 
-        // Send the reply message. Note: we can't send an ephemeral message as those are only for command interactions.
+        if (outcome.Value is UnsupportedTargetLanguage unsupported)
+        {
+            _log.LanguageNotSupportedForCountry(unsupported.ProviderName, country.Name);
+        }
+
+#pragma warning disable CA1508 // The analyzer does not track union case patterns.
+        var (text, deletionDelay) = outcome switch
+        {
+            TranslationResult when sameText => (
+                $"{NeoSmart.Unicode.Emoji.Warning} Couldn't detect the source language to translate from or the result is the same.",
+                FailureReplyDeletionDelay),
+            TranslationResult result => (
+                _messageHelper.BuildTranslationReplyWithReference(
+                    notification.Message,
+                    result,
+                    notification.ReactionInfo.UserId),
+                TempReplyDeletionDelay),
+            UnsupportedTargetLanguage(var providerName) => (
+                $"{NeoSmart.Unicode.Emoji.NoEntry} Target language isn't supported by {providerName} for {country.Name}.",
+                FailureReplyDeletionDelay),
+            ProviderFailure => (
+                $"{NeoSmart.Unicode.Emoji.Warning} Failed to translate text. Please try again.",
+                FailureReplyDeletionDelay),
+            null => throw new InvalidOperationException("The translation factory returned an empty outcome.")
+        };
+#pragma warning restore CA1508
+
+        // Reactions can't receive ephemeral replies, so send a temporary message instead.
         await _sender.Send(
             new SendTempReply
             {
-                Text = _messageHelper.BuildTranslationReplyWithReference(
-                    notification.Message,
-                    translationResult,
-                    notification.ReactionInfo.UserId),
+                Text = text,
                 ReactionInfo = notification.ReactionInfo,
                 SourceMessage = notification.Message,
-                DeletionDelay = TempReplyDeletionDelay
+                DeletionDelay = deletionDelay
             },
             cancellationToken);
     }
@@ -195,13 +169,13 @@ internal sealed partial class TranslateByCountryFlagEmojiReactionHandler
         public partial void EmptySourceMessage();
 
         [LoggerMessage(Level = LogLevel.Error, Message = "Failed to translate text.")]
-        public partial void TranslationFailure(Exception? ex);
+        public partial void TranslationFailure(Exception ex);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
             Message =
                 "Target language code not supported. Provider {providerName} doesn't support the language code or the country {countryName} has no mapping for the language code.")]
-        public partial void LanguageNotSupportedForCountry(Exception ex, string providerName, string countryName);
+        public partial void LanguageNotSupportedForCountry(string providerName, string countryName);
 
         [LoggerMessage(
             Level = LogLevel.Warning,
