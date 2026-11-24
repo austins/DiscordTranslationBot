@@ -3,6 +3,7 @@ using DiscordTranslationBot.Providers.Translation.LibreTranslate;
 using Refit;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.Unicode;
 
 namespace DiscordTranslationBot.Providers.Translation;
@@ -12,11 +13,14 @@ namespace DiscordTranslationBot.Providers.Translation;
 /// </summary>
 internal static class TranslationProviderExtensions
 {
-    private static readonly RefitSettings RefitSettings = new()
+    internal static readonly RefitSettings RefitSettings = new()
     {
         ContentSerializer = new SystemTextJsonContentSerializer(
             new JsonSerializerOptions
             {
+                // Refit 17 no longer falls back to reflection-based JSON when the options have no resolver.
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+
                 // Ensure that all unicode characters are serialized correctly.
                 Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
             })
